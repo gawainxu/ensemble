@@ -16,7 +16,6 @@ def parse_option():
     parser.add_argument("--layers_to_see", type=list, default=["encoder.conv1", "encoder.layer1", "encoder.layer2",
                                                                "encoder.layer3", "encoder.layer4", "encoder.avgpool",
                                                                "head"])
-
     opt = parser.parse_args()
 
     return opt

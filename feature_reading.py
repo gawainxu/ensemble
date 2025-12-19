@@ -45,11 +45,11 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument('--datasets', type=str, default='cifar10',
+    parser.add_argument('--datasets', type=str, default='tinyimgnet',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18", choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
-    parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/ckpt_epoch_100.pth")
+    parser.add_argument("--model_path", type=str, default="/save/SupCon/tinyimgnet_models/tinyimgnet_resnet18_trail_0_128_0.005_256/last.pth")
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -62,7 +62,7 @@ def parse_option():
                                                                "encoder.layer3", "encoder.layer4", "encoder.avgpool", "head"])
 
     # temperature
-    parser.add_argument('--temp', type=float, default=0.05, help='temperature for loss')
+    parser.add_argument('--temp', type=float, default=0.005, help='temperature for loss')
     parser.add_argument("--architecture", type=str, default="single", choices=["single", "multi"])
     parser.add_argument("--ensemble_num", type=int, default=1)
     parser.add_argument("--feat_dim", type=int, default=128)
