@@ -195,7 +195,7 @@ def set_optimizer(opt, model):
     return optimizer
 
 
-def save_model(model, linear, optimizer, opt, epoch, save_file):
+def save_model(model, optimizer, opt, epoch, save_file, linear=None):
     print('==> Saving...')
     if linear is not None:
         state = {

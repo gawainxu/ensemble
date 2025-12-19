@@ -16,15 +16,12 @@ from torchvision import transforms, datasets
 from util import TwoCropTransform, AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model, label_convert
-from dataUtil import mixup_positive_features, mixup_negative_features, vanilla_mixup
-from dataUtil import num_inlier_classes_mapping, mixup_hybrid_features
-from networks.resnet_big import SupConResNet, LinearClassifier
+from dataUtil import num_inlier_classes_mapping, get_train_datasets
+from networks.resnet_big import SupConResNet
 from networks.simCNN import simCNN_contrastive
 from networks.resnet_preact import SupConpPreactResNet
 from networks.mlp import SupConMLP
 from losses import SupConLoss
-from loss_mixup import SupConLoss_mix
-from dataUtil import get_train_datasets, mixup_negative
 
 import matplotlib
 matplotlib.use('Agg')
@@ -113,7 +110,7 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name += 'trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp) + "_" + str(opt.batch_size)
+    opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp) + "_" + str(opt.batch_size)
 
     # warm-up for large-batch training,
     if opt.batch_size > 256:
@@ -165,15 +162,7 @@ def set_model(opt):
         model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
     if opt.last_model_path is not None:
-        ckpt = torch.load(opt.last_model_path, map_location='cpu')
-        state_dict = ckpt['model']
-
-        new_state_dict = {}
-        for k, v in state_dict.items():
-            k = k.replace("module.", "")
-            new_state_dict[k] = v
-        state_dict = new_state_dict
-        model.load_state_dict(state_dict)
+        model = load_model(opt, model)
 
     criterion = SupConLoss(temperature=opt.temp)
 
@@ -282,7 +271,6 @@ def main():
 
     # build data loader
     train_loader = set_loader(opt)
-    print("train_loader, ", train_loader.__len__())
 
     # build model and criterion
     model, criterion = set_model(opt)
@@ -291,9 +279,6 @@ def main():
     optimizer = set_optimizer(opt, model)
 
     losses = []
-
-    #save_file = os.path.join(opt.save_folder, 'first.pth')
-    #save_model(model, optimizer, opt, opt.epochs, save_file)
 
     # training routine
     for epoch in range(0, opt.epochs):
