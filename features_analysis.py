@@ -10,9 +10,9 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for feature analysis')
     
-    parser.add_argument("--feature_path1", type=str, default="./features/cifar10_resnet18_trail_0_128_0.05_256_test_known")
+    parser.add_argument("--feature_path1", type=str, default="./features/tinyimgnet_resnet18_trail_0_128_0.05_256_test_known")
     parser.add_argument("--feature_path2", type=str,
-                        default="./features/cifar10_resnet18_trail_0_128_0.05_256_test_known")
+                        default="./features/tinyimgnet_resnet18_trail_0_128_0.01_256_test_known")
     parser.add_argument("--layers_to_see", type=list, default=["encoder.conv1", "encoder.layer1", "encoder.layer2",
                                                                "encoder.layer3", "encoder.layer4", "encoder.avgpool",
                                                                "head"])
@@ -63,6 +63,8 @@ def main():
 
     sorted_features1 = sort_features(features1, opt)
     sorted_features2 = sort_features(features2, opt)
+
+    analysis(sorted_features1, sorted_features2)
 
 
 
