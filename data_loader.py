@@ -20,8 +20,7 @@ import torch.utils.data as data
 
 class iCIFAR10(CIFAR10):
     def __init__(self, root, classes=range(10), train=True, transform=None,
-                 target_transform=None, download=False, label_dict = None, last_features_list=None, 
-                 last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+                 target_transform=None, download=False, label_dict = None):
         super(iCIFAR10, self).__init__(root,
                                        train=train,
                                        transform=transform,
@@ -38,23 +37,6 @@ class iCIFAR10(CIFAR10):
                 if self.targets[i] in classes:
                     train_data.append(self.data[i])
                     train_labels.append(self.targets[i])
-
-            final_indices = []
-            if subsample_transform is not None:
-
-                #train_data, train_labels = dataUtil.sample_distance_center_mahalanobis(train_data=train_data, train_labels=train_labels, last_features=last_features, last_feature_labels=last_feature_labels, last_model=last_model,
-                #                                                                       label_dict=label_dict, num_classes=len(classes), subsample_transform=subsample_transform, ratio_in=ratio_center, ratio_out=ratio, dataset_name="cifar10")
-                for idx, (last_features, last_feature_labels) in enumerate(zip(last_features_list, last_feature_labels_list)):
-                    kept_indices = dataUtil.upsample_distance_center_mahalanobis(train_data=train_data, train_labels=train_labels, last_features=last_features, last_feature_labels=last_feature_labels, last_model=last_model,
-                                                                                 label_dict=label_dict, num_classes=len(classes), subsample_transform=subsample_transform, portion_out=portion_out, dataset_name="cifar10", 
-                                                                                 upsample_times=upsample_times, idx=idx)
-                    if idx == 0:
-                        final_indices = kept_indices
-                    else:
-                        final_indices = common_elements(final_indices, kept_indices)
-                    
-                train_data = [train_data[i] for i in final_indices] 
-                train_labels = [train_labels[i] for i in final_indices] 
 
             self.train_data = np.array(train_data)
             self.train_labels = train_labels
@@ -410,8 +392,7 @@ class TinyImagenet(Dataset):
     Defines Tiny Imagenet as for the others pytorch datasets.
     """
     def __init__(self, root, classes=range(200), train=True, transform=None,
-                 target_transform=None, download=False, label_dict = None, last_features_list=None, 
-                 last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+                 target_transform=None, download=False, label_dict = None):
         self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         self.root = root
         self.train = train
@@ -455,14 +436,6 @@ class TinyImagenet(Dataset):
             if self.targets[i] in classes:
                 train_data.append(self.data[i])
                 train_labels.append(self.targets[i])
- 
-        """
-        if subsample_transform is not None:
-            #train_data, train_labels = dataUtil.sample_distance_center_mahalanobis(train_data=train_data, train_labels=train_labels, last_features=last_features, last_feature_labels=last_feature_labels, last_model=last_model,
-            #                                                                       label_dict=label_dict, num_classes=len(classes), subsample_transform=subsample_transform, ratio_in=ratio_center, ratio_out=ratio, dataset_name="tinyimgnet")
-            train_data, train_labels = dataUtil.upsample_distance_center_mahalanobis(train_data=train_data, train_labels=train_labels, last_features=last_features, last_feature_labels=last_feature_labels, last_model=last_model,
-                                                                                     label_dict=label_dict, num_classes=len(classes), subsample_transform=subsample_transform, ratio_in=ratio_center, ratio_out=ratio, dataset_name="tinyimgnet", up_ratio=upsample_ratio)
-        """
 
         self.data = np.array(train_data)
         self.targets = train_labels
@@ -500,8 +473,7 @@ class TinyImagenet(Dataset):
 
 class customSVHN(SVHN):
 
-    def __init__(self, root, train, classes=range(10), download=False, transform = None, target_transform = None, label_dict = None, 
-                 last_features_list=None, last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+    def __init__(self, root, train, classes=range(10), download=False, transform = None, target_transform = None, label_dict = None):
         super(customSVHN, self).__init__(root=root, split=train, transform = transform, target_transform = target_transform, download=download)
     
         self.root = root
@@ -516,19 +488,6 @@ class customSVHN(SVHN):
                 if self.labels[i] in classes:
                     train_data.append(self.data[i])
                     train_labels.append(self.labels[i])
-
-            if subsample_transform is not None:
-                for idx, (last_features, last_feature_labels) in enumerate(zip(last_features_list, last_feature_labels_list)):
-                    kept_indices = dataUtil.upsample_distance_center_mahalanobis(train_data=train_data, train_labels=train_labels, last_features=last_features, last_feature_labels=last_feature_labels, last_model=last_model,
-                                                                                 label_dict=label_dict, num_classes=len(classes), subsample_transform=subsample_transform, portion_out=portion_out, dataset_name="cifar10", 
-                                                                                 upsample_times=upsample_times, idx=idx)
-                    if idx == 0:
-                        final_indices = kept_indices
-                    else:
-                        final_indices = common_elements(final_indices, kept_indices)
-                    
-                train_data = [train_data[i] for i in final_indices] 
-                train_labels = [train_labels[i] for i in final_indices] 
 
             self.train_data = np.array(train_data)
             self.train_labels = train_labels
@@ -600,8 +559,7 @@ class CUB(Dataset):
 
     def __init__(self, root, classes=range(200), download=False,
                  train=True, transform=None, target_transform=None,
-                 label_dict=None, last_features=None, last_feature_labels=None, 
-                 last_model=None, subsample_transform=None, ratio=0.8):
+                 label_dict=None):
         
         self.root = root
         self.transform = transform
@@ -655,10 +613,6 @@ class CUB(Dataset):
                 img = self.loader(self.root + images_folder + path)
                 self.train_data.append(img)
                 self.train_labels.append(label)
-            
-            if subsample_transform is not None:
-                self.train_data, self.train_labels = sample_distance_center_mahalanobis(self.train_data, self.train_labels, last_features, 
-                                                                                        last_feature_labels, len(classes), subsample_transform, ratio=ratio)
                                                                                         
         else:
             self.test_data = []
@@ -729,8 +683,7 @@ class Aircraft(VisionDataset):
     img_folder = os.path.join('fgvc-aircraft-2013b', 'data', 'images')
 
     def __init__(self, root, train=True, classes=range(100), download=False,  transform=None,
-                 target_transform=None, label_dict = None, last_features=None, last_feature_labels=None, 
-                 last_model=None, subsample_transform=None, ratio=0.8, class_type='variant'):
+                 target_transform=None, label_dict = None, class_type='variant'):
 
         super(Aircraft, self).__init__(root, transform=transform, target_transform=target_transform)
         split = 'trainval' if train else 'test'
@@ -759,9 +712,6 @@ class Aircraft(VisionDataset):
         self.total_classes = total_classes
         self.class_to_idx = class_to_idx
 
-        if subsample_transform is not None:
-            self.samples, self.targets = sample_distance_center_mahalanobis(self.samples, self.targets, last_features, 
-                                                                            last_feature_labels, len(classes), subsample_transform, ratio=ratio)
 
     def __getitem__(self, index):
         sample, target = self.samples[index], self.targets[index]
