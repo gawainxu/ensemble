@@ -1,6 +1,8 @@
 import pickle
 import argparse
 import numpy as np
+import torch
+
 from util import CKA, linear_CKA
 
 
@@ -8,46 +10,60 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for feature analysis')
     
-    parser.add_argument("--feature_path", type=str, default="./features1/cifar10_resnet18_temp_0.05_tau_strategy_fixed_id_0_lr_0.001_bz_256_epoch_")
-    parser.add_argument("--epoch_start", type=int, default=0)
-    parser.add_argument("--epoch_end", type=int, default=1)
-    parser.add_argument("--epoch_step", type=int, default=1)
-    parser.add_argument("--output_file", type=str, default="./ss1")
+    parser.add_argument("--feature_path1", type=str, default="./features/cifar10_resnet18_trail_0_128_0.05_256_test_known")
+    parser.add_argument("--feature_path2", type=str,
+                        default="./features/cifar10_resnet18_trail_0_128_0.05_256_test_known")
+    parser.add_argument("--layers_to_see", type=list, default=["encoder.conv1", "encoder.layer1", "encoder.layer2",
+                                                               "encoder.layer3", "encoder.layer4", "encoder.avgpool",
+                                                               "head"])
 
     opt = parser.parse_args()
 
     return opt
 
 
+def sort_features(features, opt):
+
+    sorted_features = dict()
+    for k in opt.layers_to_see:
+        sorted_features[k] = []
+    features_len = len(features)
+
+    for i in range(features_len):
+        for k in features[i].keys():
+            sorted_features[k].append(features[i][k].numpy())
+
+    for k in sorted_features.keys():
+        sorted_features[k] = np.concatenate(sorted_features[k])
+
+    return sorted_features
+
+
+def analysis(sorted_features1, sorted_features2):
+
+    for k in sorted_features1.keys():
+        f1 = sorted_features1[k]
+        f2 = sorted_features2[k]
+        f1 = np.reshape(f1, (f1.shape[0], -1))
+        f2 = np.reshape(f2, (f2.shape[0], -1))
+
+        cka = CKA(f1, f2)
+        print(k, cka)
+
+
+
+
 def main():
     
     opt = parse_option()
-    ss = []
 
-    for epoch in range(opt.epoch_start, opt.epoch_end, opt.epoch_step):
-        
-        epoch1 = epoch
-        epoch2 = epoch + opt.epoch_step
-        feature_path1 = opt.feature_path + str(epoch1)
-        feature_path2 = opt.feature_path + str(epoch2)
+    with open(opt.feature_path1, "rb") as f:
+        features1, labels1 = pickle.load(f)
+    with open(opt.feature_path2, "rb") as f:
+        features2, labels2 = pickle.load(f)
 
-        with open(feature_path1, "rb") as f:
-            features1, _, _, labels1 = pickle.load(f)
-
-        with open(feature_path2, "rb") as f:
-            features2, _, _, labels2 = pickle.load(f)
-
-        features1 = np.squeeze(features1)
-        features2 = np.squeeze(features2)
-        #features1 = features1[:-1:10]
-        #features2 = features2[:-1:10]
-
-        s = linear_CKA(features1, features2)
-        print("epoch: ", epoch, s)
-        ss.append((epoch, s))
-
-    with open(opt.output_file, "wb") as f:
-        pickle.dump(ss, f)
+    sorted_features1 = sort_features(features1, opt)
+    sorted_features2 = sort_features(features2, opt)
 
 
 
