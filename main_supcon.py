@@ -65,6 +65,7 @@ def parse_option():
 
     # model dataset
     parser.add_argument('--model', type=str, default='resnet18', choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
+    parser.add_argument("--last_model_path", type=str, default=None)
     parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cub", "aircraft"], help='dataset')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
@@ -136,7 +137,6 @@ def parse_option():
 
     return opt
 
-
 def set_loader(opt):
     # construct data loader
 
@@ -164,6 +164,17 @@ def set_model(opt):
     else:
         model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
+    if opt.last_model_path is not None:
+        ckpt = torch.load(opt.last_model_path, map_location='cpu')
+        state_dict = ckpt['model']
+
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            k = k.replace("module.", "")
+            new_state_dict[k] = v
+        state_dict = new_state_dict
+        model.load_state_dict(state_dict)
+
     criterion = SupConLoss(temperature=opt.temp)
 
     # enable synchronized Batch Normalization
@@ -178,7 +189,6 @@ def set_model(opt):
         cudnn.benchmark = True
 
     return model, criterion
-
 
 
 def load_model(opt, model=None):
