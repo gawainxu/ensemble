@@ -15,7 +15,7 @@ def parse_option():
                         default="./features/tinyimgnet_resnet18_trail_0_128_0.01_256_test_known")
     parser.add_argument("--layers_to_see", type=list, default=["encoder.layer2",
                                                                "encoder.layer3", "encoder.layer4", "encoder.avgpool",
-                                                               "head"])   #"encoder.conv1", "encoder.layer1", 
+                                                               "head"])   #"encoder.conv1", "encoder.layer1",
     opt = parser.parse_args()
 
     return opt
@@ -29,7 +29,7 @@ def sort_features(features, opt):
     features_len = len(features)
 
     for i in range(features_len):
-        for k in features[i].keys():
+        for k in opt.layers_to_see:
             sorted_features[k].append(features[i][k].numpy())
 
     for k in sorted_features.keys():
