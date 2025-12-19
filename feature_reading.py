@@ -49,7 +49,7 @@ def parse_option():
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18", choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
-    parser.add_argument("--model_path", type=str, default="\\save\\cifar10_resnet18_original_data__mixup_vanilla_reverse_alpha_0.1_beta_0.1_alfa_1_SimCLR_1.0_trail_0_128\\last.pth")
+    parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/ckpt_epoch_100.pth")
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -58,44 +58,18 @@ def parse_option():
     parser.add_argument('--method', type=str, default='SupCon',
                         choices=['SupCon', 'SimCLR'], help='choose method')
     parser.add_argument("--feature_save", type=str, default="/features/")
+    parser.add_argument("--layers_to_see", type=list, default=["encoder.conv1", "encoder.layer1", "encoder.layer2",
+                                                               "encoder.layer3", "encoder.layer4", "encoder.avgpool", "head"])
 
     # temperature
     parser.add_argument('--temp', type=float, default=0.05, help='temperature for loss')
-    parser.add_argument('--temp1', type=float, default=0.05, help='temperature for loss function late')
-    parser.add_argument('--temp2', type=float, default=0.01, help='temperature for loss function early')
-    parser.add_argument("--lam", type=float, default=1.0)
-
-    parser.add_argument("--epoch", type=int, default = 400)
-    parser.add_argument("--tau_strategy", type=str, default="fixed", choices=["fixed", "fixed_set", "fixed_set_diff", "cosine", "linear", "exp"])
-    parser.add_argument("--cosine_period", type=float, default=1.0)
-    parser.add_argument("--augmentation_method", type=str, default="vanilia", choices=["vanilia", "upsampling", "mixup"])
     parser.add_argument("--architecture", type=str, default="single", choices=["single", "multi"])
     parser.add_argument("--ensemble_num", type=int, default=1)
     parser.add_argument("--feat_dim", type=int, default=128)
 
-    parser.add_argument("--lr", type=str, default=0.01)
-    parser.add_argument("--training_bz", type=int, default=400)
     parser.add_argument("--if_train", type=str, default="test_known", choices=['train', 'val', 'test_known', 'test_unknown', "full"])
     parser.add_argument('--batch_size', type=int, default=1, help='batch_size')
     parser.add_argument('--num_workers', type=int, default=4, help='num of workers to use')
-
-    # upsampling parameters
-    parser.add_argument("--upsample", type=bool, default=False)
-    parser.add_argument("--portion_out", type=float, default=0.5)
-    parser.add_argument("--upsample_times", type=int, default=1)
-    parser.add_argument("--last_feature_path", type=str, default=None)
-    parser.add_argument("--last_model_path", type=str, default=None)
-
-    # mixup parameters
-    parser.add_argument("--alpha_negative", type=float, default=0.2, help="between 0.2 to 0.4")
-    parser.add_argument("--alpha_positive", type=float, default=0.2, help="between 0.2 to 0.4")
-    parser.add_argument("--intra_inter_mix_positive", type=bool, default=True, help="intra=True, inter=False")
-    parser.add_argument("--intra_inter_mix_negative", type=bool, default=True, help="intra=True, inter=False")
-    parser.add_argument("--mixup_positive", type=bool, default=False)
-    parser.add_argument("--mixup_negative", type=bool, default=False)
-    parser.add_argument("--p", type=float, default=1.0)
-    parser.add_argument("--positive_method", type=str, default="no", choices=["min_similarity", "random", "prob_similarity", "no"])
-    parser.add_argument("--negative_method", type=str, default="no", choices=["max_similarity", "random", "no"])
 
 
     opt = parser.parse_args()
@@ -114,7 +88,7 @@ def parse_option():
         opt.model_name = opt.model_path.split("\\")[-2]
     elif platform.system() == 'Linux':
         opt.model_name = opt.model_path.split("/")[-2]
-    opt.save_path_all = opt.feature_save + opt.model_name + "_" + str(opt.epoch) + "_" + opt.if_train
+    opt.save_path_all = opt.feature_save + opt.model_name + "_" + opt.if_train
 
     opt.num_classes = num_inlier_classes_mapping[opt.datasets]
 
@@ -149,40 +123,13 @@ def load_model(opt):
     model.load_state_dict(state_dict)
     model.eval()
 
-
-    if opt.linear_model_path is not None:
-
-        linear_model = LinearClassifier(name=opt.model, num_classes=opt.n_cls)
-        ckpt = torch.load(opt.linear_model_path, map_location='cpu')
-        state_dict = ckpt['model']
-        linear_model = linear_model.cpu()
-        linear_model.load_state_dict(state_dict)
-
-        """
-        
-        new_state_dict = {}
-        for k, v in state_dict.items():
-            k = k.replace("module.", "")
-            new_state_dict[k] = v
-
-        state_dict = new_state_dict
-        linear_model = linear_model.cpu()
-        linear_model.load_state_dict(state_dict)
-        """
-
-        linear_model.eval()
-
-        return model, linear_model
-
-    else:
-        return model, None
+    return model
 
 
-def normalFeatureReading(data_loader, model, linear_model, opt):
+def normalFeatureReading_old(data_loader, model, opt):
     
     outputs_backbone = []
     outputs = []
-    outputs_linear = []
     labels = []
 
     for i, (img, label) in enumerate(data_loader):
@@ -196,27 +143,53 @@ def normalFeatureReading(data_loader, model, linear_model, opt):
         else:
             output = model.encoder(img)
 
-        if linear_model is not None:
-            linear_output = linear_model(model.encoder(img))
-            outputs.append(output.detach().numpy())
-            outputs_backbone.append(output_encoder[-1].detach().numpy())
-            outputs_linear.append(linear_output.detach().numpy())
-        else:
-            outputs.append(output.detach().numpy())
-            outputs_backbone.append(output_encoder[-1].detach().numpy())
+        outputs.append(output.detach().numpy())
+        outputs_backbone.append(output_encoder[-1].detach().numpy())
 
         labels.append(label.numpy())
 
     with open(opt.save_path, "wb") as f:
-        pickle.dump((outputs, outputs_backbone, outputs_linear, labels), f)
-        
-            
-def meanList(l):
-    
-    if len(l) == 0:
-        return 0
-    else:
-        return sum(l)*1.0 / len(l)
+        pickle.dump((outputs, outputs_backbone, labels), f)
+
+
+def normalFeatureReading(model, opt, data_loader):
+    outputs = []
+    labels = []
+
+    activation = {}
+
+    def get_activation(name):
+        def hook(model, input, output):
+            if type(output) is tuple:
+                output = output[1]
+            print("hook working!!!", name, output.shape)
+            activation[name] = output.detach()
+
+        return hook
+
+    # https://zhuanlan.zhihu.com/p/87853615
+    for name, module in model.named_modules():
+        print(name)
+        for l in opt.layers_to_see:
+            if name == l:
+                module.register_forward_hook(get_activation(name))
+
+    for i, (img, label) in enumerate(data_loader):
+
+        print(i)
+        if i > 100:
+            break
+        img = img.float()
+        activation = {}
+        hook_output = model(img)
+        if type(hook_output) is tuple:
+            hook_output = hook_output[1]
+        outputs.append(activation)
+        labels.append(label.numpy().item())
+
+    with open(opt.save_path, "wb") as f:
+        pickle.dump((outputs, labels), f)
+
 
 
 def set_data(opt, class_idx=None):
@@ -235,19 +208,19 @@ if __name__ == "__main__":
     
     opt = parse_option()
 
-    model, linear_model = load_model(opt)
+    model = load_model(opt)
     print("Model loaded!!")
     
     featurePaths= []
 
     if opt.if_train == "train" or opt.if_train == "test_known" or opt.if_train == "full":
         for r in range(0, opt.n_cls):                 
-            opt.save_path = opt.feature_save + "/temp" + str(r)
+            opt.save_path = opt.feature_save + "temp" + str(r)
             featurePaths.append(opt.save_path)
             datasets = set_data(opt, class_idx=r)
             dataloader = DataLoader(datasets, batch_size=1, shuffle=False, sampler=None, 
                                     num_workers=1)
-            normalFeatureReading(dataloader, model, linear_model, opt)
+            normalFeatureReading(model, opt, dataloader)
 
         featureMerge(featurePaths, opt)
 
@@ -258,6 +231,6 @@ if __name__ == "__main__":
             datasets = set_data(opt, class_idx=r)
             dataloader = DataLoader(datasets, batch_size=1, shuffle=False, sampler=None, 
                                     num_workers=1)
-            normalFeatureReading(dataloader, model, linear_model, opt)
+            normalFeatureReading(model, opt, dataloader)
 
          featureMerge(featurePaths, opt)
