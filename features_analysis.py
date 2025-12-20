@@ -10,12 +10,14 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for feature analysis')
     
-    parser.add_argument("--feature_path1", type=str, default="./features/tinyimgnet_resnet18_trail_0_128_0.05_256_test_known")
+    parser.add_argument("--feature_path1", type=str,
+                        default="./features/cifar10_resnet18_trail_0_128_0.05_256_test_known")
     parser.add_argument("--feature_path2", type=str,
-                        default="./features/tinyimgnet_resnet18_trail_0_128_0.01_256_test_known")
-    parser.add_argument("--layers_to_see", type=list, default=["encoder.layer2",
-                                                               "encoder.layer3", "encoder.layer4", "encoder.avgpool",
-                                                               "head"])   #"encoder.conv1", "encoder.layer1",
+                        default="./features/cifar10_resnet18_trail_0_128_0.01_256_test_known")
+    parser.add_argument("--layers_to_see", type=list, default=["encoder.layer1", "encoder.layer2", "encoder.layer3",  "encoder.layer4", "encoder.avgpool",
+                                                               "head"])   #"encoder.conv1", "encoder.layer1", "encoder.layer2",
+                                                               #"encoder.layer3", "encoder.layer4", "encoder.avgpool", "head"
+    parser.add_argument("--channel_wise", type=bool, default=False)
     opt = parser.parse_args()
 
     return opt
@@ -45,11 +47,22 @@ def analysis(sorted_features1, sorted_features2, opt):
             continue
         f1 = sorted_features1[k]
         f2 = sorted_features2[k]
-        f1 = np.reshape(f1, (f1.shape[0], -1))
-        f2 = np.reshape(f2, (f2.shape[0], -1))
-
-        cka = CKA(f1, f2)
-        print(k, cka)
+        if opt.channel_wise and "layer" in k:
+            num_channels = f1.shape[1]
+            cka = []
+            for i in range(num_channels):
+                f1_i = f1[:,i,:,:]
+                f2_i = f2[:,i,:,:]
+                f1_i = np.reshape(f1_i, (f1_i.shape[0], -1))
+                f2_i = np.reshape(f2_i, (f2_i.shape[0], -1))
+                cka_i = CKA(f1_i, f2_i)
+                cka.append(cka_i)
+            print(k, sum(cka)/len(cka))
+        else:
+            f1 = np.reshape(f1, (f1.shape[0], -1))
+            f2 = np.reshape(f2, (f2.shape[0], -1))
+            cka = CKA(f1, f2)
+            print(k, cka)
 
 
 

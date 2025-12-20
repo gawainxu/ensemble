@@ -301,7 +301,7 @@ def CKA(features1, features2):
 
     xy = xy*xy
 
-    print("xy", xy, "xx", xx, "yy", yy)
+    #print("xy", xy, "xx", xx, "yy", yy)
 
     return xy / xx / yy
 
