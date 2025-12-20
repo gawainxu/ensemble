@@ -277,9 +277,12 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
             print('Train: [{0}][{1}/{2}]\t'
                   'BT {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'DT {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                  'loss {loss.val:.3f} ({loss.avg:.3f})\t'.format(
+                  'loss {loss.val:.3f} ({loss.avg:.3f})\t'
+                  'loss1 {loss1.val:.3f} ({loss1.avg:.3f})\t'
+                  'loss2 {loss2.val:.3f} ({loss2.avg:.3f})\t'
+                   'loss3 {loss3.val:.3f} ({loss3.avg:.3f})\t'.format(
                    epoch, idx + 1, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses))
+                   data_time=data_time, loss=losses, loss1=losses1, loss2=losses2, loss3=losses3))
             sys.stdout.flush()
 
     return losses.avg
