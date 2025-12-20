@@ -296,7 +296,7 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
                    data_time=data_time, loss=losses, loss1=losses1, loss2=losses2, loss3=losses3))
             sys.stdout.flush()
 
-    return losses.avg
+    return losses.avg, losses1.avg, losses2.avg, losses3.avg
 
 
 def main():
@@ -312,6 +312,9 @@ def main():
     optimizer = set_optimizer(opt, model)
 
     losses = []
+    losses1 = []
+    losses2 = []
+    losses3 = []
 
     # training routine
     for epoch in range(0, opt.epochs):
@@ -319,11 +322,14 @@ def main():
 
         # train for one epoch
         time1 = time.time()
-        loss = train(train_loader, model, criterions, optimizer, epoch, opt)
+        loss, loss1, loss2, loss3 = train(train_loader, model, criterions, optimizer, epoch, opt)
         time2 = time.time()
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
         losses.append(loss)
+        losses1.append(loss1)
+        losses2.append(loss2)
+        losses3.append(loss3)
         if epoch % opt.save_freq == 0:
             save_file = os.path.join(
                 opt.save_folder, 'ckpt_epoch_{epoch}.pth'.format(epoch=epoch))
@@ -334,7 +340,7 @@ def main():
         opt.save_folder, 'last.pth')
     save_model(model, optimizer, opt, opt.epochs, save_file)
     with open(os.path.join(opt.save_folder, "loss_" + str(opt.trail)), "wb") as f:
-         pickle.dump(losses, f)
+         pickle.dump((losses, losses1, losses2, losses3), f)
 
 
 if __name__ == '__main__':
