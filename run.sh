@@ -1,3 +1,3 @@
-python3 feature_reading --datasets "cifar10" --trail 0 --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth"
-python3 feature_reading --datasets "cifar10" --trail 0 --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.01_256/last.pth"
-python3 feature_reading --datasets "cifar10" --trail 0 --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.005_256/last.pth"
+python3 feature_reading.py --datasets "cifar10" --trail 0 --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth"
+python3 feature_reading.py --datasets "cifar10" --trail 0 --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.01_256/last.pth"
+python3 feature_reading.py --datasets "cifar10" --trail 0 --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.005_256/last.pth"
