@@ -43,6 +43,7 @@ def sort_features(features, opt):
 def analysis(sorted_features1, sorted_features2, opt):
 
     for k in sorted_features1.keys():
+        print(k)
         if k not in opt.layers_to_see:
             continue
         f1 = sorted_features1[k]
