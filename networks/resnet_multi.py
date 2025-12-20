@@ -7,7 +7,9 @@ Adapted from: https://github.com/bearpaw/pytorch-classification
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#from torchvision.models import resnet18, resnet34, resnet50, resnet101             #
+
+
+# from torchvision.models import resnet18, resnet34, resnet50, resnet101             #
 
 
 class BasicBlock(nn.Module):
@@ -73,19 +75,43 @@ class Bottleneck(nn.Module):
             return out
 
 
-class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, in_channel=3, zero_init_residual=False):
-        super(ResNet, self).__init__()
-        self.in_planes = 64
+class SupConResNet_MultiHead(nn.Module):
+    """backbone + projection head"""
 
-        self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=3, stride=1, padding=1,
-                               bias=False)
+    def __init__(self, input_size=64, feat_dim=128, in_channels=3, zero_init_residual=False):
+        super(SupConResNet_MultiHead, self).__init__()
+        num_blocks = [2, 2, 2, 2]
+        self.in_planes = 64
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1,
+                               padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
-        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.layer1 = self._make_layer(BasicBlock, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(BasicBlock, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(BasicBlock, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(BasicBlock, 512, num_blocks[3], stride=2)
+        self.avgpool1 = nn.AdaptiveAvgPool2d((int(input_size/4), int(input_size/4)))
+        self.avgpool2 = nn.AdaptiveAvgPool2d((int(input_size/8), int(input_size/8)))
+        self.avgpool3 = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.output_head1 = nn.Sequential(
+            nn.Linear(128*int(input_size/4)*int(input_size/4),
+                      64*int(input_size/4)*int(input_size/4)),
+            nn.ReLU(inplace=True),
+            nn.Linear(64*int(input_size/4)*int(input_size/4), feat_dim)
+        )
+
+        self.output_head2 = nn.Sequential(
+            nn.Linear(256*int(input_size/8)*int(input_size/8),
+                      128*int(input_size/8)*int(input_size/8)),
+            nn.ReLU(inplace=True),
+            nn.Linear(128*int(input_size/8)*int(input_size/8), feat_dim)
+        )
+
+        self.output_head3 = nn.Sequential(
+            nn.Linear(512, 512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, feat_dim)
+        )
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -94,10 +120,6 @@ class ResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-        # Zero-initialize the last BN in each residual branch,
-        # so that the residual branch starts with zeros, and each residual block behaves
-        # like an identity. This improves the model by 0.2~0.3% according to:
-        # https://arxiv.org/abs/1706.02677
         if zero_init_residual:
             for m in self.modules():
                 if isinstance(m, Bottleneck):
@@ -114,144 +136,35 @@ class ResNet(nn.Module):
             self.in_planes = planes * block.expansion
         return nn.Sequential(*layers)
 
-    def forward(self, x, layer=100):
-        out0 = F.relu(self.bn1(self.conv1(x)))
-        out1 = self.layer1(out0)
-        out2 = self.layer2(out1)
-        out3 = self.layer3(out2)
-        out4 = self.layer4(out3)
-        out = self.avgpool(out4)
-        out = torch.flatten(out, 1)
-        return out1, out2, out3, out4, out
-
-
-def resnet18(**kwargs):
-    return ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
-
-
-def resnet34(**kwargs):
-    return ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
-
-
-def resnet50(**kwargs):
-    return ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
-
-
-def resnet101(**kwargs):
-    return ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
-
-
-
-model_dict = {
-    'resnet18': [resnet18, 512],
-    'resnet34': [resnet34, 512],
-    'resnet50': [resnet50, 2048],
-    'resnet101': [resnet101, 2048],
-}
-
-
-class remove_fc(nn.Module):
-    def __init__(self, model):
-        super(remove_fc, self).__init__()
-        self.model = model
 
     def forward(self, x):
-        x = self.model.conv1(x)
-        x = self.model.bn1(x)
-        x = self.model.relu(x)
-        x = self.model.maxpool(x)
 
-        x = self.model.layer1(x)
-        x = self.model.layer2(x)
-        x = self.model.layer3(x)
-        x = self.model.layer4(x)
-        
-        x = self.model.avgpool(x)
-        x = torch.flatten(x, 1)
-        return x
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        feat1 = self.avgpool1(out)
+        feat1 = torch.flatten(feat1, 1)
+        feat1 = self.output_head1(feat1)
+        feat1 = F.normalize(feat1, dim=1)
 
+        out = self.layer3(out)
+        feat2 = self.avgpool2(out)
+        feat2 = torch.flatten(feat2, 1)
+        feat2 = self.output_head2(feat2)
+        feat2 = F.normalize(feat2, dim=1)
 
-class LinearBatchNorm(nn.Module):
-    """Implements BatchNorm1d by BatchNorm2d, for SyncBN purpose"""
-    def __init__(self, dim, affine=True):
-        super(LinearBatchNorm, self).__init__()
-        self.dim = dim
-        self.bn = nn.BatchNorm2d(dim, affine=affine)
-
-    def forward(self, x):
-        x = x.view(-1, self.dim, 1, 1)
-        x = self.bn(x)
-        x = x.view(-1, self.dim)
-        return x
-
-
-class SupConResNet(nn.Module):
-    """backbone + projection head"""
-    def __init__(self, name='resnet18', head='mlp', feat_dim=128):
-        super(SupConResNet, self).__init__()
-        pretrained = "./pretrained/resnet18-f37072fd.pth"
-        model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
-        #self.encoder.load_state_dict(torch.load(pretrained))                 #
-        #self.encoder = nn.Sequential(*list(self.encoder.children())[:-1])    #
-        if head == 'linear':
-            self.head = nn.Linear(dim_in, feat_dim)
-        elif head == 'mlp':
-            self.head = nn.Sequential(
-                nn.Linear(dim_in, dim_in),
-                nn.ReLU(inplace=True),
-                nn.Linear(dim_in, feat_dim)
-            )
-        else:
-            raise NotImplementedError(
-                'head not supported: {}'.format(head))
-
-        self.out_conv1, self.out_conv2, self.out_fc = self.out_block(256, 128, 32, 8)
-            
-            
-    def out_block(self, in_planes, out_planes1, out_planes2, size):
-        
-        out_conv1 = nn.Conv2d(in_planes, out_planes1, kernel_size=1)
-        out_conv2 = nn.Conv2d(out_planes1, out_planes2, kernel_size=1)
-        out_fc = nn.Linear(in_features=out_planes2*size*size, out_features=512)
-
-        return out_conv1, out_conv2, out_fc
-
-
-    def forward(self, x):
-        feat = self.encoder(x)
-        feat1, feat2, feat3, feat4, feat = feat
-        feat = F.normalize(self.head(feat), dim=1)
-        feat3 = self.out_conv2(self.out_conv1(feat3))
+        out = self.layer4(out)
+        feat3 = self.avgpool3(out)
         feat3 = torch.flatten(feat3, 1)
-        feat3 = self.out_fc(feat3)
-        feat3 = F.normalize(self.head(feat3), dim=1)
-        
-        #feat = torch.cat([feat3, feat], dim=1)     # TODO cat mode
-        
-        return feat3, feat                            # in the order of from early to late
+        feat3 = self.output_head3(feat3)
+        feat3 = F.normalize(feat3, dim=1)
+
+        return feat1, feat2, feat3
 
 
-class SupCEResNet(nn.Module):
-    """encoder + classifier"""
-    def __init__(self, name='resnet18', num_classes=10):
-        super(SupCEResNet, self).__init__()
-        model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
-        self.fc = nn.Linear(dim_in, num_classes)
 
-    def forward(self, x):
-        return self.fc(self.encoder(x))
+if __name__ == "__main__":
 
-
-class LinearClassifier(nn.Module):
-    """Linear classifier"""
-    def __init__(self, name='resnet50', num_classes=10, emsembles=1):
-        super(LinearClassifier, self).__init__()
-        _, feat_dim = model_dict[name]
-        feat_dim = 128
-        feat_dim = feat_dim * emsembles
-        self.fc = nn.Linear(feat_dim, num_classes)
-
-    def forward(self, features):
-        return self.fc(features)
+    model = SupConResNet_MultiHead()
+    x = torch.ones(1, 3, 32, 32)
+    f1, f2, f3 = model(x)

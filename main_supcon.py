@@ -18,6 +18,7 @@ from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model, label_convert
 from dataUtil import num_inlier_classes_mapping, get_train_datasets
 from networks.resnet_big import SupConResNet
+from networks.resnet_multi import SupConResNet_MultiHead
 from networks.simCNN import simCNN_contrastive
 from networks.resnet_preact import SupConpPreactResNet
 from networks.mlp import SupConMLP
@@ -60,7 +61,8 @@ def parse_option():
                         help='momentum')
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet18', choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
+    parser.add_argument('--model', type=str, default='resnet_multi',
+                        choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
     parser.add_argument("--last_model_path", type=str, default=None)
     parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cub", "aircraft"], help='dataset')
@@ -80,6 +82,8 @@ def parse_option():
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
     # temperature
     parser.add_argument('--temp', type=float, default=0.05, help='temperature for loss')
+    parser.add_argument('--temp2', type=float, default=0.01, help='temperature for loss')
+    parser.add_argument('--temp3', type=float, default=0.005, help='temperature for loss')
     parser.add_argument("--clip", type=float, default=None, help="for gradient clipping")
 
     # other setting
@@ -157,6 +161,8 @@ def set_model(opt):
         model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
     elif opt.model == "MLP":
         model = SupConMLP(feat_dim=opt.feat_dim)
+    elif opt.model == "resnet_multi":
+        model = SupConResNet_MultiHead(input_size=opt.size, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
         model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
@@ -228,15 +234,29 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
         #warmup_learning_rate(opt, epoch, idx, len(train_loader), optimizer)
 
         # compute loss
-        features = model(images)
-        features1, features2 = torch.split(features, [bsz, bsz], dim=0)
-        features = torch.cat([features1.unsqueeze(1), features2.unsqueeze(1)], dim=1)
-
-        if opt.method == 'SupCon':
-            loss = criterion(features, labels)
+        if opt.model == "resnet_multi":
+            losses1 = AverageMeter()
+            losses2 = AverageMeter()
+            losses3 = AverageMeter()
+            features1, features2, features3 = model(images)
+            features1_1, features1_2 = torch.split(features1, [bsz, bsz], dim=0)
+            features2_1, features2_2 = torch.split(features2, [bsz, bsz], dim=0)
+            features3_1, features3_2 = torch.split(features3, [bsz, bsz], dim=0)
+            features1 = torch.cat([features1_1.unsqueeze(1), features1_2.unsqueeze(1)], dim=1)
+            features2 = torch.cat([features2_1.unsqueeze(1), features2_2.unsqueeze(1)], dim=1)
+            features3 = torch.cat([features3_1.unsqueeze(1), features3_2.unsqueeze(1)], dim=1)
+            loss1 = criterion(features1, labels)
+            loss2 = criterion(features2, labels)
+            loss3 = criterion(features3, labels)
+            loss = loss1 + loss2 + loss3
+            losses1.update(loss1.item(), bsz)
+            losses2.update(loss2.item(), bsz)
+            losses3.update(loss3.item(), bsz)
         else:
-            raise ValueError('contrastive method not supported: {}'.
-                             format(opt.method))
+            features = model(images)
+            features1, features2 = torch.split(features, [bsz, bsz], dim=0)
+            features = torch.cat([features1.unsqueeze(1), features2.unsqueeze(1)], dim=1)
+            loss = criterion(features, labels)
 
         # update metric
         losses.update(loss.item(), bsz)
