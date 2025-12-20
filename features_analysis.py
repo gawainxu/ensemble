@@ -61,10 +61,10 @@ def analysis(sorted_features1, sorted_features2, opt):
         else:
             f1 = np.reshape(f1, (f1.shape[0], -1))
             f2 = np.reshape(f2, (f2.shape[0], -1))
-            cka = CKA(f1, f2)
+            f1 = f1 - f1.mean(axis=0, keepdims=True)
+            f2 = f2 - f2.mean(axis=0, keepdims=True)
+            cka = linear_CKA(f1, f2)
             print(k, cka)
-
-
 
 
 def main():

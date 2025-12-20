@@ -317,10 +317,12 @@ def centering(K):
 def linear_HSIC(X, Y):
     L_X = np.matmul(X.T, X)
     L_Y = np.matmul(Y.T, Y)
+
     return np.sum(centering(L_X) * centering(L_Y))
 
 
 def linear_CKA(X, Y):
+
     hsic = linear_HSIC(X, Y)
     var1 = np.sqrt(linear_HSIC(X, X))
     var2 = np.sqrt(linear_HSIC(Y, Y))
