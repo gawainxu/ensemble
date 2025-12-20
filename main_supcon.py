@@ -82,8 +82,9 @@ def parse_option():
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
     # temperature
     parser.add_argument('--temp', type=float, default=0.05, help='temperature for loss')
+    parser.add_argument('--temp1', type=float, default=0.005, help='temperature for loss')
     parser.add_argument('--temp2', type=float, default=0.01, help='temperature for loss')
-    parser.add_argument('--temp3', type=float, default=0.005, help='temperature for loss')
+    parser.add_argument('--temp3', type=float, default=0.05, help='temperature for loss')
     parser.add_argument("--clip", type=float, default=None, help="for gradient clipping")
 
     # other setting
@@ -169,8 +170,6 @@ def set_model(opt):
     if opt.last_model_path is not None:
         model = load_model(opt, model)
 
-    criterion = SupConLoss(temperature=opt.temp)
-
     # enable synchronized Batch Normalization
     if opt.syncBN:
         model = apex.parallel.convert_syncbn_model(model)
@@ -179,10 +178,20 @@ def set_model(opt):
         if torch.cuda.device_count() > 1:
             model.encoder = torch.nn.DataParallel(model.encoder)
         model = model.cuda()
-        criterion = criterion.cuda()
         cudnn.benchmark = True
 
-    return model, criterion
+    if opt.model == "resnet_multi":
+        criterion1 = SupConLoss(temperature=opt.temp1)
+        criterion2 = SupConLoss(temperature=opt.temp2)
+        criterion3 = SupConLoss(temperature=opt.temp3)
+        criterion1 = criterion1.cuda()
+        criterion2 = criterion2.cuda()
+        criterion3 = criterion3.cuda()
+        return model, (criterion1, criterion2, criterion3)
+    else:
+        criterion = SupConLoss(temperature=opt.temp)
+        criterion = criterion.cuda()
+        return model, (criterion, None, None)
 
 
 def load_model(opt, model=None):
@@ -206,13 +215,15 @@ def load_model(opt, model=None):
 
 
 
-def train(train_loader, model, criterion, optimizer, epoch, opt):
+def train(train_loader, model, criterions, optimizer, epoch, opt):
     """one epoch training"""
     model.train()
 
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
+
+    criterion1, criterion2, criterion3 = criterions
 
     end = time.time()
     for idx, (images, labels) in enumerate(train_loader):
@@ -245,9 +256,9 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
             features1 = torch.cat([features1_1.unsqueeze(1), features1_2.unsqueeze(1)], dim=1)
             features2 = torch.cat([features2_1.unsqueeze(1), features2_2.unsqueeze(1)], dim=1)
             features3 = torch.cat([features3_1.unsqueeze(1), features3_2.unsqueeze(1)], dim=1)
-            loss1 = criterion(features1, labels)
-            loss2 = criterion(features2, labels)
-            loss3 = criterion(features3, labels)
+            loss1 = criterion1(features1, labels)
+            loss2 = criterion2(features2, labels)
+            loss3 = criterion3(features3, labels)
             loss = loss1 + loss2 + loss3
             losses1.update(loss1.item(), bsz)
             losses2.update(loss2.item(), bsz)
@@ -256,7 +267,7 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
             features = model(images)
             features1, features2 = torch.split(features, [bsz, bsz], dim=0)
             features = torch.cat([features1.unsqueeze(1), features2.unsqueeze(1)], dim=1)
-            loss = criterion(features, labels)
+            loss = criterion1(features, labels)
 
         # update metric
         losses.update(loss.item(), bsz)
@@ -295,7 +306,7 @@ def main():
     train_loader = set_loader(opt)
 
     # build model and criterion
-    model, criterion = set_model(opt)
+    model, criterions = set_model(opt)
 
     # build optimizer
     optimizer = set_optimizer(opt, model)
@@ -308,7 +319,7 @@ def main():
 
         # train for one epoch
         time1 = time.time()
-        loss = train(train_loader, model, criterion, optimizer, epoch, opt)
+        loss = train(train_loader, model, criterions, optimizer, epoch, opt)
         time2 = time.time()
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
