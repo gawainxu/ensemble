@@ -25,6 +25,7 @@ from networks.resnet_big import SupConResNet, LinearClassifier
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
 from networks.mlp import SupConMLP
+from networks.resnet_multi import SupConResNet_MultiHead
 from featureMerge import featureMerge
 from dataUtil import num_inlier_classes_mapping
 
@@ -45,32 +46,32 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument('--datasets', type=str, default='tinyimgnet',
+    parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
-    parser.add_argument('--model', type=str, default="resnet18", choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
-    parser.add_argument("--model_path", type=str, default="/save/SupCon/tinyimgnet_models/tinyimgnet_resnet18_trail_0_128_0.005_256/last.pth")
+    parser.add_argument('--model', type=str, default="resnet18",
+                        choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
+    parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_0_128_0.05_256/last.pth")
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
     parser.add_argument("--action", type=str, default="feature_reading",
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
     parser.add_argument('--method', type=str, default='SupCon',
-                        choices=['SupCon', 'SimCLR'], help='choose method')
+                        choices=['SupCon', 'multi_head'], help='choose method')
     parser.add_argument("--feature_save", type=str, default="/features/")
     parser.add_argument("--layers_to_see", type=list, default=["encoder.conv1", "encoder.layer1", "encoder.layer2",
                                                                "encoder.layer3", "encoder.layer4", "encoder.avgpool", "head"])
 
     # temperature
     parser.add_argument('--temp', type=float, default=0.005, help='temperature for loss')
-    parser.add_argument("--architecture", type=str, default="single", choices=["single", "multi"])
     parser.add_argument("--ensemble_num", type=int, default=1)
     parser.add_argument("--feat_dim", type=int, default=128)
 
     parser.add_argument("--if_train", type=str, default="test_known", choices=['train', 'val', 'test_known', 'test_unknown', "full"])
     parser.add_argument('--batch_size', type=int, default=1, help='batch_size')
     parser.add_argument('--num_workers', type=int, default=4, help='num of workers to use')
-
+    parser.add_argument("--use_hook", type=bool, default=False)
 
     opt = parser.parse_args()
 
@@ -108,6 +109,8 @@ def load_model(opt):
         model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
     elif opt.model == "MLP":
         model = SupConMLP(feat_dim=opt.feat_dim)
+    elif opt.model == "resnet_multi":
+        model = SupConResNet_MultiHead(input_size=opt.size, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
         model = simCNN_contrastive(opt,  feature_dim=opt.feat_dim, in_channels=in_channels)
     ckpt = torch.load(opt.model_path, map_location='cpu')
@@ -126,7 +129,7 @@ def load_model(opt):
     return model
 
 
-def normalFeatureReading_old(data_loader, model, opt):
+def normalFeatureReading_normal(model, opt, data_loader):
     
     outputs_backbone = []
     outputs = []
@@ -140,11 +143,14 @@ def normalFeatureReading_old(data_loader, model, opt):
 
         if opt.method == "SupCon":
             output, output_encoder = model(img)[0], model.encoder(img)
+            outputs.append(output.detach().numpy())
+            outputs_backbone.append(output_encoder[-1].detach().numpy())
+        elif opt.method == "multi_head":
+            output = model(img)
+            outputs.append(output)
         else:
             output = model.encoder(img)
-
-        outputs.append(output.detach().numpy())
-        outputs_backbone.append(output_encoder[-1].detach().numpy())
+            outputs.append(output)
 
         labels.append(label.numpy())
 
@@ -152,7 +158,7 @@ def normalFeatureReading_old(data_loader, model, opt):
         pickle.dump((outputs, outputs_backbone, labels), f)
 
 
-def normalFeatureReading(model, opt, data_loader):
+def normalFeatureReading_hook(model, opt, data_loader):
     outputs = []
     labels = []
 
@@ -188,8 +194,7 @@ def normalFeatureReading(model, opt, data_loader):
         labels.append(label.numpy().item())
 
     with open(opt.save_path, "wb") as f:
-        pickle.dump((outputs, labels), f)
-
+        pickle.dump((outputs, [], labels), f)  # [] is placeholder to alignwith other settings
 
 
 def set_data(opt, class_idx=None):
@@ -220,7 +225,10 @@ if __name__ == "__main__":
             datasets = set_data(opt, class_idx=r)
             dataloader = DataLoader(datasets, batch_size=1, shuffle=False, sampler=None, 
                                     num_workers=1)
-            normalFeatureReading(model, opt, dataloader)
+            if opt.use_hook:
+                normalFeatureReading_hook(model, opt, dataloader)
+            else:
+                normalFeatureReading_normal(model, opt, dataloader)
 
         featureMerge(featurePaths, opt)
 
@@ -231,6 +239,9 @@ if __name__ == "__main__":
             datasets = set_data(opt, class_idx=r)
             dataloader = DataLoader(datasets, batch_size=1, shuffle=False, sampler=None, 
                                     num_workers=1)
-            normalFeatureReading(model, opt, dataloader)
+            if opt.use_hook:
+                normalFeatureReading_hook(model, opt, dataloader)
+            else:
+                normalFeatureReading_normal(model, opt, dataloader)
 
          featureMerge(featurePaths, opt)
