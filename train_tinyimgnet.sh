@@ -1,2 +1,3 @@
-python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi" --size 64 --datasets "tinyimgnet" --method "SupCon" --trail 0 --temp1 0.005 --temp2 0.01 --temp3 0.05
-python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi"  --size 64 --datasets "tinyimgnet" --method "SupCon" --trail 2 --temp1 0.005 --temp2 0.01 --temp3 0.05
+#python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi" --size 64 --datasets "tinyimgnet" --method "SupCon" --trail 0 --temp1 0.005 --temp2 0.01 --temp3 0.05
+#python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi"  --size 64 --datasets "tinyimgnet" --method "SupCon" --trail 2 --temp1 0.005 --temp2 0.01 --temp3 0.05
+python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi"  --size 64 --datasets "tinyimgnet" --method "SupCon" --trail 1 --temp1 0.005 --temp2 0.01 --temp3 0.05
