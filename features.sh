@@ -1,16 +1,11 @@
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth" --if_train "train" --method 'SupCon' --feature_save "/features/"
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth" --if_train "test_known" --method 'SupCon' --feature_save "/features/"
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth" --if_train "test_unknown" --method 'SupCon' --feature_save "/features/"
-
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.01_256/last.pth" --if_train "train" --method 'SupCon' --feature_save "/features/"
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.01_256/last.pth" --if_train "test_known" --method 'SupCon' --feature_save "/features/"
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.01_256/last.pth" --if_train "test_unknown" --method 'SupCon' --feature_save "/features/"
-
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.005_256/last.pth" --if_train "train" --method 'SupCon' --feature_save "/features/"
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.005_256/last.pth" --if_train "test_known" --method 'SupCon' --feature_save "/features/"
-python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.005_256/last.pth" --if_train "test_unknown" --method 'SupCon' --feature_save "/features/"
-
+#python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth" --if_train "train" --method 'SupCon' --feature_save "/features/"
+#python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth" --if_train "test_known" --method 'SupCon' --feature_save "/features/"
+#python3 feature_reading.py --datasets "cifar10" --trail 0 --size 32 --model "resnet18" --model_path "/save/SupCon/cifar10_models/cifar10_resnet18_trail_0_128_0.05_256/last.pth" --if_train "test_unknown" --method 'SupCon' --feature_save "/features/"
 
 #python3 feature_reading.py --datasets "cifar10" --trail 4 --size 32 --model "resnet_multi" --model_path "/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_4_128_0.005_0.01_0.05_256/last.pth" --if_train "train" --method 'multi_head' --feature_save "/features/"
 #python3 feature_reading.py --datasets "cifar10" --trail 4 --size 32 --model "resnet_multi" --model_path "/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_4_128_0.005_0.01_0.05_256/last.pth" --if_train "test_known" --method 'multi_head' --feature_save "/features/"
 #python3 feature_reading.py --datasets "cifar10" --trail 4 --size 32 --model "resnet_multi" --model_path "/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_4_128_0.005_0.01_0.05_256/last.pth" --if_train "test_unknown" --method 'multi_head' --feature_save "/features/"
+
+python3 feature_reading.py --datasets "tinyimgnet" --trail 3 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_3_128_0.005_0.01_0.05_256/last.pth" --if_train "train" --method 'multi_head' --feature_save "/features2/"
+python3 feature_reading.py --datasets "tinyimgnet" --trail 3 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_3_128_0.005_0.01_0.05_256/last.pth" --if_train "test_known" --method 'multi_head' --feature_save "/features2/"
+python3 feature_reading.py --datasets "tinyimgnet" --trail 3 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_3_128_0.005_0.01_0.05_256/last.pth" --if_train "test_unknown" --method 'multi_head' --feature_save "/features2/"
