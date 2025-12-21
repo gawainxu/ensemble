@@ -13,20 +13,22 @@ import numpy as np
 
 def featureMerge(featureList, opt):
     
-    featureMaps = []
+    head_features = []
+    encoder_features = []
     labels = []
     print(opt.save_path_all)
 
     for featurePath in featureList:
         
         with open(featurePath, "rb") as f:
-            features, labels_part = pickle.load(f)
+            head_feature, encoder_feature, labels_part = pickle.load(f)
 
-        featureMaps = featureMaps + features
+        head_features = head_features + head_feature
+        encoder_features = encoder_features + encoder_feature
         labels = labels + labels_part
 
     labels = np.squeeze(np.array(labels))
     
     with open(opt.save_path_all, 'wb') as f:
-        pickle.dump((featureMaps, labels), f)
+        pickle.dump((head_features, encoder_features, labels), f)
         
