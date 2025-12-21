@@ -72,8 +72,8 @@ def parse_option():
     parser.add_argument("--split_train_val", type=bool, default=True)
     parser.add_argument("--action", type=str, default="testing_known",
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
-    parser.add_argument('--method', type=str, default='SupCon',
-                        choices=['SupCon', 'SimCLR'], help='choose method')
+    parser.add_argument('--method', type=str, default='multi_head',
+                        choices=['SupCon', 'multi_head'], help='choose method')
     parser.add_argument("--temp", type=str, default = 0.5)
     parser.add_argument("--lr", type=str, default=0.001)
     parser.add_argument("--training_bz", type=int, default=200)
@@ -376,86 +376,126 @@ def distance_classifier(testing_features, testing_labels, sorted_training_featur
     return dis_logits_in, dis_logits_out, dis_preds, acc
 
 
+def sort_multiheadfeatures(multiheadfeatures):
+
+    features_len = len(multiheadfeatures)
+    sorted_features = []
+    for i in range(features_len):
+        f1, f2, f3 = multiheadfeatures[i]
+        f1, f2, f3 = torch.squeeze(f1), torch.squeeze(f2), torch.squeeze(f3)
+        feature_ensemble = torch.cat((f1, f2, f3))
+        sorted_features.append(feature_ensemble.numpy())
+
+    return sorted_features
+
+
 def feature_classifier(opt):
 
     with open(opt.exemplar_features_path, "rb") as f:
-        features_exemplar_backbone, _, _, labels_examplar = pickle.load(f)
-        #_, features_exemplar_backbone, _, labels_examplar = pickle.load(f)         
-        features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
+        features_exemplar_head, _, labels_examplar = pickle.load(f)
+        labels_examplar = np.squeeze(np.array(labels_examplar))
+        if "multi_head" in opt.method:
+            features_exemplar_head = sort_multiheadfeatures(features_exemplar_head)
+        else:
+            features_exemplar_head = np.squeeze(np.array(features_exemplar_head))
 
     if opt.exemplar_features_path1 is not None:
-        with open(opt.exemplar_features_path1, "rb") as f:       # !!!!!!!!
-            features_exemplar_backbone1, _, _, labels_examplar1 = pickle.load(f)         #
-            #_, features_exemplar_backbone, _, labels_examplar = pickle.load(f)         #
-            features_exemplar_backbone1 = np.squeeze(np.array(features_exemplar_backbone1))
-        features_exemplar_backbone = np.concatenate((features_exemplar_backbone, features_exemplar_backbone1), axis=1)
+        with open(opt.exemplar_features_path1, "rb") as f:
+            features_exemplar_head1, _, labels_examplar1 = pickle.load(f)
+            labels_examplar1 = np.squeeze(np.array(labels_examplar1))
+        if "multi_head" in opt.method:
+            features_exemplar_head1 = sort_multiheadfeatures(features_exemplar_head1)
+        else:
+            features_exemplar_head1 = np.squeeze(np.array(features_exemplar_head1))
+            features_exemplar_head= np.concatenate((features_exemplar_head, features_exemplar_head1), axis=1)
+            labels_examplar = np.concatenate((labels_examplar, labels_examplar1), axis=1)
     
     if opt.exemplar_features_path2 is not None:
-        with open(opt.exemplar_features_path2, "rb") as f:       # !!!!!!!!
-            features_exemplar_backbone2, _, _, labels_examplar2 = pickle.load(f)         #
-            #_, features_exemplar_backbone, _, labels_examplar = pickle.load(f)         #
-            features_exemplar_backbone2 = np.squeeze(np.array(features_exemplar_backbone2))
-        features_exemplar_backbone = np.concatenate((features_exemplar_backbone, features_exemplar_backbone2), axis=1)
+        with open(opt.exemplar_features_path2, "rb") as f:
+            features_exemplar_head2, _, labels_examplar2 = pickle.load(f)
+            labels_examplar2 = np.squeeze(np.array(labels_examplar2))
+        if "multi_head" in opt.method:
+            features_exemplar_head2 = sort_multiheadfeatures(features_exemplar_head2)
+        else:
+            features_exemplar_head2 = np.squeeze(np.array(features_exemplar_head2))
+            features_exemplar_head = np.concatenate((features_exemplar_head, features_exemplar_head2), axis=1)
+            labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=1)
 
-    sorted_features_examplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
-    #print("features sorted!!!!")
+    sorted_features_exemplar_head = sortFeatures(features_exemplar_head, labels_examplar, opt)
+
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            features_testing_known_backbone, _, _, labels_testing_known = pickle.load(f) 
-            #_, features_testing_known_backbone, _, labels_testing_known = pickle.load(f)           
-            features_testing_known_backbone = np.squeeze(np.array(features_testing_known_backbone))
+            features_testing_known_head, _, labels_testing_known = pickle.load(f)
             labels_testing_known = np.squeeze(np.array(labels_testing_known))
+            if "multi_head" in opt.method:
+                features_testing_known_head = sort_multiheadfeatures(features_testing_known_head)
+            else:
+                features_testing_known_head = np.squeeze(np.array(features_testing_known_head))
     
     if opt.testing_known_features_path1 is not None:
-        with open(opt.testing_known_features_path1, "rb") as f:             # !!!!!!!!
-            features_testing_known_backbone1, _, _, labels_testing_known1 = pickle.load(f)           #
-            #_, features_testing_known_backbone, _, labels_testing_known = pickle.load(f)           #
-            features_testing_known_backbone1 = np.squeeze(np.array(features_testing_known_backbone1))
+        with open(opt.testing_known_features_path1, "rb") as f:
+            features_testing_known_head1, _, _, labels_testing_known1 = pickle.load(f)
             labels_testing_known1 = np.squeeze(np.array(labels_testing_known1))
-        features_testing_known_backbone = np.concatenate((features_testing_known_backbone, features_testing_known_backbone1), axis=1)
+        if "multi_head" in opt.method:
+            features_testing_known_head1 = sort_multiheadfeatures(features_testing_known_head1)
+        else:
+            features_testing_known_head1 = np.squeeze(np.array(features_testing_known_head1))
+            features_testing_known_head1 = np.concatenate((features_testing_known_head, features_testing_known_head1), axis=1)
+            labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known1), axis=1)
 
     if opt.testing_known_features_path2 is not None:
-        with open(opt.testing_known_features_path2, "rb") as f:             # !!!!!!!!
-            features_testing_known_backbone2, _, _, labels_testing_known2 = pickle.load(f)           #
-            #_, features_testing_known_backbone, _, labels_testing_known = pickle.load(f)           #
-            features_testing_known_backbone2 = np.squeeze(np.array(features_testing_known_backbone2))
+        with open(opt.testing_known_features_path2, "rb") as f:
+            features_testing_known_head2, _, labels_testing_known2 = pickle.load(f)
             labels_testing_known2 = np.squeeze(np.array(labels_testing_known2))
-        features_testing_known_backbone = np.concatenate((features_testing_known_backbone, features_testing_known_backbone2), axis=1)
+        if "multi_head" in opt.method:
+            features_testing_known_head2 = sort_multiheadfeatures(features_testing_known_head2)
+        else:
+            features_testing_known_head2 = np.squeeze(np.array(features_testing_known_head2))
+            features_testing_known_head = np.concatenate((features_testing_known_head, features_testing_known_head2), axis=1)
+            labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known2), axis=1)
 
-    features_testing_known_backbone, labels_testing_known = down_sampling(features_testing_known_backbone, labels_testing_known, opt.downsampling_ratio_known)
-    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_backbone, labels_testing_known, sorted_features_examplar_backbone)
-    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(features_testing_known_backbone, labels_testing_known, sorted_features_examplar_backbone)
+
+    features_testing_known_head, labels_testing_known = down_sampling(features_testing_known_head, labels_testing_known, opt.downsampling_ratio_known)
+    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_head, labels_testing_known, sorted_features_exemplar_head)
+    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(features_testing_known_head, labels_testing_known, sorted_features_exemplar_head)
 
 
     with open(opt.testing_unknown_features_path, "rb") as f:
-        features_testing_unknown_backbone, _, _, labels_testing_unknown = pickle.load(f)          
-        #_, features_testing_unknown_backbone, _, labels_testing_unknown = pickle.load(f)    
-        features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
+        features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
         labels_testing_unknown = np.squeeze(np.array(labels_testing_unknown))
+    if "multi_head" in opt.method:
+        features_testing_unknown_head = sort_multiheadfeatures(features_testing_unknown_head)
+    else:
+        features_testing_unknown_head = np.squeeze(np.array(features_testing_unknown_head))
         
 
     if opt.testing_unknown_features_path1 is not None:
-        with open(opt.testing_unknown_features_path1, "rb") as f:               # !!!!!!!!
-            features_testing_unknown_backbone1, _, _, labels_testing_unknown1 = pickle.load(f)            #
-            #_, features_testing_unknown_backbone, _, labels_testing_unknown = pickle.load(f)            #
-            features_testing_unknown_backbone1 = np.squeeze(np.array(features_testing_unknown_backbone1))
+        with open(opt.testing_unknown_features_path1, "rb") as f:
+            features_testing_unknown_head1, _, _, labels_testing_unknown1 = pickle.load(f)
             labels_testing_unknown1 = np.squeeze(np.array(labels_testing_unknown1))
-            #print("features_testing_known_backbone1", features_testing_unknown_backbone1.shape)
-        features_testing_unknown_backbone = np.concatenate((features_testing_unknown_backbone, features_testing_unknown_backbone1), axis=1)
+        if "multi_head" in opt.method:
+            features_testing_unknown_head1 = sort_multiheadfeatures(features_testing_unknown_head1)
+        else:
+            features_testing_unknown_head1 = np.squeeze(np.array(features_testing_unknown_head1))
+            features_testing_unknown_head = np.concatenate((features_testing_known_head, features_testing_unknown_head1),axis=1)
+            labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown1), axis=1)
     
     if opt.testing_unknown_features_path2 is not None:
-        with open(opt.testing_unknown_features_path2, "rb") as f:               # !!!!!!!!
-            features_testing_unknown_backbone2, _, _, labels_testing_unknown2 = pickle.load(f)            #
-            #_, features_testing_unknown_backbone, _, labels_testing_unknown = pickle.load(f)            #
-            features_testing_unknown_backbone2 = np.squeeze(np.array(features_testing_unknown_backbone2))
+        with open(opt.testing_unknown_features_path2, "rb") as f:
+            features_testing_unknown_head2, _, _, labels_testing_unknown2 = pickle.load(f)
             labels_testing_unknown2 = np.squeeze(np.array(labels_testing_unknown2))
-            #print("features_testing_known_backbone2", features_testing_unknown_backbone2.shape)
-        features_testing_unknown_backbone = np.concatenate((features_testing_unknown_backbone, features_testing_unknown_backbone2), axis=1)
+        if "multi_head" in opt.method:
+            features_testing_unknown_head2 = sort_multiheadfeatures(features_testing_unknown_head2)
+        else:
+            features_testing_unknown_head2 = np.squeeze(np.array(features_testing_unknown_head2))
+            features_testing_unknown_head = np.concatenate((features_testing_unknown_head, features_testing_unknown_head2),axis=1)
+            labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
 
-    features_testing_unknown_backbone, labels_testing_unknown = down_sampling(features_testing_unknown_backbone, labels_testing_unknown, opt.downsampling_ratio_unknown)
-    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_backbone, labels_testing_unknown, sorted_features_examplar_backbone)
-    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_backbone, labels_testing_unknown, sorted_features_examplar_backbone)
+
+    features_testing_unknown_backbone, labels_testing_unknown = down_sampling(features_testing_unknown_head, labels_testing_unknown, opt.downsampling_ratio_unknown)
+    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
+    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
     
     knn_predictions = np.concatenate((predictions_known, predictions_unknown), axis=0)
     distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)

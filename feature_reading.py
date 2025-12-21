@@ -56,7 +56,7 @@ def parse_option():
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
-    parser.add_argument("--action", type=str, default="feature_reading",
+    parser.add_argument("--action", type=str, default="testing_unknown",
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
     parser.add_argument('--method', type=str, default='multi_head',
                         choices=['SupCon', 'multi_head'], help='choose method')
