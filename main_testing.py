@@ -12,16 +12,11 @@ BASE_PATH = "/home/sysgen/Jiawen/SupContrast-master"
 sys.path.append(BASE_PATH) 
 
 import argparse
-import matplotlib.pyplot as plt
 
 import torch
-import torch.backends.cudnn as cudnn
-import torchvision.transforms as transforms
-from torchvision import datasets
 import numpy as np
 import pickle
 import copy
-from itertools import chain
 from scipy.spatial.distance import mahalanobis
 
 from networks.resnet_big import SupConResNet, LinearClassifier
@@ -32,7 +27,6 @@ from util import  feature_stats
 from util import accuracy, AverageMeter, accuracy_plain, AUROC, OSCR, down_sampling
 from distance_utils  import sortFeatures
 from dataUtil import get_test_datasets, get_outlier_datasets
-from dataUtil import num_inlier_classes_mapping
 
 from sklearn.neighbors import LocalOutlierFactor
 
@@ -56,9 +50,9 @@ def parse_option():
     parser.add_argument("--num_classes", type=int, default=6)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/mnist_resnet18_original_data__vanilia__SimCLR_1.0_trail_0_128_2_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/mnist_resnet18_original_data__vanilia__SimCLR_1.0_trail_0_128_2_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/mnist_resnet18_original_data__vanilia__SimCLR_1.0_trail_0_128_2_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet_multi_trail_2_128_0.005_0.01_0.05_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet_multi_trail_2_128_0.005_0.01_0.05_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet_multi_trail_2_128_0.005_0.01_0.05_256_test_unknown")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
@@ -383,10 +377,10 @@ def sort_multiheadfeatures(multiheadfeatures):
     for i in range(features_len):
         f1, f2, f3 = multiheadfeatures[i]
         f1, f2, f3 = torch.squeeze(f1), torch.squeeze(f2), torch.squeeze(f3)
-        feature_ensemble = torch.cat((f1, f2, f3))
-        sorted_features.append(feature_ensemble.numpy())
+        feature_ensemble = torch.cat((f1,f2,f3))
+        sorted_features.append(feature_ensemble.detach().numpy())
 
-    return sorted_features
+    return np.array(sorted_features)
 
 
 def feature_classifier(opt):
@@ -493,7 +487,7 @@ def feature_classifier(opt):
             labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
 
 
-    features_testing_unknown_backbone, labels_testing_unknown = down_sampling(features_testing_unknown_head, labels_testing_unknown, opt.downsampling_ratio_unknown)
+    features_testing_unknown_head, labels_testing_unknown = down_sampling(features_testing_unknown_head, labels_testing_unknown, opt.downsampling_ratio_unknown)
     prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
     prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
     
