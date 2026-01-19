@@ -40,7 +40,7 @@ def parse_option():
     parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
-    parser.add_argument('--model', type=str, default="resnet34",  choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
+    parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
     parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet18_original_data__vanilia__SimCLR_0.01_trail_0/ckpt_epoch_400.pth")
     parser.add_argument("--model_path1", type=str, default=None)
     parser.add_argument("--model_path2", type=str, default=None)
@@ -50,9 +50,9 @@ def parse_option():
     parser.add_argument("--num_classes", type=int, default=6)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet_multi_trail_2_128_0.005_0.01_0.05_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet_multi_trail_2_128_0.005_0.01_0.05_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet_multi_trail_2_128_0.005_0.01_0.05_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_unknown")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
@@ -66,7 +66,7 @@ def parse_option():
     parser.add_argument("--split_train_val", type=bool, default=True)
     parser.add_argument("--action", type=str, default="testing_known",
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
-    parser.add_argument('--method', type=str, default='multi_head',
+    parser.add_argument('--method', type=str, default='SupCon',
                         choices=['SupCon', 'multi_head'], help='choose method')
     parser.add_argument("--temp", type=str, default = 0.5)
     parser.add_argument("--lr", type=str, default=0.001)
@@ -377,7 +377,7 @@ def sort_multiheadfeatures(multiheadfeatures):
     for i in range(features_len):
         f1, f2, f3 = multiheadfeatures[i]
         f1, f2, f3 = torch.squeeze(f1), torch.squeeze(f2), torch.squeeze(f3)
-        feature_ensemble = torch.cat((f1,f2,f3))
+        feature_ensemble = torch.cat((f1,f2, f3))
         sorted_features.append(feature_ensemble.detach().numpy())
 
     return np.array(sorted_features)
