@@ -53,7 +53,7 @@ def parse_option():
         opt.lr_decay_epochs.append(int(it))
 
     opt.model_name = 'CE_{}_{}_lr_{}_decay_{}_bsz_{}'. \
-        format(opt.dataset, opt.model, opt.learning_rate, opt.weight_decay,
+        format(opt.dataset, opt.model, opt.lr, opt.weight_decay,
                opt.batch_size)
 
     if opt.cosine:
@@ -67,11 +67,11 @@ def parse_option():
         opt.warmup_from = 0.01
         opt.warm_epochs = 10
         if opt.cosine:
-            eta_min = opt.learning_rate * (opt.lr_decay_rate ** 3)
-            opt.warmup_to = eta_min + (opt.learning_rate - eta_min) * (
+            eta_min = opt.lr * (opt.lr_decay_rate ** 3)
+            opt.warmup_to = eta_min + (opt.lr - eta_min) * (
                     1 + math.cos(math.pi * opt.warm_epochs / opt.epochs)) / 2
         else:
-            opt.warmup_to = opt.learning_rate
+            opt.warmup_to = opt.lr
 
     opt.save_folder = os.path.join(opt.model_path, opt.model_name)
     if not os.path.isdir(opt.save_folder):
