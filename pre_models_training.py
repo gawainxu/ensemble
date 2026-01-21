@@ -274,6 +274,8 @@ def main():
     model, criterion = load_model(opt)
     optimizer = set_optimizer(opt, model)
 
+    best_acc = 0
+
     for epoch in range(opt.epochs):
         adjust_learning_rate(opt, optimizer, epoch)
 
