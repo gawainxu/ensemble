@@ -272,7 +272,7 @@ def main():
     opt = parse_option()
     dataloader_train, dataloader_test = load_data(opt)
     model, criterion = load_model(opt)
-    optimizer = set_optimizer(opt)
+    optimizer = set_optimizer(opt, model)
 
     for epoch in range(opt.epochs):
         adjust_learning_rate(opt, optimizer, epoch)
