@@ -22,7 +22,7 @@ def parse_option():
     parser.add_argument("--data_path_test", type=str, default="")
     parser.add_argument("--model", type=str, default="resnet18")
 
-    parser.add_argument("--lr", type=str, default=0.1)
+    parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument('--lr_decay_epochs', type=str, default='120,160',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
@@ -114,9 +114,9 @@ def load_model(opt):
 
 def set_optimizer(opt, model):
     optimizer = torch.optim.SGD(model.parameters(),
-                          lr=opt.lr,
-                          momentum=opt.momentum,
-                          weight_decay=opt.weight_decay)
+                                lr=opt.lr,
+                                momentum=opt.momentum,
+                                weight_decay=opt.weight_decay)
     return optimizer
 
 
