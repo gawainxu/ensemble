@@ -7,7 +7,7 @@ import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100
+from pre_models_dataset import ImageNet100, ImageNet_M
 from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
@@ -85,8 +85,11 @@ def load_data(opt):
     num_classes_dict = {"imagenet100": 100}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(opt.data_path_train)
-        dataset_test = ImageNet100(opt.data_path_test)
+        dataset_train = ImageNet100(opt.data_path_train, train=True)
+        dataset_test = ImageNet100(opt.data_path_test, train=False)
+    elif "imagenet-m" in opt.dataset:
+        dataset_train = ImageNet_M(opt.data_path_train, train=True)
+        dataset_test = ImageNet_M(opt.dataset_path_test, train=False)
 
     opt.num_classes = num_classes_dict[opt.dataset]
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=True)
