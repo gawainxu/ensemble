@@ -97,7 +97,7 @@ def load_data(opt):
 
 def load_model(opt):
 
-    if "resnet18" in opt.model:
+    if "resnet" in opt.model:
         model = SupCEResNet(name=opt.model, num_classes=opt.num_classes)
 
     criterion = torch.nn.CrossEntropyLoss()
