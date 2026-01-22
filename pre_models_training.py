@@ -82,7 +82,7 @@ def parse_option():
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100}
+    num_classes_dict = {"imagenet100": 100, "imagenet-m": 18}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(opt.data_path_train, train=True)
