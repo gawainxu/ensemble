@@ -203,7 +203,7 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
 
         # update metric
         losses.update(loss.item(), bsz)
-        acc1, acc5 = accuracy(output, labels, topk=(1, 5))
+        acc1 = accuracy(output, labels, topk=(1, 5))
         top1.update(acc1[0], bsz)
 
         # SGD
@@ -250,7 +250,7 @@ def validate(val_loader, model, criterion, opt):
 
             # update metric
             losses.update(loss.item(), bsz)
-            acc1, acc5 = accuracy(output, labels, topk=(1, 5))
+            acc1 = accuracy(output, labels, topk=(1, 5))
             top1.update(acc1[0], bsz)
 
             # measure elapsed time
@@ -288,10 +288,10 @@ def main():
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
         # evaluation
-        #loss, val_acc = validate(dataloader_test, model, criterion, opt)
+        loss, val_acc = validate(dataloader_test, model, criterion, opt)
 
-        if train_acc > best_acc:
-            best_acc = train_acc
+        if val_acc > best_acc:
+            best_acc = val_acc
 
         if epoch % opt.save_freq == 0:
             save_file = os.path.join(

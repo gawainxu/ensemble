@@ -67,7 +67,7 @@ def ImageNet1k(data_path="../datasets/ImageNet100", train=True):
 
 def ImageNet_M(data_path="../datasets/ImageNet-M-train", train=True):
 
-    imagenet_m_class_list = ["n01728572", "n01728920",
+    imagenet_m_class_list_base = ["n01728572", "n01728920",
                              "n01817953", "n01818515",
                              "n01978287", "n01978455",
                              "n02514041", "n01443537",
@@ -76,6 +76,16 @@ def ImageNet_M(data_path="../datasets/ImageNet-M-train", train=True):
                              "n01664065", "n01665541",
                              "n02480495", "n02481823",
                              "n02123045", "n01622779"]
+
+    imagenet_m_class_list_novel = ["n01729322", "n01729977",
+                                   "n01819313", "n01820546",
+                                   "n01980166", "n01981276",
+                                   "n02607072", "n02643566",
+                                   "n01491361", "n01494475",
+                                   "n02089867", "n02102177",
+                                   "n01667114", "n01667778",
+                                   "n02480855", "n02486410",
+                                   "n02124075", "n02123394"]
 
     if train:
         transform = transforms_train["imagenet_m"]
