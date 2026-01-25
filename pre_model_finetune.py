@@ -62,6 +62,7 @@ def parse_option():
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test2")
     parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/imagenet-m_models/CE_imagenet-m_resnet18_lr_0.2_decay_0.0001_bsz_128_cosine")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
+    parser.add_argument("--linear_mode", type=str, default="single")
 
     # other setting
     parser.add_argument('--cosine', type=bool, default=False,
@@ -80,7 +81,7 @@ def parse_option():
     opt.main_dir = os.getcwd()
     opt.backbone_model_direct = opt.main_dir + opt.backbone_model_direct
     opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
-    opt.linear_model_path = os.path.join(opt.backbone_model_direct, "last_linear.pth")
+    opt.linear_model_path = os.path.join(opt.backbone_model_direct, "last_linear_"+opt.linear_mode+".pth")
 
     return opt
 
@@ -173,14 +174,19 @@ class StrippedModel_ResNet(nn.Module):
 
 class LinearClassifier(nn.Module):
     """Linear classifier"""
-    def __init__(self, feat_dim, num_classes=10):
+    def __init__(self, feat_dim, num_classes=10, mode="single"):
         super(LinearClassifier, self).__init__()
         self.fc1 = nn.Linear(feat_dim, 100)
         self.fc2 = nn.Linear(feat_dim, num_classes)
+        self.fc = nn.Linear(feat_dim, num_classes)
+        self.mode = mode
 
     def forward(self, features):
-        out = self.fc1(features)
-        out = self.fc2(out)
+        if "single" in self.mode:
+            out = self.fc(features)
+        else:
+            out = self.fc1(features)
+            out = self.fc2(out)
         return out
 
 
