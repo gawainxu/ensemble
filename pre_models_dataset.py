@@ -87,6 +87,16 @@ def ImageNet_M(data_path="../datasets/ImageNet-M-train", train=True):
                                    "n02480855", "n02486410",
                                    "n02124075", "n02123394"]
 
+    imagenet_m_class_list_dog = ["n02091134", "n02092002",
+                                 "n02110341", "n02089078",
+                                 "n02086910", "n02093256",
+                                 "n02113712", "n02105162",
+                                 "n02091467", "n02106550",
+                                 "n02104365", "n02086079",
+                                 "n02090721", "n02108915",
+                                 "n02107683", "n02085936",
+                                 "n02088094", "n02085782"]
+
     if train:
         transform = transforms_train["imagenet_m"]
     else:

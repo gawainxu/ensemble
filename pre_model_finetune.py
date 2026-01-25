@@ -175,10 +175,13 @@ class LinearClassifier(nn.Module):
     """Linear classifier"""
     def __init__(self, feat_dim, num_classes=10):
         super(LinearClassifier, self).__init__()
-        self.fc = nn.Linear(feat_dim, num_classes)
+        self.fc1 = nn.Linear(feat_dim, 100)
+        self.fc2 = nn.Linear(feat_dim, num_classes)
 
     def forward(self, features):
-        return self.fc(features)
+        out = self.fc1(features)
+        out = self.fc2(out)
+        return out
 
 
 
