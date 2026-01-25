@@ -294,8 +294,8 @@ def validate(val_loader, model, classifier, criterion, opt):
 
             # update metric
             losses.update(loss.item(), bsz)
-            acc1, acc5 = accuracy(output, labels)
-            top1.update(acc1[0], bsz)
+            acc1 = accuracy(output, labels)
+            top1.update(acc1[0].item(), bsz)
 
             # measure elapsed time
             batch_time.update(time.time() - end)
