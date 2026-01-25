@@ -56,7 +56,7 @@ def parse_option():
     # model dataset
     parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "resnet50"])
-    parser.add_argument("--output_layer", type=str, default="end")
+    parser.add_argument("--output_layer", type=str, default="layer3")
     parser.add_argument("--dataset", type=str, default="imagenet-m")
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test2")
@@ -340,7 +340,7 @@ def main():
         print('Train epoch {}, total time {:.2f}, accuracy:{:.2f}, loss:{:.2f}'.format(
             epoch, time2 - time1, acc, loss))
 
-        loss, val_acc = validate(dataloader_test, model, criterion, opt)
+        loss, val_acc = validate(dataloader_test, model, classifier, criterion, opt)
         if val_acc > best_acc:
             best_acc = val_acc
 
