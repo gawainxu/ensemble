@@ -188,8 +188,8 @@ class LinearClassifier(nn.Module):
             out = self.fc(features)
         else:
             out = self.fc1(features)
-            out = self.relu(out)
-            out = self.bn(out)
+            #out = self.relu(out)
+            #out = self.bn(out)
             out = self.fc2(out)
         return out
 
