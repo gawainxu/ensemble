@@ -177,6 +177,7 @@ class LinearClassifier(nn.Module):
     def __init__(self, feat_dim, num_classes=10, mode="single"):
         super(LinearClassifier, self).__init__()
         self.fc1 = nn.Linear(feat_dim, 100)
+        self.relu = nn.ReLU()
         self.fc2 = nn.Linear(feat_dim, num_classes)
         self.fc = nn.Linear(feat_dim, num_classes)
         self.mode = mode
@@ -186,6 +187,7 @@ class LinearClassifier(nn.Module):
             out = self.fc(features)
         else:
             out = self.fc1(features)
+            out = self.relu(out)
             out = self.fc2(out)
         return out
 
