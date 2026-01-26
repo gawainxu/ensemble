@@ -88,16 +88,16 @@ def load_data(opt):
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(opt.data_path_train, train=True)
-        #dataset_test = ImageNet100(opt.data_path_test, train=False)
+        dataset_test = ImageNet100(opt.data_path_test, train=False)
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(opt.data_path_train, train=True)
-        #dataset_test = ImageNet_M(opt.dataset_path_test, train=False)
+        dataset_test = ImageNet_M(opt.data_path_test, train=False)
 
     opt.num_classes = num_classes_dict[opt.dataset]
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=True)
-    #dataloader_test = DataLoader(dataset_test, batch_size=opt.batch_size, shuffle=True)
+    dataloader_test = DataLoader(dataset_test, batch_size=opt.batch_size, shuffle=True)
 
-    return dataloader_train, None #dataloader_test
+    return dataloader_train, dataloader_test
 
 
 def load_model(opt):
