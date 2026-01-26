@@ -11,16 +11,18 @@ from pre_models_dataset import ImageNet100, ImageNet_M
 from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
+from networks.vgg import vgg16
 from util import AverageMeter
 
 
 def parse_option():
 
     parser = argparse.ArgumentParser('argument for pre-trained models')
-    parser.add_argument("--dataset", type=str, default="imagenet100")
-    parser.add_argument("--data_path_train", type=str, default="")
-    parser.add_argument("--data_path_test", type=str, default="")
-    parser.add_argument("--model", type=str, default="resnet18")
+    parser.add_argument("--dataset", type=str, default="imagenet-m")
+    parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
+    parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test1")
+    parser.add_argument("--model", type=str, default="vgg16", choices=["resnet18", "vgg16", "vit16"])
+    parser.add_argument("--classifier_type", type=str, default="single")
 
     parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument('--lr_decay_epochs', type=str, default='120,160',
@@ -36,7 +38,7 @@ def parse_option():
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
     parser.add_argument("--epochs", type=int, default=200)
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--batch_size", type=int, default=2)
 
     parser.add_argument('--print_freq', type=int, default=10,
                         help='print frequency')
@@ -102,6 +104,8 @@ def load_model(opt):
 
     if "resnet" in opt.model:
         model = SupCEResNet(name=opt.model, num_classes=opt.num_classes)
+    elif "vgg" in opt.model:
+        model = vgg16(num_classes=opt.num_classes)
 
     criterion = torch.nn.CrossEntropyLoss()
 
@@ -174,7 +178,7 @@ def accuracy(output, target, topk=(1,)):
         for k in topk:
             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
-        return res
+        return res   # accuracy of the top-k predictions
 
 
 def train(train_loader, model, criterion, optimizer, epoch, opt):
@@ -204,7 +208,7 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
         # update metric
         losses.update(loss.item(), bsz)
         acc1 = accuracy(output, labels, topk=(1, 5))
-        top1.update(acc1[0], bsz)
+        top1.update(acc1[0].item(), bsz)
 
         # SGD
         optimizer.zero_grad()
@@ -251,7 +255,7 @@ def validate(val_loader, model, criterion, opt):
             # update metric
             losses.update(loss.item(), bsz)
             acc1 = accuracy(output, labels, topk=(1, 5))
-            top1.update(acc1[0], bsz)
+            top1.update(acc1[0].item(), bsz)
 
             # measure elapsed time
             batch_time.update(time.time() - end)

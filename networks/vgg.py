@@ -1,224 +1,169 @@
+# Copyright 2022 Dakewe Biotech Corporation. All Rights Reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+from typing import cast, Dict, List, Union
+
 import torch
-import torch.nn as nn
-import torch.utils.model_zoo as model_zoo
+from torch import Tensor
+from torch import nn
+import torch.nn.functional as F
 
 
 __all__ = [
-    'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
-    'vgg19_bn', 'vgg19',
+    "VGG",
+    "vgg11", "vgg13", "vgg16", "vgg19",
+    "vgg11_bn", "vgg13_bn", "vgg16_bn", "vgg19_bn",
 ]
 
-
-model_urls = {
-    'vgg11': 'https://download.pytorch.org/models/vgg11-bbd30ac9.pth',
-    'vgg13': 'https://download.pytorch.org/models/vgg13-c768596a.pth',
-    'vgg16': 'https://download.pytorch.org/models/vgg16-397923af.pth',
-    'vgg19': 'https://download.pytorch.org/models/vgg19-dcbb9e9d.pth',
-    'vgg11_bn': 'https://download.pytorch.org/models/vgg11_bn-6002323d.pth',
-    'vgg13_bn': 'https://download.pytorch.org/models/vgg13_bn-abd245e5.pth',
-    'vgg16_bn': 'https://download.pytorch.org/models/vgg16_bn-6c64b313.pth',
-    'vgg19_bn': 'https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
+vgg_cfgs: Dict[str, List[Union[str, int]]] = {
+    "vgg11": [64, "M", 128, "M", 256, 256, "M", 512, 512, "M", 512, 512, "M"],
+    "vgg13": [64, 64, "M", 128, 128, "M", 256, 256, "M", 512, 512, "M", 512, 512, "M"],
+    "vgg16": [64, 64, "M", 128, 128, "M", 256, 256, 256, "M", 512, 512, 512, "M", 512, 512, 512, "M"],
+    "vgg19": [64, 64, "M", 128, 128, "M", 256, 256, 256, 256, "M", 512, 512, 512, 512, "M", 512, 512, 512, 512, "M"],
 }
+
+
+def _make_layers(vgg_cfg: List[Union[str, int]], batch_norm: bool = False) -> nn.Sequential:
+    layers: nn.Sequential[nn.Module] = nn.Sequential()
+    in_channels = 3
+    for v in vgg_cfg:
+        if v == "M":
+            layers.append(nn.MaxPool2d((2, 2), (2, 2)))
+        else:
+            v = cast(int, v)
+            conv2d = nn.Conv2d(in_channels, v, (3, 3), (1, 1), (1, 1))
+            if batch_norm:
+                layers.append(conv2d)
+                layers.append(nn.BatchNorm2d(v))
+                layers.append(nn.ReLU(True))
+            else:
+                layers.append(conv2d)
+                layers.append(nn.ReLU(True))
+            in_channels = v
+
+    return layers
 
 
 class VGG(nn.Module):
-
-    def __init__(self, features, num_classes=1000, init_weights=True):
+    def __init__(self, vgg_cfg: List[Union[str, int]], batch_norm: bool = False, num_classes: int = 1000) -> None:
         super(VGG, self).__init__()
-        self.features = features
+        self.features = _make_layers(vgg_cfg, batch_norm)
+
+        self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
+
         self.classifier = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
             nn.ReLU(True),
-            nn.Dropout(),
+            nn.Dropout(0.5),
             nn.Linear(4096, 4096),
             nn.ReLU(True),
-            nn.Dropout(),
+            nn.Dropout(0.5),
             nn.Linear(4096, num_classes),
         )
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        if init_weights:
-            self._initialize_weights()
 
-    def forward(self, x):
-        x = self.features(x)
+        # Initialize neural network weights
+        self._initialize_weights()
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self._forward_impl(x)
+
+    # Support torch.script function
+    def _forward_impl(self, x: Tensor) -> Tensor:
+        out = self.features(x)
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
-        return x
+        out = self.classifier(out)
 
-    def _initialize_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(
-                    m.weight, mode='fan_out', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.constant_(m.bias, 0)
+        return out
 
-
-def make_layers(cfg, batch_norm=False):
-    layers = []
-    in_channels = 3
-    for v in cfg:
-        if v == 'M':
-            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-        else:
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
-            if batch_norm:
-                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
-            else:
-                layers += [conv2d, nn.ReLU(inplace=True)]
-            in_channels = v
-    return nn.Sequential(*layers)
+    def _initialize_weights(self) -> None:
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d):
+                nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+            elif isinstance(module, nn.BatchNorm2d):
+                nn.init.constant_(module.weight, 1)
+                nn.init.constant_(module.bias, 0)
+            elif isinstance(module, nn.Linear):
+                nn.init.normal_(module.weight, 0, 0.01)
+                nn.init.constant_(module.bias, 0)
 
 
-cfg = {
-    'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
-    'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
-}
+def vgg11(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg11"], False, **kwargs)
 
-
-def vgg11(pretrained=False, **kwargs):
-    """VGG 11-layer model (configuration "A")
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['A']), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg11']))
     return model
 
 
-def vgg11_bn(pretrained=False, **kwargs):
-    """VGG 11-layer model (configuration "A") with batch normalization
+def vgg13(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg13"], False, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['A'], batch_norm=True), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg11_bn']))
     return model
 
 
-def vgg13(pretrained=False, **kwargs):
-    """VGG 13-layer model (configuration "B")
+def vgg16(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg16"], False, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['B']), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg13']))
     return model
 
 
-def vgg13_bn(pretrained=False, **kwargs):
-    """VGG 13-layer model (configuration "B") with batch normalization
+def vgg19(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg19"], False, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['B'], batch_norm=True), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg13_bn']))
     return model
 
 
-def vgg16(pretrained=False, **kwargs):
-    """VGG 16-layer model (configuration "D")
+def vgg11_bn(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg11"], True, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['D']), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg16']))
     return model
 
 
-def vgg16_bn(pretrained=False, **kwargs):
-    """VGG 16-layer model (configuration "D") with batch normalization
+def vgg13_bn(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg13"], True, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['D'], batch_norm=True), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg16_bn']))
     return model
 
 
-def vgg19(pretrained=False, **kwargs):
-    """VGG 19-layer model (configuration "E")
+def vgg16_bn(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg16"], True, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['E']), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg19']))
     return model
 
 
-def vgg19_bn(pretrained=False, **kwargs):
-    """VGG 19-layer model (configuration 'E') with batch normalization
+def vgg19_bn(**kwargs) -> VGG:
+    model = VGG(vgg_cfgs["vgg19"], True, **kwargs)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
-    if pretrained:
-        kwargs['init_weights'] = False
-    model = VGG(make_layers(cfg['E'], batch_norm=True), **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg19_bn']))
     return model
 
 
-model_dict = {"vgg16": vgg11, "vgg13": vgg13, "vgg16": vgg16, "vgg19": vgg19}
+class classifier(nn.Module):
 
-class SupConVGG(nn.Module):
-    """backbone + projection head"""
-    def __init__(self, name='vgg16', head='mlp', feat_dim=128):
-        super(SupConVGG, self).__init__()
-        model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
+    def __init__(self, feat_in=128, num_classes=10):
+        super(classifier, self).__init__()
 
-        if head == 'linear':
-            self.head = nn.Linear(dim_in, feat_dim)
-        elif head == 'mlp':
-            self.head = nn.Sequential(
-                nn.Linear(dim_in, dim_in),
-                nn.ReLU(inplace=True),
-                nn.Linear(dim_in, feat_dim)
-            )
-        else:
-            raise NotImplementedError(
-                'head not supported: {}'.format(head))
+        self.head = nn.Sequential(
+            nn.Linear(feat_in, 4096),
+            nn.ReLU(True),
+            nn.Dropout(0.5),
+            nn.Linear(4096, 4096),
+            nn.ReLU(True),
+            nn.Dropout(0.5),
+            nn.Linear(4096, num_classes),)
 
     def forward(self, x):
-        feat = self.encoder(x)
-        #feat = torch.flatten(feat, 1)                                     #
-        feat = F.normalize(self.head(feat), dim=1)
-        return feat
+        out = self.head(x)
+        return  out
+
+
