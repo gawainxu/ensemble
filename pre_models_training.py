@@ -7,7 +7,7 @@ import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100, ImageNet_M
+from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100
 from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
@@ -18,10 +18,10 @@ from util import AverageMeter
 def parse_option():
 
     parser = argparse.ArgumentParser('argument for pre-trained models')
-    parser.add_argument("--dataset", type=str, default="imagenet-m")
+    parser.add_argument("--dataset", type=str, default="cifar100")
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test1")
-    parser.add_argument("--model", type=str, default="vgg16", choices=["resnet18", "vgg16", "vit16"])
+    parser.add_argument("--model", type=str, default="resnet18", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
 
     parser.add_argument("--lr", type=float, default=0.1)
@@ -84,7 +84,7 @@ def parse_option():
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet-m": 18}
+    num_classes_dict = {"imagenet100": 100, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(opt.data_path_train, train=True)
@@ -92,6 +92,9 @@ def load_data(opt):
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(opt.data_path_train, train=True)
         dataset_test = ImageNet_M(opt.data_path_test, train=False)
+    elif "cifar100" in opt.dataset:
+        dataset_train = iCIFAR100(root="../datasets", train=True)
+        dataset_test = iCIFAR100(root="../datasets", train=False)
 
     opt.num_classes = num_classes_dict[opt.dataset]
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=True)
