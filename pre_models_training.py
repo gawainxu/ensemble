@@ -199,7 +199,6 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
 
     end = time.time()
     for idx, (images, labels) in enumerate(train_loader):
-        print("labels", labels)
         data_time.update(time.time() - end)
 
         images = images.cuda(non_blocking=True)
@@ -290,7 +289,6 @@ def main():
     optimizer = set_optimizer(opt, model)
 
     best_acc = 0
-    print("num classes", opt.num_classes)
 
     for epoch in range(opt.epochs):
         adjust_learning_rate(opt, optimizer, epoch)
