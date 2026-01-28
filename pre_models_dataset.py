@@ -22,7 +22,14 @@ transforms_train = {"imagenet100": transforms.Compose([transforms.ToTensor(),
                                                 transforms.CenterCrop(224),
                                                 transforms.Resize(256,
                                                                   interpolation=transforms.functional.InterpolationMode.BILINEAR),
-                                                ])
+                                                ]),
+             "imagenet50": transforms.Compose([transforms.ToTensor(),
+                                                transforms.Normalize((0.485, 0.456, 0.406),
+                                                                           (0.229, 0.224, 0.225)),
+                                                transforms.CenterCrop(224),
+                                                transforms.Resize(256,
+                                                                        interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                      ])
               }
 
 
@@ -43,6 +50,12 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
                                                 transforms.CenterCrop(224),
                                                 transforms.Resize(256,
                                                                   interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                ]),
+              "imagenet50": transforms.Compose([transforms.ToTensor(),
+                                                transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                                transforms.CenterCrop(224),
+                                                transforms.Resize(256,
+                                                                  interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                                 ])
               }
 
@@ -57,6 +70,18 @@ def ImageNet100(data_path="../datasets/ImageNet100", train=True):
     imagenet100 = torchvision.datasets.ImageFolder(data_path, transform=transform)
 
     return imagenet100
+
+
+def ImageNet50(data_path="../datasets/ImageNet50", train=True):
+
+    if train:
+        transform = transforms_train["imagenet50"]
+    else:
+        transform = transforms_test["imagenet50"]
+    imagenet50 = torchvision.datasets.ImageFolder(data_path, transform=transform)
+
+    return imagenet50
+
 
 
 def ImageNet1k(data_path="../datasets/ImageNet100", train=True):
@@ -221,8 +246,6 @@ class iCIFAR100(CIFAR100):
 
         self.train_data = np.concatenate((self.train_data, images), axis=0)
         self.train_labels = self.train_labels + labels
-
-
 
 
 

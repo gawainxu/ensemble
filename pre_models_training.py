@@ -7,7 +7,8 @@ import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100
+from pre_models_dataset import ImageNet100, ImageNet_M, ImageNet50
+from pre_models_dataset import iCIFAR100
 from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
@@ -84,11 +85,14 @@ def parse_option():
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet-m": 18, "cifar100": 50}
+    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(opt.data_path_train, train=True)
         dataset_test = ImageNet100(opt.data_path_test, train=False)
+    if "imagenet50" in opt.dataset:
+        dataset_train = ImageNet50(opt.data_path_train, train=True)
+        dataset_test = ImageNet50(opt.data_path_test, train=False)
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(opt.data_path_train, train=True)
         dataset_test = ImageNet_M(opt.data_path_test, train=False)
