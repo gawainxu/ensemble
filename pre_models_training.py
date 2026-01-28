@@ -21,19 +21,19 @@ def parse_option():
     parser.add_argument("--dataset", type=str, default="cifar100")
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test1")
-    parser.add_argument("--model", type=str, default="resnet18", choices=["resnet18", "vgg16", "vit16"])
+    parser.add_argument("--model", type=str, default="vgg16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
 
     parser.add_argument("--lr", type=float, default=0.1)
-    parser.add_argument('--lr_decay_epochs', type=str, default='120,160',
+    parser.add_argument('--lr_decay_epochs', type=str, default='60,60,40,40',
                         help='where to decay lr, can be a list')
-    parser.add_argument('--lr_decay_rate', type=float, default=0.1,
+    parser.add_argument('--lr_decay_rate', type=float, default=0.2,
                         help='decay rate for learning rate')
     parser.add_argument('--weight_decay', type=float, default=1e-4,
                         help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9,
                         help='momentum')
-    parser.add_argument('--cosine', action='store_true',
+    parser.add_argument('--cosine', default=False,
                         help='using cosine annealing')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
