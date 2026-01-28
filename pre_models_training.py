@@ -11,7 +11,7 @@ from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100
 from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
-from networks.vgg import vgg16
+from networks.vgg import vgg16, vgg16_bn
 from util import AverageMeter
 
 
@@ -24,7 +24,7 @@ def parse_option():
     parser.add_argument("--model", type=str, default="vgg16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
 
-    parser.add_argument("--lr", type=float, default=0.1)
+    parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument('--lr_decay_epochs', type=str, default='60,60,40,40',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.2,
@@ -38,7 +38,7 @@ def parse_option():
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
     parser.add_argument("--epochs", type=int, default=200)
-    parser.add_argument("--batch_size", type=int, default=2)
+    parser.add_argument("--batch_size", type=int, default=128)
 
     parser.add_argument('--print_freq', type=int, default=10,
                         help='print frequency')
@@ -108,7 +108,7 @@ def load_model(opt):
     if "resnet" in opt.model:
         model = SupCEResNet(name=opt.model, num_classes=opt.num_classes)
     elif "vgg" in opt.model:
-        model = vgg16(num_classes=opt.num_classes)
+        model = vgg16_bn(num_classes=opt.num_classes)
 
     criterion = torch.nn.CrossEntropyLoss()
 
