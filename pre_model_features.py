@@ -30,11 +30,14 @@ def parse_option():
 
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--layers_to_see', type=str, default="")
+    parser.add_argument('--layers_to_see', type=str, default="encoder.layer1")
 
     parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "resnet50"])
     parser.add_argument("--dataset", type=str, default="imagenet-m")
+    parser.add_argument("--batch_size", type=int, default=1)
+    parser.add_argument("--outliers", type=bool, default=False)
+    parser.add_argument("--train_data", type=bool, default=False)
 
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test2")
@@ -47,6 +50,19 @@ def parse_option():
     opt.main_dir = os.getcwd()
     opt.backbone_model_direct = opt.main_dir + opt.backbone_model_direct
     opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
+
+    opt.features_name = opt.model + "_" + opt.dataset + "_" + opt.layers_to_see
+    if opt.outliers:
+        opt.features_name = opt.features_name + "_" + "outliers"
+    else:
+        opt.features_name = opt.features_name + "_" + "inliers"
+
+    if opt.train_data:
+        opt.features_name = opt.features_name + "_" + "train"
+    else:
+        opt.features_name = opt.features_name + "_" + "test"
+
+    opt.features_path = os.path.join(os.path.join(opt.main_dir, "features"), opt.features_name)
 
     return opt
 
@@ -104,8 +120,6 @@ def load_data(opt):
 
     return dataloader_train, dataloader_test
 
-
-
 def normalFeatureReading(data_loader, model, opt):
     outputs = []
     labels = []
@@ -144,21 +158,17 @@ def normalFeatureReading_hook(model, opt, data_loader):
     # https://zhuanlan.zhihu.com/p/87853615
     for name, module in model.named_modules():
         print(name)
-        for l in opt.layers_to_see:
-            if name == l:
-                module.register_forward_hook(get_activation(name))
+        if name == opt.layers_to_see:
+            module.register_forward_hook(get_activation(name))
 
     for i, (img, label) in enumerate(data_loader):
 
-        print(i)
-        if i > 100:
-            break
-        img = img.float()
+        img = img.float().cuda()
         activation = {}
         hook_output = model(img)
         if type(hook_output) is tuple:
             hook_output = hook_output[1]
-        outputs.append(activation)
+        outputs.append(activation[opt.layers_to_see])
         labels.append(label.numpy().item())
 
     with open(opt.save_path, "wb") as f:
@@ -170,10 +180,13 @@ if __name__ == "__main__":
 
     opt = parse_option()
 
-    model = set_model(opt)
-    model = load_model(model, opt.model_path)
-    print("Model loaded!!")
-
     featurePaths = []
     dataloader_train, dataloader_test = load_data(opt)
-    normalFeatureReading_hook(dataloader_test, model, opt)
+
+    model = set_model(opt)
+    print("Model loaded!!")
+
+    if opt.train_data:
+        normalFeatureReading_hook(model, opt, dataloader_train)
+    else:
+        normalFeatureReading_hook(model, opt, dataloader_test)

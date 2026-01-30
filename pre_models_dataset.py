@@ -60,6 +60,14 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
               }
 
 
+def replace_labels(dataset):
+
+    for i in range(len(dataset)):
+        img, label = dataset[i]
+        dataset[i] = img, 1000
+
+    return dataset
+
 
 def ImageNet100(data_path="../datasets/ImageNet100", train=True):
 
@@ -72,13 +80,16 @@ def ImageNet100(data_path="../datasets/ImageNet100", train=True):
     return imagenet100
 
 
-def ImageNet50(data_path="../datasets/ImageNet50", train=True):
+def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False):
 
     if train:
         transform = transforms_train["imagenet50"]
     else:
         transform = transforms_test["imagenet50"]
     imagenet50 = torchvision.datasets.ImageFolder(data_path, transform=transform)
+
+    if outliers:
+        imagenet50 = replace_labels(imagenet50)
 
     return imagenet50
 
@@ -143,20 +154,27 @@ class iCIFAR100(CIFAR100):
                  train=True,
                  target_transform=None,
                  download=False,
-                 label_dict=None):
+                 label_dict=None,
+                 outliers=False):
         super(iCIFAR100, self).__init__(root,
                                         train=train,
                                         target_transform=target_transform,
                                         download=download)
         self.label_dict = label_dict
-        inliers_idx = [4, 30, 55, 1, 32, 54, 62, 9, 10, 16, 0, 51, 53, 22, 39, 5, 20, 25, 6, 7, 3, 42, 43, 12, 17, 37,
-                       23, 33, 15, 19, 34, 63, 64, 26, 45, 2, 11, 35, 27, 29, 36, 50, 65, 47, 52, 8, 13, 48, 41, 69]
-        inliers_label_dict = {}
-        for i, idx in enumerate(inliers_idx):
-            inliers_label_dict[str(idx)] = i
 
-        outlier_index = [14, 18, 21, 24, 28, 31, 38, 40, 44, 46, 49, 56, 57, 58, 59, 60, 61, 66, 67, 68, 70, 71, 72, 73,
-                         74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+        if outliers:
+            class_indices = [14, 18, 21, 24, 28, 31, 38, 40, 44, 46, 49, 56, 57, 58, 59, 60, 61, 66, 67, 68, 70, 71, 72,
+                             73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
+                             97, 98, 99]
+            label_dict = {}
+            for i, idx in enumerate(class_indices):
+                label_dict[str(idx)] = 1000
+        else:
+            class_indices = [4, 30, 55, 1, 32, 54, 62, 9, 10, 16, 0, 51, 53, 22, 39, 5, 20, 25, 6, 7, 3, 42, 43, 12, 17, 37,
+                           23, 33, 15, 19, 34, 63, 64, 26, 45, 2, 11, 35, 27, 29, 36, 50, 65, 47, 52, 8, 13, 48, 41, 69]
+            label_dict = {}
+            for i, idx in enumerate(class_indices):
+                label_dict[str(idx)] = i
 
         self.transform_train = transforms.Compose([
             #transforms.RandomCrop(32, padding=4),
@@ -179,10 +197,10 @@ class iCIFAR100(CIFAR100):
             train_labels = []
 
             for i in range(len(self.data)):
-                if self.targets[i] in inliers_idx:
+                if self.targets[i] in class_indices:
                     train_data.append(self.data[i])
                     label = self.targets[i]
-                    label = inliers_label_dict[str(label)]
+                    label = label_dict[str(label)]
                     train_labels.append(label)
 
             self.train_data = np.array(train_data)
@@ -193,10 +211,10 @@ class iCIFAR100(CIFAR100):
             test_labels = []
 
             for i in range(len(self.data)):
-                if self.targets[i] in inliers_idx:
+                if self.targets[i] in class_indices:
                     test_data.append(self.data[i])
                     label = self.targets[i]
-                    label = inliers_label_dict[str(label)]
+                    label = label_dict[str(label)]
                     test_labels.append(label)
 
             self.test_data = np.array(test_data)
@@ -276,7 +294,7 @@ if __name__ == "__main__":
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465),
                              (0.2023, 0.1994, 0.2010))])
-    cifar = CIFAR100(root="../datasets", transform=transform)
+    cifar = iCIFAR100(root="../datasets", outliers=True)
 
     img, l = cifar[0]
-    print(img.shape)
+    print(l)
