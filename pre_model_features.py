@@ -13,7 +13,7 @@ import pickle
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100
+from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50
 from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
@@ -103,17 +103,20 @@ def set_model(opt):
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet-m": 18, "cifar100": 50}
+    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(opt.data_path_train, train=True)
         dataset_test = ImageNet100(opt.data_path_test, train=False)
+    elif "imagenet50" in opt.dataset:
+        dataset_train = ImageNet50(opt.data_path_train, train=True, outliers=opt.outliers)
+        dataset_test = ImageNet50(opt.data_path_test, train=False, outliers=opt.outliers)
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(opt.data_path_train, train=True)
         dataset_test = ImageNet_M(opt.data_path_test, train=False)
     elif "cifar100" in opt.dataset:
-        dataset_train = iCIFAR100(root="../datasets", train=True)
-        dataset_test = iCIFAR100(root="../datasets", train=False)
+        dataset_train = iCIFAR100(root="../datasets", train=True, outliers=opt.outliers)
+        dataset_test = iCIFAR100(root="../datasets", train=False, outliers=opt.outliers)
 
     opt.num_classes = num_classes_dict[opt.dataset]
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=False)
@@ -173,7 +176,6 @@ def normalFeatureReading_hook(model, opt, data_loader):
 
     with open(opt.features_path, "wb") as f:
         pickle.dump((outputs, [], labels), f)
-
 
 
 if __name__ == "__main__":
