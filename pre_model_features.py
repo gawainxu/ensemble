@@ -96,6 +96,7 @@ def set_model(opt):
         model = vgg16_bn(num_classes=opt.num_classes)
 
     model = load_model(model, opt.backbone_model_path)
+    model = model.eval()
 
     return model
 
@@ -159,19 +160,18 @@ def normalFeatureReading_hook(model, opt, data_loader):
     for name, module in model.named_modules():
         print(name)
         if name == opt.layers_to_see:
-            module.register_forward_hook(get_activation(name))
+            handle = module.register_forward_hook(get_activation(name))
 
     for i, (img, label) in enumerate(data_loader):
 
-        img = img.float().cuda()
-        activation = {}
-        hook_output = model(img)
-        if type(hook_output) is tuple:
-            hook_output = hook_output[1]
-        outputs.append(activation[opt.layers_to_see])
-        labels.append(label.numpy().item())
+        with torch.no_grad():
+            img = img.float().cuda()
+            activation = {}
+            hook_output = model(img)
+            outputs.append(activation[opt.layers_to_see].detach().cpu())
+            labels.append(label.numpy().item())
 
-    with open(opt.save_path, "wb") as f:
+    with open(opt.features_path, "wb") as f:
         pickle.dump((outputs, [], labels), f)
 
 
