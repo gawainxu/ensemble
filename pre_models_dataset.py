@@ -1,6 +1,7 @@
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR100
+from torch.utils.data import dataset
 
 import numpy as np
 from PIL import Image
@@ -60,13 +61,20 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
               }
 
 
-def replace_labels(dataset):
+class outlier_dataset(dataset):
 
-    for i in range(len(dataset)):
-        img, label = dataset[i]
-        dataset[i] = img, 1000
+    def __init__(self, ori_dataset):
 
-    return dataset
+        self.ori_dataset = ori_dataset
+
+    def __getitem__(self, idx):
+
+        img, _ = self.ori_dataset[idx]
+        return img, 1000
+
+    def __len__(self):
+        return len(self.ori_dataset)
+
 
 
 def ImageNet100(data_path="../datasets/ImageNet100", train=True):
@@ -89,7 +97,8 @@ def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False):
     imagenet50 = torchvision.datasets.ImageFolder(data_path, transform=transform)
 
     if outliers:
-        imagenet50 = replace_labels(imagenet50)
+        imagenet50_outlier = outlier_dataset(imagenet50)
+        return imagenet50_outlier
 
     return imagenet50
 
