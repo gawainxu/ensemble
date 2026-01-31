@@ -10,11 +10,12 @@ Created on Fri Jan 14 15:29:30 2022
 import argparse
 import os
 import pickle
+import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
 from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from networks.resnet_big import SupCEResNet
 from networks.vgg import vgg16, vgg16_bn
@@ -23,6 +24,10 @@ try:
     from apex import amp, optimizers
 except ImportError:
     pass
+
+
+downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}}}
 
 
 def parse_option():
@@ -34,7 +39,7 @@ def parse_option():
 
     parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "resnet50"])
-    parser.add_argument("--dataset", type=str, default="imagenet-m")
+    parser.add_argument("--dataset", type=str, default="imagenet50")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--outliers", type=bool, default=False)
     parser.add_argument("--train_data", type=bool, default=False)
@@ -52,6 +57,7 @@ def parse_option():
     opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
 
     opt.features_name = opt.model + "_" + opt.dataset + "_" + opt.layers_to_see
+
     if opt.outliers:
         opt.features_name = opt.features_name + "_" + "outliers"
     else:
@@ -119,10 +125,29 @@ def load_data(opt):
         dataset_test = iCIFAR100(root="../datasets", train=False, outliers=opt.outliers)
 
     opt.num_classes = num_classes_dict[opt.dataset]
-    dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=False)
-    dataloader_test = DataLoader(dataset_test, batch_size=opt.batch_size, shuffle=False)
+
+    # downssample the dataset
+    if opt.outliers:
+        train_ratio = downsampling[opt.dataset]["train"]["outliers"]
+        test_ratio = downsampling[opt.dataset]["test"]["outliers"]
+    else:
+        train_ratio = downsampling[opt.dataset]["train"]["inliers"]
+        test_ratio = downsampling[opt.dataset]["test"]["inliers"]
+
+    num_keep_train = int(len(dataset_train) * train_ratio)
+    indices_train = np.random.choice(len(dataset_train), num_keep_train, replace=False)
+    num_keep_test = int(len(dataset_test) * test_ratio)
+    indices_test = np.random.choice(len(dataset_test), num_keep_test, replace=False)
+
+    sampler_train = SubsetRandomSampler(indices_train)
+    sampler_test = SubsetRandomSampler(indices_test)
+
+    dataloader_train = DataLoader(dataset_train, sampler=sampler_train, batch_size=opt.batch_size, shuffle=False)
+    dataloader_test = DataLoader(dataset_test, sampler=sampler_test, batch_size=opt.batch_size, shuffle=False)
 
     return dataloader_train, dataloader_test
+
+
 
 def normalFeatureReading(data_loader, model, opt):
     outputs = []
