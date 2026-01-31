@@ -214,6 +214,8 @@ if __name__ == "__main__":
     print("Model loaded!!")
 
     if opt.train_data:
+        print("Training Data")
         normalFeatureReading_hook(model, opt, dataloader_train)
     else:
+        print("Testing Data")
         normalFeatureReading_hook(model, opt, dataloader_test)
