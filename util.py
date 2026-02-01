@@ -76,7 +76,7 @@ def accuracy_plain(predictions, targets):
 
 
 
-def AUROC(labels, probs, opt):
+def AUROC(labels, probs, opt=None):
     
     '''
     ROC: 
@@ -87,12 +87,12 @@ def AUROC(labels, probs, opt):
     auroc = auc(fpr, tpr)
 
     # plot the AUROC curve
-    plt.plot([0, 1], [0, 1], linestyle="--")
-    plt.plot(fpr, tpr)
-    plt.ylabel("TPR (Sensitity)")
-    plt.xlabel("FPR (1 - Specificity)")
+    #plt.plot([0, 1], [0, 1], linestyle="--")
+    #plt.plot(fpr, tpr)
+    #plt.ylabel("TPR (Sensitity)")
+    #plt.xlabel("FPR (1 - Specificity)")
 
-    plt.savefig(opt.auroc_save_path)
+    #plt.savefig(opt.auroc_save_path)
 
     return auroc
 

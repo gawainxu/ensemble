@@ -35,9 +35,9 @@ def parse_option():
 
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--layers_to_see', type=str, default="encoder.layer1")
+    parser.add_argument('--layers_to_see', type=str, default="features.40")
 
-    parser.add_argument('--model', type=str, default='resnet18',
+    parser.add_argument('--model', type=str, default='vgg',
                         choices=["resnet18", "resnet50"])
     parser.add_argument("--dataset", type=str, default="imagenet50")
     parser.add_argument("--batch_size", type=int, default=1)
@@ -46,7 +46,7 @@ def parse_option():
 
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test2")
-    parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/imagenet-m_models/CE_imagenet-m_resnet18_lr_0.2_decay_0.0001_bsz_128_cosine")
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/cifar100_models/CE_cifar100_vgg16_lr_0.01_decay_0.0001_bsz_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--features_save_path", type=str, default="")
 
