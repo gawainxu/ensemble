@@ -41,8 +41,8 @@ def parse_option():
                         choices=["resnet18", "resnet50"])
     parser.add_argument("--dataset", type=str, default="imagenet50")
     parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--outliers", type=bool, default=False)
-    parser.add_argument("--train_data", type=bool, default=False)
+    parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
+    parser.add_argument("--train_data",  action="store_true", help="if the training data")
 
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test2")
