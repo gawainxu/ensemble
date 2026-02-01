@@ -1,7 +1,7 @@
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR100
-from torch.utils.data import dataset
+from torch.utils.data import Dataset
 
 import numpy as np
 from PIL import Image
@@ -61,7 +61,7 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
               }
 
 
-class outlier_dataset(dataset):
+class outlier_dataset(Dataset):
 
     def __init__(self, ori_dataset):
 
