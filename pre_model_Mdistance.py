@@ -29,12 +29,6 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument('--datasets', type=str, default='cifar10',
-                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"],
-                        help='dataset')
-    parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
-    parser.add_argument('--model', type=str, default="resnet18",
-                        choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
     parser.add_argument("--num_classes", type=int, default=50)
     parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling"])
 
