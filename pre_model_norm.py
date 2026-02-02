@@ -105,12 +105,13 @@ def sort_features(features_list, labels_list, opt):
 
     return sorted_features
 
+
 def reshape_features(ori_features):
-    ori_features = ori_features.numpy()
     ori_features = np.squeeze(np.concatenate(ori_features))
     ori_features = ori_features.reshape(ori_features.shape[0], -1)
 
     return ori_features
+
 
 def feature_classifier(opt):
     with open(opt.exemplar_features_path, "rb") as f:
@@ -152,8 +153,8 @@ def feature_classifier(opt):
 
     features_testing_known_head = reshape_features(features_testing_known_head)
     features_testing_unknown_head = reshape_features(features_testing_unknown_head)
-    prediction_logits_known_dis_in = np.linalg.norm(features_testing_known_head, axis=0)
-    prediction_logits_unknown_dis_in = np.linalg.norm(features_testing_unknown_head, axis=0)
+    prediction_logits_known_dis_in = np.linalg.norm(features_testing_known_head, axis=1)
+    prediction_logits_unknown_dis_in = np.linalg.norm(features_testing_unknown_head, axis=1)
 
     # Process results AUROC and OSCR
     # for AUROC, convert labels to binary labels, assume inliers are positive
