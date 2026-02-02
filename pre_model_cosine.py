@@ -117,19 +117,21 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = features.numpy()
             features = features.reshape(1, -1)
             features = pca.transform(features)
+            features = np.squeeze(features)
         else:
             gap = torch.nn.AdaptiveAvgPool2d(1)
             features = gap(features).numpy()
             features = features.view()
         diss = []
         for i, (mu, var) in enumerate(stats):
-            print("features", features.shape, "mu", mu.shape, "var", var.shape)
-            dis = mahalanobis(features, mu, np.linalg.inv(var))
+            norm_features = features / np.linalg.norm(features)
+            norm_mu = mu / np.linalg.norm(mu)
+            dis = np.dot(norm_features, norm_mu)
             diss.append(dis)
 
-        dis_logits_out.append(np.min(np.array(diss)) / np.sum(np.array(diss)))  # !!!!!!!!!!!!!!!!!! minus here !!!!!!!!!!!! to entsprechen 0 for outliers and 1 for inliers, unknown logits, flip for known logits
-        dis_logits_in.append(-np.min(np.array(diss)))
-        dis_preds.append(np.argmin(np.array(diss)))
+        dis_logits_out.append(np.max(np.array(diss)) / np.sum(np.array(diss)))   # actually useless
+        dis_logits_in.append(np.max(np.array(diss)))
+        dis_preds.append(np.argmax(np.array(diss)))
 
     return dis_logits_in, dis_logits_out, dis_preds
 
