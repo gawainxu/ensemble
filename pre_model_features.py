@@ -38,7 +38,7 @@ def parse_option():
     parser.add_argument('--layers_to_see', type=str, default="features.40")
 
     parser.add_argument('--model', type=str, default='resnet18',
-                        choices=["resnet18", "resnet50"])
+                        choices=["resnet18", "resnet50", "vgg16"])
     parser.add_argument("--dataset", type=str, default="imagenet50")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
