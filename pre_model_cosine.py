@@ -117,7 +117,6 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = features.numpy()
             features = features.reshape(1, -1)
             features = pca.transform(features)
-            features = np.squeeze(features)
         else:
             gap = torch.nn.AdaptiveAvgPool2d(1)
             features = gap(features).numpy()
