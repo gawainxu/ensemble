@@ -37,7 +37,7 @@ def parse_option():
                         help='num of workers to use')
     parser.add_argument('--layers_to_see', type=str, default="features.40")
 
-    parser.add_argument('--model', type=str, default='vgg',
+    parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "resnet50"])
     parser.add_argument("--dataset", type=str, default="imagenet50")
     parser.add_argument("--batch_size", type=int, default=1)
