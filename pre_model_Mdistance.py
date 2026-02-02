@@ -47,6 +47,10 @@ def parse_option():
     parser.add_argument("--testing_known_features_path2", type=str, default=None)
     parser.add_argument("--testing_unknown_features_path2", type=str, default=None)
 
+    parser.add_argument("--exemplar_features_path3", type=str, default=None)
+    parser.add_argument("--testing_known_features_path3", type=str, default=None)
+    parser.add_argument("--testing_unknown_features_path3", type=str, default=None)
+
     opt = parser.parse_args()
     opt.main_dir = os.getcwd()
 
@@ -67,6 +71,13 @@ def parse_option():
         opt.testing_known_features_path2 = opt.main_dir + opt.testing_known_features_path2
     if opt.testing_unknown_features_path2 is not None:
         opt.testing_unknown_features_path2 = opt.main_dir + opt.testing_unknown_features_path2
+
+    if opt.exemplar_features_path3 is not None:
+        opt.exemplar_features_path3 = opt.main_dir + opt.exemplar_features_path3
+    if opt.testing_known_features_path3 is not None:
+        opt.testing_known_features_path3 = opt.main_dir + opt.testing_known_features_path3
+    if opt.testing_unknown_features_path3 is not None:
+        opt.testing_unknown_features_path3 = opt.main_dir + opt.testing_unknown_features_path3
 
     return opt
 
@@ -160,7 +171,7 @@ def dimension_reduction_pca(sorted_features):
     features_bundle = [np.concatenate(sf) for sf in sorted_features]
     features_bundle = np.squeeze(np.concatenate(features_bundle))
     features_bundle = features_bundle.reshape(features_bundle.shape[0], -1)
-    pca = PCA(n_components=0.8, whiten=True)
+    pca = PCA(n_components=0.8, whiten=True, svd_solver='randomized')
     pca.fit(features_bundle)
 
     sorted_features = [pca.transform(np.concatenate(sf).reshape(len(sf), -1)) for sf in sorted_features]
@@ -182,38 +193,63 @@ def dimension_reduction_pooling(sorted_features):
 def feature_classifier(opt):
     with open(opt.exemplar_features_path, "rb") as f:
         features_exemplar, _, labels_examplar = pickle.load(f)
+    sorted_features_exemplar = sort_features(features_exemplar, labels_examplar, opt)
 
     if opt.exemplar_features_path1 is not None:
         with open(opt.exemplar_features_path1, "rb") as f:
-            features_exemplar_head1, _, labels_examplar1 = pickle.load(f)
+            features_exemplar1, _, labels_examplar1 = pickle.load(f)
+        sorted_features_exemplar1 = sort_features(features_exemplar1, labels_examplar1, opt)
 
     if opt.exemplar_features_path2 is not None:
         with open(opt.exemplar_features_path2, "rb") as f:
-            features_exemplar_head2, _, labels_examplar2 = pickle.load(f)
+            features_exemplar2, _, labels_examplar2 = pickle.load(f)
+        sorted_features_exemplar2 = sort_features(features_exemplar2, labels_examplar2, opt)
 
-    sorted_features_exemplar_head = sort_features(features_exemplar, labels_examplar, opt)
+    if opt.exemplar_features_path3 is not None:
+        with open(opt.exemplar_features_path3, "rb") as f:
+            features_exemplar3, _, labels_examplar3 = pickle.load(f)
+        sorted_features_exemplar3 = sort_features(features_exemplar3, labels_examplar, opt)
+
+
     if "pca" in opt.mode:
-        pca, sorted_features_exemplar_head = dimension_reduction_pca(sorted_features_exemplar_head)
+        pca, sorted_features_exemplar = dimension_reduction_pca(sorted_features_exemplar)
     elif "pooling" in opt.mode:
-        sorted_features_exemplar_head = dimension_reduction_pooling(sorted_features_exemplar_head)
+        sorted_features_exemplar = dimension_reduction_pooling(sorted_features_exemplar)
 
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            features_testing_known_head, _, labels_testing_known = pickle.load(f)
+            features_testing_known, _, labels_testing_known = pickle.load(f)
 
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
-            features_testing_known_head1, _, labels_testing_known1 = pickle.load(f)
+            features_testing_known1, _, labels_testing_known1 = pickle.load(f)
 
 
     if opt.testing_known_features_path2 is not None:
         with open(opt.testing_known_features_path2, "rb") as f:
-            features_testing_known_head2, _, labels_testing_known2 = pickle.load(f)
+            features_testing_known2, _, labels_testing_known2 = pickle.load(f)
+
+    if opt.testing_known_features_path3 is not None:
+        with open(opt.testing_known_features_path3, "rb") as f:
+            features_testing_known3, _, labels_testing_known3 = pickle.load(f)
 
     if "pca" in opt.mode:
         prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(
-        features_testing_known_head, labels_testing_known, sorted_features_exemplar_head, mode=opt.mode, pca=pca)
+        features_testing_known, labels_testing_known, sorted_features_exemplar, mode=opt.mode, pca=pca)
+
+        if opt.testing_known_features_path1 is not None:
+            prediction_logits_known_dis_in1, prediction_logits_known_dis_out1, predictions_known_dis1, acc_known_dis1 = distance_classifier(
+                features_testing_known1, labels_testing_known1, sorted_features_exemplar1, mode=opt.mode,pca=pca)
+
+        if opt.testing_known_features_path2 is not None:
+            prediction_logits_known_dis_in2, prediction_logits_known_dis_out2, predictions_known_dis2, acc_known_dis2 = distance_classifier(
+                features_testing_known2, labels_testing_known2, sorted_features_exemplar2, mode=opt.mode, pca=pca)
+
+        if opt.testing_known_features_path3 is not None:
+            prediction_logits_known_dis_in3, prediction_logits_known_dis_out3, predictions_known_dis3, acc_known_dis3 = distance_classifier(
+                features_testing_known3, labels_testing_known3, sorted_features_exemplar3, mode=opt.mode, pca=pca)
+
 
     with open(opt.testing_unknown_features_path, "rb") as f:
         features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
@@ -226,13 +262,16 @@ def feature_classifier(opt):
         with open(opt.testing_unknown_features_path2, "rb") as f:
             features_testing_unknown_head2, _, labels_testing_unknown2 = pickle.load(f)
 
+    if opt.testing_unknown_features_path3 is not None:
+        with open(opt.testing_unknown_features_path3, "rb") as f:
+            features_testing_unknown_head3, _, labels_testing_unknown3 = pickle.load(f)
+
     if "pca" in opt.mode:
         prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(
-        features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head, mode=opt.mode, pca=pca)
+        features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar, mode=opt.mode, pca=pca)
 
     distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)
     labels_testing = np.concatenate((labels_testing_known, labels_testing_unknown), axis=0)
-
 
     # Process results AUROC and OSCR
     # for AUROC, convert labels to binary labels, assume inliers are positive
