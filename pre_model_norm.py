@@ -46,6 +46,10 @@ def parse_option():
     parser.add_argument("--testing_known_features_path2", type=str, default=None)
     parser.add_argument("--testing_unknown_features_path2", type=str, default=None)
 
+    parser.add_argument("--exemplar_features_path3", type=str, default=None)
+    parser.add_argument("--testing_known_features_path3", type=str, default=None)
+    parser.add_argument("--testing_unknown_features_path3", type=str, default=None)
+
     opt = parser.parse_args()
     opt.main_dir = os.getcwd()
 
@@ -66,6 +70,13 @@ def parse_option():
         opt.testing_known_features_path2 = opt.main_dir + opt.testing_known_features_path2
     if opt.testing_unknown_features_path2 is not None:
         opt.testing_unknown_features_path2 = opt.main_dir + opt.testing_unknown_features_path2
+
+    if opt.exemplar_features_path3 is not None:
+        opt.exemplar_features_path3 = opt.main_dir + opt.exemplar_features_path3
+    if opt.testing_known_features_path3 is not None:
+        opt.testing_known_features_path3 = opt.main_dir + opt.testing_known_features_path3
+    if opt.testing_unknown_features_path3 is not None:
+        opt.testing_unknown_features_path3 = opt.main_dir + opt.testing_unknown_features_path3
 
     return opt
 

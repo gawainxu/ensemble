@@ -129,10 +129,14 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = features.reshape(1, -1)
             features = pca.transform(features)
             features = np.squeeze(features)
-        else:
+        elif "polling" in mode:
             gap = torch.nn.AdaptiveAvgPool2d(1)
             features = gap(features).numpy()
             features = features.view()
+        else:
+            features = features.numpy()
+            features = features.reshape(1, -1)
+            features = np.squeeze(features)
         diss = []
         for i, (mu, var) in enumerate(stats):
             #print("features", features.shape, "mu", mu.shape, "var", var.shape)
@@ -255,6 +259,21 @@ def feature_classifier(opt):
         if opt.testing_known_features_path3 is not None:
             prediction_logits_known_dis_in3, prediction_logits_known_dis_out3, predictions_known_dis3, acc_known_dis3 = distance_classifier(
                 features_testing_known3, labels_testing_known3, sorted_features_exemplar3, mode=opt.mode, pca=pca3)
+    else:
+        prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(
+            features_testing_known, labels_testing_known, sorted_features_exemplar, mode=opt.mode)
+
+        if opt.testing_known_features_path1 is not None:
+            prediction_logits_known_dis_in1, prediction_logits_known_dis_out1, predictions_known_dis1, acc_known_dis1 = distance_classifier(
+                features_testing_known1, labels_testing_known1, sorted_features_exemplar1, mode=opt.mode)
+
+        if opt.testing_known_features_path2 is not None:
+            prediction_logits_known_dis_in2, prediction_logits_known_dis_out2, predictions_known_dis2, acc_known_dis2 = distance_classifier(
+                features_testing_known2, labels_testing_known2, sorted_features_exemplar2, mode=opt.mode)
+
+        if opt.testing_known_features_path3 is not None:
+            prediction_logits_known_dis_in3, prediction_logits_known_dis_out3, predictions_known_dis3, acc_known_dis3 = distance_classifier(
+                features_testing_known3, labels_testing_known3, sorted_features_exemplar3, mode=opt.mode)
 
 
     with open(opt.testing_unknown_features_path, "rb") as f:
@@ -288,6 +307,22 @@ def feature_classifier(opt):
             prediction_logits_unknown_dis_in3, prediction_logits_unknown_dis_out3, predictions_unknown_dis3, acc_unknown_dis3 = distance_classifier(
                 features_testing_unknown3, labels_testing_unknown3, sorted_features_exemplar3, mode=opt.mode, pca=pca3)
 
+    else:
+        prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(
+            features_testing_unknown, labels_testing_unknown, sorted_features_exemplar, mode=opt.mode)
+
+        if opt.testing_unknown_features_path1 is not None:
+            prediction_logits_unknown_dis_in1, prediction_logits_unknown_dis_out1, predictions_unknown_dis1, acc_unknown_dis1 = distance_classifier(
+                features_testing_unknown1, labels_testing_unknown1, sorted_features_exemplar1, mode=opt.mode)
+
+        if opt.testing_unknown_features_path2 is not None:
+            prediction_logits_unknown_dis_in2, prediction_logits_unknown_dis_out2, predictions_unknown_dis2, acc_unknown_dis2 = distance_classifier(
+                features_testing_unknown2, labels_testing_unknown2, sorted_features_exemplar2, mode=opt.mode)
+
+        if opt.testing_unknown_features_path3 is not None:
+            prediction_logits_unknown_dis_in3, prediction_logits_unknown_dis_out3, predictions_unknown_dis3, acc_unknown_dis3 = distance_classifier(
+                features_testing_unknown3, labels_testing_unknown3, sorted_features_exemplar3, mode=opt.mode)
+
 
     #distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)
     #labels_testing = np.concatenate((labels_testing_known, labels_testing_unknown), axis=0)
@@ -298,12 +333,13 @@ def feature_classifier(opt):
     labels_binary_unknown = [1 if i < 100 else 0 for i in labels_testing_unknown]
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
 
-    norm_acc = acc_known_dis / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
-    norm_acc1 = acc_known_dis1 / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
-    norm_acc2 = acc_known_dis2 / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
-    norm_acc3 = acc_known_dis3 / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
-    prediction_logits_known_dis_in = norm_acc * prediction_logits_known_dis_in + norm_acc1 * prediction_logits_known_dis_in1 + norm_acc2 * prediction_logits_known_dis_in2 + norm_acc3 * prediction_logits_known_dis_in3
-    prediction_logits_unknown_dis_in = norm_acc * prediction_logits_unknown_dis_in + norm_acc1 * prediction_logits_unknown_dis_in1 + norm_acc2 * prediction_logits_unknown_dis_in2 + norm_acc3 * prediction_logits_unknown_dis_in3
+    if opt.testing_unknown_features_path1 is not None:
+        norm_acc = acc_known_dis / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
+        norm_acc1 = acc_known_dis1 / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
+        norm_acc2 = acc_known_dis2 / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
+        norm_acc3 = acc_known_dis3 / (acc_known_dis + acc_known_dis1 + acc_known_dis2 + acc_known_dis3)
+        prediction_logits_known_dis_in = norm_acc * prediction_logits_known_dis_in + norm_acc1 * prediction_logits_known_dis_in1 + norm_acc2 * prediction_logits_known_dis_in2 + norm_acc3 * prediction_logits_known_dis_in3
+        prediction_logits_unknown_dis_in = norm_acc * prediction_logits_unknown_dis_in + norm_acc1 * prediction_logits_unknown_dis_in1 + norm_acc2 * prediction_logits_unknown_dis_in2 + norm_acc3 * prediction_logits_unknown_dis_in3
 
     probs_binary_dis = np.concatenate((prediction_logits_known_dis_in, prediction_logits_unknown_dis_in), axis=0)
     # print("probs_binary", probs_binary_dis)
