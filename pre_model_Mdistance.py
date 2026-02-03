@@ -30,7 +30,7 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
     parser.add_argument("--num_classes", type=int, default=50)
-    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling"])
+    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
 
     parser.add_argument("--exemplar_features_path", type=str,
                         default="/features/resnet18_cifar100_encoder.layer4_inliers_train")
