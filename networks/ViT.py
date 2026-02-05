@@ -56,22 +56,17 @@ def get_b16_config():
     https://lightning.ai/docs/pytorch/stable/notebooks/course_UvA-DL/11-vision-transformer.html for Cifar
     """
     config = ml_collections.ConfigDict()
-    config.patches = ml_collections.ConfigDict({'size': (16, 16)})
-    config.embed_dim = 256
-    config.emb_dropout = 0.2
+    config.patch_size = 16
+    config.embed_dim = 768
+    config.emb_dropout = 0.1
     config.hidden_size = 768
-    config.depth = 6              # number of attention blocks, for cifar??? TODO
+    config.depth = 12
     config.attention_dropout = 0.2
-    config.head_dim = 64         # is it right? TODO
+    config.head_dim = 64
+    config.num_heads = 12
+    config.hidden_dim = 3072
+    config.dropout = 0.1
 
-    config.transformer = ml_collections.ConfigDict()
-    config.transformer.mlp_dim = 3072
-    config.transformer.num_heads = 12
-    config.transformer.num_layers = 12
-    config.transformer.attention_dropout_rate = 0.0
-    config.transformer.dropout_rate = 0.1
-    config.classifier = 'token'
-    config.representation_size = None
     return config
 
 

@@ -21,7 +21,7 @@ image_size_mapping = {"cifar100": 32, "imagenet50": 224}
 def parse_option():
 
     parser = argparse.ArgumentParser('argument for pre-trained models')
-    parser.add_argument("--dataset", type=str, default="cifar100")
+    parser.add_argument("--dataset", type=str, default="imagenet50")
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test1")
     parser.add_argument("--model", type=str, default="vit16", choices=["resnet18", "vgg16", "vit16"])
@@ -41,7 +41,7 @@ def parse_option():
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
     parser.add_argument("--epochs", type=int, default=200)
-    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--batch_size", type=int, default=8)
 
     parser.add_argument('--print_freq', type=int, default=10,
                         help='print frequency')
