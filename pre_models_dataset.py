@@ -77,7 +77,7 @@ class outlier_dataset(Dataset):
 
 
 
-def ImageNet100(data_path="../datasets/ImageNet100", train=True):
+def ImageNet100(data_path="../datasets/ImageNet100", train=True, opt=None):
 
     if train:
         transform = transforms_train["imagenet100"]
@@ -88,7 +88,7 @@ def ImageNet100(data_path="../datasets/ImageNet100", train=True):
     return imagenet100
 
 
-def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False):
+def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False, opt=None):
 
     if train:
         transform = transforms_train["imagenet50"]
@@ -104,7 +104,7 @@ def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False):
 
 
 
-def ImageNet1k(data_path="../datasets/ImageNet100", train=True):
+def ImageNet1k(data_path="../datasets/ImageNet100", train=True, opt=None):
 
     if train:
         transform = transforms_train["imagenet1k"]
@@ -115,7 +115,7 @@ def ImageNet1k(data_path="../datasets/ImageNet100", train=True):
     return imagenet1k
 
 
-def ImageNet_M(data_path="../datasets/ImageNet-M-train", train=True):
+def ImageNet_M(data_path="../datasets/ImageNet-M-train", train=True, opt=None):
 
     imagenet_m_class_list_base = ["n01728572", "n01728920",
                              "n01817953", "n01818515",
@@ -164,7 +164,8 @@ class iCIFAR100(CIFAR100):
                  target_transform=None,
                  download=False,
                  label_dict=None,
-                 outliers=False):
+                 outliers=False,
+                 opt=None):
         super(iCIFAR100, self).__init__(root,
                                         train=train,
                                         target_transform=target_transform,
@@ -200,6 +201,9 @@ class iCIFAR100(CIFAR100):
                                  (0.2023, 0.1994, 0.2010))
                                  ])
 
+        #if "vit" in opt.model:
+        #    self.transform_train.transforms.insert(0, transforms.Resize(224))
+        #    self.transform_test.transforms.insert(0, transforms.Resize(224))
 
         if self.train:
             train_data = []

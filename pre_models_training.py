@@ -13,8 +13,10 @@ from torch.utils.data import DataLoader
 
 from networks.resnet_big import SupCEResNet
 from networks.vgg import vgg16, vgg16_bn
+from networks.ViT import ViT, get_b16_config_cifar, get_b16_config
 from util import AverageMeter
 
+image_size_mapping = {"cifar100": 32, "imagenet50": 224}
 
 def parse_option():
 
@@ -22,7 +24,7 @@ def parse_option():
     parser.add_argument("--dataset", type=str, default="cifar100")
     parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
     parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test1")
-    parser.add_argument("--model", type=str, default="vgg16", choices=["resnet18", "vgg16", "vit16"])
+    parser.add_argument("--model", type=str, default="vit16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
 
     parser.add_argument("--lr", type=float, default=0.001)
@@ -47,6 +49,8 @@ def parse_option():
                         help='save frequency')
 
     opt = parser.parse_args()
+
+    opt.image_size = image_size_mapping[opt.dataset]
 
     opt.model_path = './save/{}_models'.format(opt.dataset)
 
@@ -88,17 +92,17 @@ def load_data(opt):
     num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(opt.data_path_train, train=True)
-        dataset_test = ImageNet100(opt.data_path_test, train=False)
+        dataset_train = ImageNet100(opt.data_path_train, train=True, opt=opt)
+        dataset_test = ImageNet100(opt.data_path_test, train=False, opt=opt)
     if "imagenet50" in opt.dataset:
-        dataset_train = ImageNet50(opt.data_path_train, train=True)
-        dataset_test = ImageNet50(opt.data_path_test, train=False)
+        dataset_train = ImageNet50(opt.data_path_train, train=True, opt=opt)
+        dataset_test = ImageNet50(opt.data_path_test, train=False, opt=opt)
     elif "imagenet-m" in opt.dataset:
-        dataset_train = ImageNet_M(opt.data_path_train, train=True)
-        dataset_test = ImageNet_M(opt.data_path_test, train=False)
+        dataset_train = ImageNet_M(opt.data_path_train, train=True, opt=opt)
+        dataset_test = ImageNet_M(opt.data_path_test, train=False, opt=opt)
     elif "cifar100" in opt.dataset:
-        dataset_train = iCIFAR100(root="../datasets", train=True)
-        dataset_test = iCIFAR100(root="../datasets", train=False)
+        dataset_train = iCIFAR100(root="../datasets", train=True, opt=opt)
+        dataset_test = iCIFAR100(root="../datasets", train=False, opt=opt)
 
     opt.num_classes = num_classes_dict[opt.dataset]
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=True)
@@ -113,6 +117,14 @@ def load_model(opt):
         model = SupCEResNet(name=opt.model, num_classes=opt.num_classes)
     elif "vgg" in opt.model:
         model = vgg16_bn(num_classes=opt.num_classes)
+    elif "vit" in opt.model:
+        if "cifar" in opt.dataset:
+            configs = get_b16_config_cifar()
+        elif "imagenet" in opt.dataset:
+            configs = get_b16_config()
+        model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
+                    embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads, mlp_dim=configs.hidden_dim,
+                    dim_head = configs.head_dim, dropout = configs.dropout, emb_dropout = configs.emb_dropout)
 
     criterion = torch.nn.CrossEntropyLoss()
 
@@ -127,7 +139,11 @@ def load_model(opt):
 
 
 def set_optimizer(opt, model):
-    optimizer = torch.optim.SGD(model.parameters(),
+
+    if "vit" in opt.model:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=opt.lr)
+    else:
+        optimizer = torch.optim.SGD(model.parameters(),
                                 lr=opt.lr,
                                 momentum=opt.momentum,
                                 weight_decay=opt.weight_decay)
