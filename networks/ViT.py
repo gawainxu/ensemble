@@ -36,14 +36,13 @@ def get_b16_config_cifar():
     """
     config = ml_collections.ConfigDict()
     config.patch_size = 4
-    config.embed_dim = 256
+    config.embed_dim = 256    # output dim for converting patches to attention inputs
     config.emb_dropout = 0.2
-    config.hidden_size = 768
+    config.hidden_dim = 512   # in FFN in transformer
     config.depth = 6
     config.attention_dropout = 0.2
     config.head_dim = 64
     config.num_heads = 8
-    config.hidden_dim = 512
     config.dropout = 0.2
 
     return config
@@ -77,14 +76,14 @@ def pair(t):
 # classes
 
 class FeedForward(Module):
-    def __init__(self, dim, hidden_dim, dropout = 0.):
+    def __init__(self, embedding_dim, hidden_dim, dropout = 0.):
         super().__init__()
         self.net = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, hidden_dim),
+            nn.LayerNorm(embedding_dim),
+            nn.Linear(embedding_dim, hidden_dim),
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_dim, dim),
+            nn.Linear(hidden_dim, embedding_dim),
             nn.Dropout(dropout)
         )
 
@@ -151,6 +150,9 @@ class Transformer(Module):
 
 
 class ViT(Module):
+
+    # according to https://proceedings.mlr.press/v119/xiong20b/xiong20b.pdf
+    # https://lightning.ai/docs/pytorch/stable/notebooks/course_UvA-DL/11-vision-transformer.html
     def __init__(self, *, image_size, patch_size, num_classes, embedding_dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
         super().__init__()
         # the image is square by default
