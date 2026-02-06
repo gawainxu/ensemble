@@ -54,8 +54,7 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
               "imagenet50": transforms.Compose([transforms.ToTensor(),
                                                 transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                 transforms.CenterCrop(224),
-                                                transforms.Resize(256,
-                                                                  interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                #transforms.Resize(256, interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                                 ])
               }
 
