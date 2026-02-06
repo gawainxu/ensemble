@@ -12,21 +12,6 @@ from dataUtil import image_size_mapping
 # helpers
 
 
-def get_testing():
-    """Returns a minimal configuration for testing."""
-    config = ml_collections.ConfigDict()
-    config.patches = ml_collections.ConfigDict({'size': (16, 16)})
-    config.hidden_size = 1
-    config.transformer = ml_collections.ConfigDict()
-    config.transformer.mlp_dim = 1
-    config.transformer.num_heads = 1
-    config.transformer.num_layers = 1
-    config.transformer.attention_dropout_rate = 0.0
-    config.transformer.dropout_rate = 0.1
-    config.classifier = 'token'
-    config.representation_size = None
-    return config
-
 
 def get_b16_config_cifar():
     """
@@ -58,12 +43,11 @@ def get_b16_config():
     config.patch_size = 16
     config.embed_dim = 768
     config.emb_dropout = 0.1
-    config.hidden_size = 768
+    config.hidden_dim = 3072
     config.depth = 12
     config.attention_dropout = 0.2
     config.head_dim = 64
     config.num_heads = 12
-    config.hidden_dim = 3072
     config.dropout = 0.1
 
     return config
