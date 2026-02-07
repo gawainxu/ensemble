@@ -357,7 +357,7 @@ def main():
         if val_acc > best_acc:
             best_acc = val_acc
 
-    save_file = opt.backbone_model_name.replace(".pth", "_linear_") + opt.temp_list + ".pth"
+    save_file = opt.backbone_model_name.replace(".pth", "_linear") + ".pth"
     save_file = os.path.join(opt.backbone_model_direct, save_file)
     save_model(classifier, optimizer, opt, save_file)
     print('best accuracy: {:.2f}'.format(best_acc))
