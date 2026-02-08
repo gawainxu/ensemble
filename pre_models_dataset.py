@@ -7,18 +7,6 @@ import os
 import numpy as np
 from PIL import Image
 
-outliers_from_tinyimagenet=[
-60, 61, 62, 63, 64,
-65, 66, 67, 68, 69,
-71, 74, 75, 77, 78,
-79, 80, 82, 85, 86,
-87, 88, 89, 90, 93,
-100, 101, 102, 105, 106,
-109, 110, 112, 118, 119,
-120, 122, 123, 126, 127,
-131, 132, 134, 139, 140,
-143, 147, 148, 149, 156]
-
 
 
 transforms_train = {"imagenet100": transforms.Compose([transforms.ToTensor(),
@@ -29,14 +17,12 @@ transforms_train = {"imagenet100": transforms.Compose([transforms.ToTensor(),
               "imagenet1k": transforms.Compose([transforms.ToTensor(),
                                                  transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                  transforms.CenterCrop(224),
-                                                 transforms.Resize(256,
-                                                 interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                 #transforms.Resize(256, interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                                  ]),
               "imagenet_m": transforms.Compose([transforms.ToTensor(),
                                                 transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                 transforms.CenterCrop(224),
-                                                transforms.Resize(256,
-                                                                  interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                #transforms.Resize(256, interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                                 ]),
              "imagenet50": transforms.Compose([transforms.ToTensor(),
                                                 transforms.Normalize((0.485, 0.456, 0.406),
@@ -56,14 +42,12 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
               "imagenet1k": transforms.Compose([transforms.ToTensor(),
                                                  transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                  transforms.CenterCrop(224),
-                                                 transforms.Resize(256,
-                                                 interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                 #transforms.Resize(256, interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                                  ]),
               "imagenet_m": transforms.Compose([transforms.ToTensor(),
                                                 transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                 transforms.CenterCrop(224),
-                                                transforms.Resize(256,
-                                                                  interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                                #transforms.Resize(256, interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                                 ]),
               "imagenet50": transforms.Compose([transforms.ToTensor(),
                                                 transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
@@ -312,84 +296,27 @@ class iCIFAR100(CIFAR100):
 "cat": [ "n02123045", "n01622779", "n02124075", "n02123394", "n02123159", "n02123597"]}  #"n02123045","n02497673",
 """
 
+def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers"):
 
-class TinyImagenet(Dataset):
-    """
-    Defines Tiny Imagenet as for the others pytorch datasets.
-    """
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                    transforms.CenterCrop(224),])
+    imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform)
 
-    def __init__(self, root, train=True, download=False):
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
-        self.root = root
-        self.train = train
-        self.transform = transforms.Compose([transforms.ToTensor(),
-                                                transforms.Normalize((0.485, 0.456, 0.406),
-                                                                           (0.229, 0.224, 0.225)),
-                                                transforms.Resize((32, 32), interpolation=transforms.functional.InterpolationMode.BILINEAR),])
-        self.download = download
-        self.classes = outliers_from_tinyimagenet
-
-        if download:
-            if os.path.isdir(root) and len(os.listdir(root)) > 0:
-                print('Download not needed, files already on disk.')
-            else:
-                from google_drive_downloader import GoogleDriveDownloader as gdd
-
-                # https://drive.google.com/file/d/1Sy3ScMBr0F4se8VZ6TAwDYF-nNGAAdxj/view
-                print('Downloading dataset')
-                gdd.download_file_from_google_drive(
-                    file_id='1Sy3ScMBr0F4se8VZ6TAwDYF-nNGAAdxj',
-
-                    dest_path=os.path.join(root, 'tiny-imagenet-processed.zip'),
-                    unzip=True)
-
-        self.data = []
-        for num in range(20):  # 20
-            self.data.append(np.load(os.path.join(
-                root, 'processed/x_%s_%02d.npy' %
-                      ('train' if self.train else 'val', num + 1))))
-        self.data = np.concatenate(np.array(self.data))
-
-        self.targets = []
-        for num in range(20):  # 20
-            self.targets.append(np.load(os.path.join(
-                root, 'processed/y_%s_%02d.npy' %
-                      ('train' if self.train else 'val', num + 1))))
-        self.targets = np.concatenate(np.array(self.targets))
-
-        train_data = []
-        train_labels = []
-
-        for i in range(len(self.data)):
-            if self.targets[i] in self.classes:
-                train_data.append(self.data[i])
-                train_labels.append(self.targets[i])
-
-        self.data = np.array(train_data)
-        self.targets = train_labels
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, index):
-        img, target = self.data[index], self.targets[index]
-
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img = Image.fromarray(np.uint8(255 * img))  ## put it in non transform ????????????
-        original_img = img.copy()
-
-        if self.transform is not None:
-            img = self.transform(img)
+    return imagenet50_medium_outliers
 
 
-        return img, original_img, target
+def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers"):
+
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                    transforms.Resize((32, 32), interpolation=transforms.functional.InterpolationMode.BILINEAR), ])
+    cifar_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform)
+
+    return cifar_medium_outliers
 
 
 
 if __name__ == "__main__":
 
-    dataset = TinyImagenet(root="../datasets")
-    for i in range(0, len(dataset), 500):
-        _, original_image, label = dataset[i]
-        original_image.save("./samples/"+str(label)+".png")
+    pass
