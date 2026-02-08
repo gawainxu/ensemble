@@ -1,6 +1,7 @@
 import torchvision
+import torch
 import torchvision.transforms as transforms
-from torchvision.datasets import CIFAR100
+from torchvision.datasets import CIFAR100, MNIST
 from torch.utils.data import Dataset
 
 import os
@@ -53,7 +54,14 @@ transforms_test = {"imagenet100": transforms.Compose([transforms.ToTensor(),
                                                 transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                 transforms.CenterCrop(224),
                                                 #transforms.Resize(256, interpolation=transforms.functional.InterpolationMode.BILINEAR),
-                                                ])
+                                                ]),
+              "mnist": transforms.Compose([transforms.Grayscale(num_output_channels=3),
+                                           transforms.ToTensor(),
+                                           transforms.Normalize((0.1307,), (0.3081,)),
+                                           transforms.Resize((32, 32), interpolation=transforms.functional.InterpolationMode.BILINEAR),]),
+              "dtd": transforms.Compose([transforms.ToTensor(),
+                                         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                         transforms.Resize((224,224), interpolation=transforms.functional.InterpolationMode.BILINEAR)]),
               }
 
 
@@ -275,7 +283,6 @@ class iCIFAR100(CIFAR100):
         self.train_labels = self.train_labels + labels
 
 
-
 """
 {"snake": ["n01728572", "n01728920", "n01729322", "n01729977", "n01734418", "n01735189", "n01737021", "n01739381", "n01740131", "n01742172"],
 "Parrot": ["n01817953", "n01818515", "n01819313", "n01820546"],
@@ -301,7 +308,7 @@ def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers")
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                     transforms.CenterCrop(224),])
-    imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform)
+    imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
 
     return imagenet50_medium_outliers
 
@@ -311,9 +318,74 @@ def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers"):
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                     transforms.Resize((32, 32), interpolation=transforms.functional.InterpolationMode.BILINEAR), ])
-    cifar_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform)
+    cifar_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
 
     return cifar_medium_outliers
+
+
+def DTD(data_path="../datasets/DTD"):
+
+    transform = transforms_test["dtd"]
+    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
+
+    return dtd
+
+
+
+class mnist(MNIST):
+
+    def __init__(self, root,
+                 classes=range(10),
+                 train=True,
+                 download=True,):
+        super(mnist, self).__init__(root, train=train,
+                                    download=download)
+
+        self.transform = transforms_test["mnist"]
+        # Select subset of classes
+        if self.train:
+            train_data = []
+            train_labels = []
+
+            for i in range(0, len(self.data)):  # subsample
+                if self.targets[i] in classes:
+                    train_data.append(self.data[i])
+                    train_labels.append(1000)
+
+            self.traindata = torch.stack(train_data).numpy()
+            self.trainlabels = train_labels
+
+        else:
+            test_data = []
+            test_labels = []
+
+            for i in range(0, len(self.data)):
+                if self.targets[i] in classes:
+                    test_data.append(self.data[i])
+                    test_labels.append(1000)
+
+            print(len(test_data))
+            self.testdata = torch.stack(test_data).numpy()
+            self.testlabels = test_labels
+
+
+    def __getitem__(self, index):
+        if self.train:
+            img, target = self.traindata[index], self.trainlabels[index]
+        else:
+            img, target = self.testdata[index], self.testlabels[index]
+
+        img = Image.fromarray(img, mode='L')
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img, target
+
+    def __len__(self):
+        if self.train:
+            return len(self.traindata)
+        else:
+            return len(self.testdata)
 
 
 
