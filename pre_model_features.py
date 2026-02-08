@@ -115,7 +115,9 @@ def set_model(opt):
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
+    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50,
+                        "imagenet50_medium": 50, "cifar_medium": 50,
+                        "imagenet50_far": 50, "cifar_far": 50,}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(opt.data_path_train, train=True)
