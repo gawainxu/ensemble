@@ -15,6 +15,8 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50
+from pre_models_dataset import imagenet50_medium_outliers, cifar_medium_outliers
+from pre_models_dataset import DTD, mnist
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from networks.resnet_big import SupCEResNet
@@ -27,7 +29,11 @@ except ImportError:
 
 
 downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
-                "imagenet50": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}}}
+                "imagenet50": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
+                "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50_far": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
+                "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
 
 
 def parse_option():
@@ -123,6 +129,18 @@ def load_data(opt):
     elif "cifar100" in opt.dataset:
         dataset_train = iCIFAR100(root="../datasets", train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(root="../datasets", train=False, outliers=opt.outliers)
+    elif "imagenet50_medium" in opt.dataset:
+        dataset_train = imagenet50_medium_outliers()
+        dataset_test = imagenet50_medium_outliers()
+    elif "cifar_medium" in opt.dataset:
+        dataset_train = cifar_medium_outliers()
+        dataset_test = cifar_medium_outliers()
+    elif "imagenet50_far" in opt.dataset:
+        dataset_train = DTD()
+        dataset_test = DTD()
+    elif "cifar_far" in opt.dataset:
+        dataset_train = mnist()
+        dataset_test = mnist()
 
     opt.num_classes = num_classes_dict[opt.dataset]
 

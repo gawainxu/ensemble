@@ -334,7 +334,7 @@ def DTD(data_path="../datasets/DTD"):
 
 class mnist(MNIST):
 
-    def __init__(self, root,
+    def __init__(self, root="../datasets",
                  classes=range(10),
                  train=True,
                  download=True,):
@@ -391,4 +391,5 @@ class mnist(MNIST):
 
 if __name__ == "__main__":
 
-    pass
+    dtd = DTD()
+    print(len(dtd))
