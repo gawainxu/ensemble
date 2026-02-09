@@ -31,7 +31,7 @@ def parse_option():
 
     parser.add_argument("--num_classes", type=int, default=50)
     parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling"])
-    parser.add_argument("--k", type=int, default=3)
+    parser.add_argument("--K", type=int, default=3)
 
     parser.add_argument("--exemplar_features_path", type=str,
                         default="/features/resnet18_cifar100_encoder.layer4_inliers_train")
@@ -142,14 +142,14 @@ def KNN_logits(testing_features, sorted_exemplar_features, pca=None):
 
     for idx, testing_feature in enumerate(testing_features):
         # print(idx)
+        if pca is not None:
+            testing_feature = testing_feature.reshape(1, -1)
+            testing_feature = pca.transform(testing_feature)
+            testing_feature = np.squeeze(testing_feature)
         similarity_logits = []
         for training_features_c in sorted_exemplar_features:
             training_features_c = np.array(training_features_c, dtype=float)
-            if pca is not None:
-                testing_feature = testing_feature.reshape(1, -1)
-                testing_feature = pca.transform(testing_feature)
-
-            similarities = np.matmul(training_features_c, testing_feature) / np.linalg.norm(training_features_c,
+            similarities = np.matmul(training_features_c, testing_feature.T) / np.linalg.norm(training_features_c,
                                                                                             axis=1) / np.linalg.norm(testing_feature)
             ind = np.argsort(similarities)[-opt.K:]
             top_k_similarities = similarities[ind]
