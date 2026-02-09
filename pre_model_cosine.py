@@ -161,7 +161,7 @@ def dimension_reduction_pca(sorted_features):
     features_bundle = [np.concatenate(sf) for sf in sorted_features]
     features_bundle = np.squeeze(np.concatenate(features_bundle))
     features_bundle = features_bundle.reshape(features_bundle.shape[0], -1)
-    pca = PCA(n_components=0.8, whiten=True)
+    pca = PCA(n_components=374, whiten=True, svd_solver='randomized')
     pca.fit(features_bundle)
 
     sorted_features = [pca.transform(np.concatenate(sf).reshape(len(sf), -1)) for sf in sorted_features]
