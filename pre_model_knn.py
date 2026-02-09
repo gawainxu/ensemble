@@ -275,7 +275,7 @@ def feature_classifier(opt):
     # print("probs_binary", probs_binary_dis)
 
     auroc = AUROC(labels_binary, probs_binary_dis)
-    print("Dis AUROC is: ", auroc)
+    print("AUROC is: ", auroc)
 
     return auroc
 
