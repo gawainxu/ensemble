@@ -130,7 +130,7 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = pca.transform(features)
             features = np.squeeze(features)
         elif "polling" in mode:
-            gap = torch.nn.AdaptiveAvgPool2d(1)
+            gap = torch.nn.AdaptiveAvgPool2d((1,1))
             features = gap(features).numpy()
             features = features.view()
         else:
@@ -187,7 +187,7 @@ def dimension_reduction_pooling(sorted_features):
 
     sorted_features_new = []
     for sf in sorted_features:
-        gap = torch.nn.AdaptiveAvgPool2d(1)
+        gap = torch.nn.AdaptiveAvgPool2d((1,1))
         sf = [gap(f) for f in sf]
         sorted_features_new.append(sf)
 
@@ -234,7 +234,6 @@ def feature_classifier(opt):
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
             features_testing_known1, _, labels_testing_known1 = pickle.load(f)
-
 
     if opt.testing_known_features_path2 is not None:
         with open(opt.testing_known_features_path2, "rb") as f:

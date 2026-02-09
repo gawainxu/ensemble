@@ -119,7 +119,7 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = pca.transform(features)
             features = np.squeeze(features)
         else:
-            gap = torch.nn.AdaptiveAvgPool2d(1)
+            gap = torch.nn.AdaptiveAvgPool2d((1,1))
             features = gap(features).numpy()
             features = features.view()
         diss = []
@@ -173,7 +173,7 @@ def dimension_reduction_pooling(sorted_features):
 
     sorted_features_new = []
     for sf in sorted_features:
-        gap = torch.nn.AdaptiveAvgPool2d(1)
+        gap = torch.nn.AdaptiveAvgPool2d((1,1))
         sf = [gap(f) for f in sf]
         sorted_features_new.append(sf)
 
