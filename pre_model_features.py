@@ -213,7 +213,10 @@ def normalFeatureReading_hook(model, opt, data_loader):
     for i, (img, label) in enumerate(data_loader):
 
         with torch.no_grad():
-            img = img.float().cuda()
+            if torch.cuda.is_available():
+                img = img.float().cuda()
+            else:
+                img = img.float()
             activation = {}
             hook_output = model(img)
             outputs.append(activation[opt.layers_to_see].detach().cpu())
