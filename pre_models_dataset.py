@@ -81,7 +81,7 @@ class outlier_dataset(Dataset):
 
 
 
-def ImageNet100(data_path="../datasets/ImageNet100", train=True, opt=None):
+def ImageNet100(data_path="../datasets/imagenet100", train=True, opt=None):
 
     if train:
         transform = transforms_train["imagenet100"]
@@ -92,7 +92,7 @@ def ImageNet100(data_path="../datasets/ImageNet100", train=True, opt=None):
     return imagenet100
 
 
-def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False, opt=None):
+def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, opt=None):
 
     if train:
         transform = transforms_train["imagenet50"]
@@ -108,7 +108,7 @@ def ImageNet50(data_path="../datasets/ImageNet50", train=True, outliers=False, o
 
 
 
-def ImageNet1k(data_path="../datasets/ImageNet100", train=True, opt=None):
+def ImageNet1k(data_path="../datasets/imagenet100", train=True, opt=None):
 
     if train:
         transform = transforms_train["imagenet1k"]
@@ -119,7 +119,7 @@ def ImageNet1k(data_path="../datasets/ImageNet100", train=True, opt=None):
     return imagenet1k
 
 
-def ImageNet_M(data_path="../datasets/ImageNet-M-train", train=True, opt=None):
+def ImageNet_M(data_path="../datasets/imagenet-M-train", train=True, opt=None):
 
     imagenet_m_class_list_base = ["n01728572", "n01728920",
                              "n01817953", "n01818515",
