@@ -108,6 +108,9 @@ def load_data(opt):
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=True)
     dataloader_test = DataLoader(dataset_test, batch_size=opt.batch_size, shuffle=False)
 
+    print("dataset_train", len(dataset_train))
+    print("dataset_test", len(dataset_test))
+
     return dataloader_train, dataloader_test
 
 
