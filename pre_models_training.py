@@ -92,11 +92,11 @@ def load_data(opt):
     num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(opt.data_path_train, train=True, opt=opt)
-        dataset_test = ImageNet100(opt.data_path_test, train=False, opt=opt)
+        dataset_train = ImageNet100(train=True, opt=opt)
+        dataset_test = ImageNet100(train=False, opt=opt)
     if "imagenet50" in opt.dataset:
-        dataset_train = ImageNet50(opt.data_path_train, train=True, opt=opt)
-        dataset_test = ImageNet50(opt.data_path_test, train=False, opt=opt)
+        dataset_train = ImageNet50(train=True, opt=opt)
+        dataset_test = ImageNet50(train=False, opt=opt)
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(opt.data_path_train, train=True, opt=opt)
         dataset_test = ImageNet_M(opt.data_path_test, train=False, opt=opt)
