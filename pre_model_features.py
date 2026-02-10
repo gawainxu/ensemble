@@ -144,6 +144,9 @@ def load_data(opt):
         dataset_train = mnist()
         dataset_test = mnist()
 
+    print("dataset_train", len(dataset_train))
+    print("dataset_test", len(dataset_test))
+
     opt.num_classes = num_classes_dict[opt.dataset]
 
     # downssample the dataset
