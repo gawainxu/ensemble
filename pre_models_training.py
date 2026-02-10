@@ -36,7 +36,7 @@ def parse_option():
                         help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9,
                         help='momentum')
-    parser.add_argument('--cosine', default=False,
+    parser.add_argument('--cosine', action='store_true',
                         help='using cosine annealing')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
