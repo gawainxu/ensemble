@@ -50,8 +50,8 @@ def parse_option():
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
     parser.add_argument("--train_data",  action="store_true", help="if the training data")
 
-    parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
-    parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test2")
+    parser.add_argument("--data_path_train", type=str, default=None)
+    parser.add_argument("--data_path_test", type=str, default=None)
     parser.add_argument("--backbone_model_direct", type=str, default="/save/cifar100_models/CE_cifar100_vgg16_lr_0.01_decay_0.0001_bsz_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--features_save_path", type=str, default="")
@@ -120,14 +120,14 @@ def load_data(opt):
                         "imagenet50_far": 50, "cifar_far": 50,}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(opt.data_path_train, train=True)
-        dataset_test = ImageNet100(opt.data_path_test, train=False)
+        dataset_train = ImageNet100(train=True)
+        dataset_test = ImageNet100(train=False)
     elif "imagenet50" in opt.dataset:
-        dataset_train = ImageNet50(opt.data_path_train, train=True, outliers=opt.outliers)
-        dataset_test = ImageNet50(opt.data_path_test, train=False, outliers=opt.outliers)
+        dataset_train = ImageNet50(train=True, outliers=opt.outliers)
+        dataset_test = ImageNet50(train=False, outliers=opt.outliers)
     elif "imagenet-m" in opt.dataset:
-        dataset_train = ImageNet_M(opt.data_path_train, train=True)
-        dataset_test = ImageNet_M(opt.data_path_test, train=False)
+        dataset_train = ImageNet_M(train=True)
+        dataset_test = ImageNet_M(train=False)
     elif "cifar100" in opt.dataset:
         dataset_train = iCIFAR100(root="../datasets", train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(root="../datasets", train=False, outliers=opt.outliers)

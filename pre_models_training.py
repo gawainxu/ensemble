@@ -22,8 +22,8 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for pre-trained models')
     parser.add_argument("--dataset", type=str, default="imagenet50")
-    parser.add_argument("--data_path_train", type=str, default="../datasets/imagenet-M-train")
-    parser.add_argument("--data_path_test", type=str, default="../datasets/imagenet-M-test1")
+    parser.add_argument("--data_path_train", type=str, default=None)
+    parser.add_argument("--data_path_test", type=str, default=None)
     parser.add_argument("--model", type=str, default="vit16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
 
@@ -98,8 +98,8 @@ def load_data(opt):
         dataset_train = ImageNet50(train=True, opt=opt)
         dataset_test = ImageNet50(train=False, opt=opt)
     elif "imagenet-m" in opt.dataset:
-        dataset_train = ImageNet_M(opt.data_path_train, train=True, opt=opt)
-        dataset_test = ImageNet_M(opt.data_path_test, train=False, opt=opt)
+        dataset_train = ImageNet_M(train=True, opt=opt)
+        dataset_test = ImageNet_M(train=False, opt=opt)
     elif "cifar100" in opt.dataset:
         dataset_train = iCIFAR100(root="../datasets", train=True, opt=opt)
         dataset_test = iCIFAR100(root="../datasets", train=False, opt=opt)
