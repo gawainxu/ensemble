@@ -99,8 +99,7 @@ def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, o
         transform = transforms_train["imagenet50"]
     else:
         transform = transforms_test["imagenet50"]
-
-    data_path = data_path + "_test"
+        data_path = data_path + "_test"
 
     imagenet50 = torchvision.datasets.ImageFolder(data_path, transform=transform)
 
