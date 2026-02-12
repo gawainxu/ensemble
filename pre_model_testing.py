@@ -122,7 +122,6 @@ def testing(val_loader, model, criterion, opt):
     """validation"""
     model.eval()
 
-    batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
 
@@ -142,21 +141,13 @@ def testing(val_loader, model, criterion, opt):
             acc1 = accuracy(output, labels, topk=(1, 5))
             top1.update(acc1[0].item(), bsz)
 
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
 
-            if idx % opt.print_freq == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Acc@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                       idx, len(val_loader), batch_time=batch_time,
-                       loss=losses, top1=top1))
+            print('Test: [{0}/{1}]\t'
+                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                   'Acc@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+                   idx, len(val_loader), loss=losses, top1=top1))
 
-    print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
     return losses.avg, top1.avg
-
 
 
 def main():
