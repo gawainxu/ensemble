@@ -167,7 +167,7 @@ def ImageNet_M(data_path="../datasets/imagenet-M-train", train=True, opt=None):
 
 class iCIFAR100(CIFAR100):
 
-    def __init__(self, root,
+    def __init__(self, root="../datasets",
                  train=True,
                  target_transform=None,
                  download=False,
@@ -395,5 +395,16 @@ class mnist(MNIST):
 
 if __name__ == "__main__":
 
-    dtd = DTD()
-    print(len(dtd))
+    from PIL import Image
+    import os
+
+    mnist = mnist()
+    length = len(mnist)
+
+    for i in range(length):
+        if i % 500 == 0:
+            im, l = mnist[i]
+            im = Image.fromarray(im)
+            im.save(os.path.join("/home/zhi/projects/ensemble/datasamples/cifar/far", str(i)+"_"+str(l)+".png"))
+
+
