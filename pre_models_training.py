@@ -124,12 +124,12 @@ def load_model(opt):
     elif "vit" in opt.model:
         if "cifar" in opt.dataset:
             configs = get_b16_config_cifar()
-            model = ViT_cifar(num_classes=opt.num_classes)
+            #model = ViT_cifar(num_classes=opt.num_classes)
         elif "imagenet" in opt.dataset:
             configs = get_b16_config()
-            model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
-                        embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads, mlp_dim=configs.hidden_dim,
-                        dim_head = configs.head_dim, dropout = configs.dropout, emb_dropout = configs.emb_dropout)
+        model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
+                    embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads, mlp_dim=configs.hidden_dim,
+                    dim_head = configs.head_dim, dropout = configs.dropout, emb_dropout = configs.emb_dropout)
 
     criterion = torch.nn.CrossEntropyLoss()
 
