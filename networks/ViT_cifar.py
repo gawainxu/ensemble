@@ -62,7 +62,7 @@ class MultiHeadDepthwiseSelfAttention(nn.Module):
 
 class ViT_cifar(nn.Module):
     def __init__(self, in_c: int = 3, num_classes: int = 10, img_size: int = 32, patch: int = 8, dropout: float = 0.,
-                 num_layers: int = 6, hidden: int = 256, mlp_hidden: int = 256 * 4, head: int = 8,
+                 num_layers: int = 6, hidden: int = 128, mlp_hidden: int = 128 * 4, head: int = 8,
                  is_cls_token: bool = True):
         super(ViT_cifar, self).__init__()
         # hidden=384
