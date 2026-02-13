@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torchsummary
 
 from ViT_layers import TransformerEncoder
 
@@ -60,5 +59,5 @@ if __name__ == "__main__":
                    mlp_hidden=384, is_cls_token=False)
     # out = net(x)
     # out.mean().backward()
-    torchsummary.summary(net, (c, h, w))
+    #torchsummary.summary(net, (c, h, w))
     # print(out.shape)
