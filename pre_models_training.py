@@ -124,7 +124,7 @@ def load_model(opt):
     elif "vit" in opt.model:
         if "cifar" in opt.dataset:
             configs = get_b16_config_cifar()
-            model = ViT_cifar()
+            model = ViT_cifar(num_classes=opt.num_classes)
         elif "imagenet" in opt.dataset:
             configs = get_b16_config()
             model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
