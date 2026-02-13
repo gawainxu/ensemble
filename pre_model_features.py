@@ -21,6 +21,9 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from networks.resnet_big import SupCEResNet
 from networks.vgg import vgg16, vgg16_bn
+from networks.ViT import ViT, get_b16_config_cifar, get_b16_config
+from networks.ViT_cifar import ViT_cifar
+
 try:
     import apex
     from apex import amp, optimizers
@@ -43,9 +46,9 @@ def parse_option():
                         help='num of workers to use')
     parser.add_argument('--layers_to_see', type=str, default="features.40")
 
-    parser.add_argument('--model', type=str, default='resnet18',
-                        choices=["resnet18", "resnet50", "vgg16"])
-    parser.add_argument("--dataset", type=str, default="imagenet50")
+    parser.add_argument('--model', type=str, default='vit',
+                        choices=["resnet18", "vgg16", "vit"])
+    parser.add_argument("--dataset", type=str, default="cifar100")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
     parser.add_argument("--train_data",  action="store_true", help="if the training data")
@@ -106,6 +109,16 @@ def set_model(opt):
         model = SupCEResNet(name=opt.model, num_classes=opt.num_classes)
     elif "vgg" in opt.model:
         model = vgg16_bn(num_classes=opt.num_classes)
+    elif "vit" in opt.model:
+        if "cifar" in opt.dataset:
+            configs = get_b16_config_cifar()
+            model = ViT_cifar(num_classes=opt.num_classes)
+        elif "imagenet" in opt.dataset:
+            configs = get_b16_config()
+            model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
+                        embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads,
+                        mlp_dim=configs.hidden_dim,
+                        dim_head=configs.head_dim, dropout=configs.dropout, emb_dropout=configs.emb_dropout)
 
     model = load_model(model, opt.backbone_model_path)
     model = model.eval()
@@ -223,6 +236,7 @@ def normalFeatureReading_hook(model, opt, data_loader):
                 img = img.float()
             activation = {}
             hook_output = model(img)
+            # Output the full output tokens of the attention block, including the cls
             outputs.append(activation[opt.layers_to_see].detach().cpu())
             labels.append(label.numpy().item())
 
