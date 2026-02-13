@@ -24,7 +24,7 @@ def get_b16_config_cifar():
     config.embed_dim = 256    # output dim for converting patches to attention inputs, 256
     config.emb_dropout = 0.2
     config.hidden_dim = 512   # in FFN in transformer, 512
-    config.depth = 5
+    config.depth = 6
     config.attention_dropout = 0.3
     config.head_dim = 64
     config.num_heads = 8
