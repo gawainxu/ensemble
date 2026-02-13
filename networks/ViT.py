@@ -21,9 +21,9 @@ def get_b16_config_cifar():
     """
     config = ml_collections.ConfigDict()
     config.patch_size = 4
-    config.embed_dim = 256    # output dim for converting patches to attention inputs
+    config.embed_dim = 128    # output dim for converting patches to attention inputs, 256
     config.emb_dropout = 0.2
-    config.hidden_dim = 512   # in FFN in transformer
+    config.hidden_dim = 256   # in FFN in transformer, 512
     config.depth = 5
     config.attention_dropout = 0.2
     config.head_dim = 64
