@@ -39,12 +39,17 @@ downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"in
                 "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
 
 
+image_sizes = {"cifar100": 32, "imagenet50": 224,
+                "imagenet50_medium": 224, "cifar_medium": 32,
+                "imagenet50_far": 224, "cifar_far": 32}
+
+
 def parse_option():
     parser = argparse.ArgumentParser('argument for training')
 
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--layers_to_see', type=str, default="features.40")
+    parser.add_argument('--layers_to_see', type=str, default="transformer.layers.5.1.net.5")
 
     parser.add_argument('--model', type=str, default='vit',
                         choices=["resnet18", "vgg16", "vit"])
@@ -55,7 +60,7 @@ def parse_option():
 
     parser.add_argument("--data_path_train", type=str, default=None)
     parser.add_argument("--data_path_test", type=str, default=None)
-    parser.add_argument("--backbone_model_direct", type=str, default="/save/cifar100_models/CE_cifar100_vgg16_lr_0.01_decay_0.0001_bsz_128/")
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/cifar100_models/CE_cifar100_vit16_lr_0.0003_decay_0.0001_bsz_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--features_save_path", type=str, default="")
 
@@ -112,10 +117,11 @@ def set_model(opt):
     elif "vit" in opt.model:
         if "cifar" in opt.dataset:
             configs = get_b16_config_cifar()
-            model = ViT_cifar(num_classes=opt.num_classes)
+            #model = ViT_cifar(num_classes=opt.num_classes)
         elif "imagenet" in opt.dataset:
             configs = get_b16_config()
-            model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
+        opt.image_size = image_sizes[opt.dataset]
+        model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
                         embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads,
                         mlp_dim=configs.hidden_dim,
                         dim_head=configs.head_dim, dropout=configs.dropout, emb_dropout=configs.emb_dropout)
@@ -260,3 +266,124 @@ if __name__ == "__main__":
     else:
         print("Testing Data")
         normalFeatureReading_hook(model, opt, dataloader_test)
+
+
+"""
+ViT layers
+
+
+to_patch_embedding
+to_patch_embedding.0
+to_patch_embedding.1
+to_patch_embedding.2
+to_patch_embedding.3
+dropout
+transformer
+transformer.norm
+transformer.layers
+transformer.layers.0
+transformer.layers.0.0
+transformer.layers.0.0.norm
+transformer.layers.0.0.attend
+transformer.layers.0.0.dropout
+transformer.layers.0.0.to_qkv
+transformer.layers.0.0.to_out
+transformer.layers.0.0.to_out.0
+transformer.layers.0.0.to_out.1
+transformer.layers.0.1
+transformer.layers.0.1.net
+transformer.layers.0.1.net.0
+transformer.layers.0.1.net.1
+transformer.layers.0.1.net.2
+transformer.layers.0.1.net.3
+transformer.layers.0.1.net.4
+transformer.layers.0.1.net.5
+transformer.layers.1
+transformer.layers.1.0
+transformer.layers.1.0.norm
+transformer.layers.1.0.attend
+transformer.layers.1.0.dropout
+transformer.layers.1.0.to_qkv
+transformer.layers.1.0.to_out
+transformer.layers.1.0.to_out.0
+transformer.layers.1.0.to_out.1
+transformer.layers.1.1
+transformer.layers.1.1.net
+transformer.layers.1.1.net.0
+transformer.layers.1.1.net.1
+transformer.layers.1.1.net.2
+transformer.layers.1.1.net.3
+transformer.layers.1.1.net.4
+transformer.layers.1.1.net.5
+transformer.layers.2
+transformer.layers.2.0
+transformer.layers.2.0.norm
+transformer.layers.2.0.attend
+transformer.layers.2.0.dropout
+transformer.layers.2.0.to_qkv
+transformer.layers.2.0.to_out
+transformer.layers.2.0.to_out.0
+transformer.layers.2.0.to_out.1
+transformer.layers.2.1
+transformer.layers.2.1.net
+transformer.layers.2.1.net.0
+transformer.layers.2.1.net.1
+transformer.layers.2.1.net.2
+transformer.layers.2.1.net.3
+transformer.layers.2.1.net.4
+transformer.layers.2.1.net.5
+transformer.layers.3
+transformer.layers.3.0
+transformer.layers.3.0.norm
+transformer.layers.3.0.attend
+transformer.layers.3.0.dropout
+transformer.layers.3.0.to_qkv
+transformer.layers.3.0.to_out
+transformer.layers.3.0.to_out.0
+transformer.layers.3.0.to_out.1
+transformer.layers.3.1
+transformer.layers.3.1.net
+transformer.layers.3.1.net.0
+transformer.layers.3.1.net.1
+transformer.layers.3.1.net.2
+transformer.layers.3.1.net.3
+transformer.layers.3.1.net.4
+transformer.layers.3.1.net.5
+transformer.layers.4
+transformer.layers.4.0
+transformer.layers.4.0.norm
+transformer.layers.4.0.attend
+transformer.layers.4.0.dropout
+transformer.layers.4.0.to_qkv
+transformer.layers.4.0.to_out
+transformer.layers.4.0.to_out.0
+transformer.layers.4.0.to_out.1
+transformer.layers.4.1
+transformer.layers.4.1.net
+transformer.layers.4.1.net.0
+transformer.layers.4.1.net.1
+transformer.layers.4.1.net.2
+transformer.layers.4.1.net.3
+transformer.layers.4.1.net.4
+transformer.layers.4.1.net.5
+transformer.layers.5
+transformer.layers.5.0
+transformer.layers.5.0.norm
+transformer.layers.5.0.attend
+transformer.layers.5.0.dropout
+transformer.layers.5.0.to_qkv
+transformer.layers.5.0.to_out
+transformer.layers.5.0.to_out.0
+transformer.layers.5.0.to_out.1
+transformer.layers.5.1
+transformer.layers.5.1.net
+transformer.layers.5.1.net.0
+transformer.layers.5.1.net.1
+transformer.layers.5.1.net.2
+transformer.layers.5.1.net.3
+transformer.layers.5.1.net.4
+transformer.layers.5.1.net.5
+to_latent
+mlp_head
+
+"""
