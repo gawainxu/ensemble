@@ -213,53 +213,71 @@ def dimension_reduction_pooling(sorted_features):
 def feature_classifier(opt):
     with open(opt.exemplar_features_path, "rb") as f:
         features_exemplar, _, labels_examplar = pickle.load(f)
+    if "vit" in opt.exemplar_features_path:
+        features_exemplar = [feat[:, 0] for feat in features_exemplar]
 
     if opt.exemplar_features_path1 is not None:
         with open(opt.exemplar_features_path1, "rb") as f:
-            features_exemplar_head1, _, labels_examplar1 = pickle.load(f)
+            features_exemplar1, _, labels_examplar1 = pickle.load(f)
+        if "vit" in opt.exemplar_features_path1:
+            features_exemplar1 = [feat[:, 0] for feat in features_exemplar1]
 
     if opt.exemplar_features_path2 is not None:
         with open(opt.exemplar_features_path2, "rb") as f:
-            features_exemplar_head2, _, labels_examplar2 = pickle.load(f)
+            features_exemplar2, _, labels_examplar2 = pickle.load(f)
+        if "vit" in opt.exemplar_features_path2:
+            features_exemplar2 = [feat[:, 0] for feat in features_exemplar2]
 
-    sorted_features_exemplar_head = sort_features(features_exemplar, labels_examplar, opt)
+    sorted_features_exemplar = sort_features(features_exemplar, labels_examplar, opt)
     if "pca" in opt.mode:
-        pca, sorted_features_exemplar_head = dimension_reduction_pca(sorted_features_exemplar_head)
+        pca, sorted_features_exemplar = dimension_reduction_pca(sorted_features_exemplar)
     elif "pooling" in opt.mode:
-        sorted_features_exemplar_head = dimension_reduction_pooling(sorted_features_exemplar_head)
+        sorted_features_exemplar = dimension_reduction_pooling(sorted_features_exemplar)
 
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            features_testing_known_head, _, labels_testing_known = pickle.load(f)
+            features_testing_known, _, labels_testing_known = pickle.load(f)
+        if "vit" in opt.testing_known_features_path:
+            features_testing_known = [feat[:, 0] for feat in features_testing_known]
 
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
-            features_testing_known_head1, _, labels_testing_known1 = pickle.load(f)
+            features_testing_known1, _, labels_testing_known1 = pickle.load(f)
+        if "vit" in opt.testing_known_features_path1:
+            features_testing_known1 = [feat[:, 0] for feat in features_testing_known1]
 
 
     if opt.testing_known_features_path2 is not None:
         with open(opt.testing_known_features_path2, "rb") as f:
-            features_testing_known_head2, _, labels_testing_known2 = pickle.load(f)
+            features_testing_known2, _, labels_testing_known2 = pickle.load(f)
+        if "vit" in opt.testing_known_features_path2:
+            features_testing_known2 = [feat[:, 0] for feat in features_testing_known2]
 
     if "pca" in opt.mode:
         prediction_logits_known_dis_in, predictions_known_dis, acc_known_dis = KNN_classifier(
-        features_testing_known_head, labels_testing_known, sorted_features_exemplar_head, mode=opt.mode, pca=pca)
+        features_testing_known, labels_testing_known, sorted_features_exemplar, mode=opt.mode, pca=pca)
 
     with open(opt.testing_unknown_features_path, "rb") as f:
-        features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
+        features_testing_unknown, _, labels_testing_unknown = pickle.load(f)
+    if "vit" in opt.testing_unknown_features_path:
+        features_testing_unknown = [feat[:, 0] for feat in features_testing_unknown]
 
     if opt.testing_unknown_features_path1 is not None:
         with open(opt.testing_unknown_features_path1, "rb") as f:
-            features_testing_unknown_head1, _, labels_testing_unknown1 = pickle.load(f)
+            features_testing_unknown1, _, labels_testing_unknown1 = pickle.load(f)
+        if "vit" in opt.testing_unknown_features_path1:
+            features_testing_unknown1 = [feat[:, 0] for feat in features_testing_unknown1]
 
     if opt.testing_unknown_features_path2 is not None:
         with open(opt.testing_unknown_features_path2, "rb") as f:
-            features_testing_unknown_head2, _, labels_testing_unknown2 = pickle.load(f)
+            features_testing_unknown2, _, labels_testing_unknown2 = pickle.load(f)
+        if "vit" in opt.testing_unknown_features_path2:
+            features_testing_unknown2 = [feat[:, 0] for feat in features_testing_unknown2]
 
     if "pca" in opt.mode:
         prediction_logits_unknown_dis_in, predictions_unknown_dis, acc_unknown_dis = KNN_classifier(
-        features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head, mode=opt.mode, pca=pca)
+        features_testing_unknown, labels_testing_unknown, sorted_features_exemplar, mode=opt.mode, pca=pca)
 
     distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)
     labels_testing = np.concatenate((labels_testing_known, labels_testing_unknown), axis=0)

@@ -51,7 +51,7 @@ def parse_option():
                         help='num of workers to use')
     parser.add_argument('--layers_to_see', type=str, default="transformer.layers.5.1.net.5")
 
-    parser.add_argument('--model', type=str, default='vit',
+    parser.add_argument('--model', type=str, default='vgg16',
                         choices=["resnet18", "vgg16", "vit"])
     parser.add_argument("--dataset", type=str, default="cifar100")
     parser.add_argument("--batch_size", type=int, default=1)
