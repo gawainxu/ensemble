@@ -230,6 +230,9 @@ def feature_classifier(opt):
     if "pca" in opt.mode:
         prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(
         features_testing_known, labels_testing_known, sorted_features_exemplar, mode=opt.mode, pca=pca)
+    else:
+        prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(
+            features_testing_known, labels_testing_known, sorted_features_exemplar, mode=opt.mode)
 
     with open(opt.testing_unknown_features_path, "rb") as f:
         features_testing_unknown, _, labels_testing_unknown = pickle.load(f)
@@ -251,6 +254,9 @@ def feature_classifier(opt):
     if "pca" in opt.mode:
         prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(
         features_testing_unknown, labels_testing_unknown, sorted_features_exemplar, mode=opt.mode, pca=pca)
+    else:
+        prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(
+            features_testing_unknown, labels_testing_unknown, sorted_features_exemplar, mode=opt.mode)
 
     distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)
     labels_testing = np.concatenate((labels_testing_known, labels_testing_unknown), axis=0)
