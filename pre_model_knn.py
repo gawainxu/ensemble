@@ -30,7 +30,7 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
     parser.add_argument("--num_classes", type=int, default=50)
-    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling"])
+    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
     parser.add_argument("--K", type=int, default=3)
 
     parser.add_argument("--exemplar_features_path", type=str,
@@ -119,10 +119,13 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = features.reshape(1, -1)
             features = pca.transform(features)
             features = np.squeeze(features)
-        else:
+        elif "pooling" in mode:
             gap = torch.nn.AdaptiveAvgPool2d((1,1))
             features = gap(features).numpy()
             features = features.view()
+        else:
+            features = features.numpy()
+            features = np.squeeze(features)
         diss = []
         for i, (mu, var) in enumerate(stats):
             norm_features = features / np.linalg.norm(features)
