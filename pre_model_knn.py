@@ -30,15 +30,15 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
     parser.add_argument("--num_classes", type=int, default=50)
-    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
+    parser.add_argument("--mode", type=str, default="none", choices=["pca", "pooling", "none"])
     parser.add_argument("--K", type=int, default=3)
 
     parser.add_argument("--exemplar_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_inliers_train")
+                        default="/features/vit_cifar100_transformer.layers.5.1.net.5_inliers_train")
     parser.add_argument("--testing_known_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_inliers_test")
+                        default="/features/vit_cifar100_transformer.layers.5.1.net.5_inliers_test")
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_outliers_test")
+                        default="/features/vit_cifar100_transformer.layers.5.1.net.5_outliers_test")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
@@ -145,13 +145,18 @@ def KNN_logits(testing_features, sorted_exemplar_features, pca=None):
 
     for idx, testing_feature in enumerate(testing_features):
         # print(idx)
+        testing_feature = testing_feature.numpy()
         if pca is not None:
             testing_feature = testing_feature.reshape(1, -1)
             testing_feature = pca.transform(testing_feature)
             testing_feature = np.squeeze(testing_feature)
+        else:
+            testing_feature = testing_feature.reshape(1, -1)
+            testing_feature = np.squeeze(testing_feature)
         similarity_logits = []
         for training_features_c in sorted_exemplar_features:
             training_features_c = np.array(training_features_c, dtype=float)
+            training_features_c = np.squeeze(training_features_c)
             similarities = np.matmul(training_features_c, testing_feature.T) / np.linalg.norm(training_features_c,
                                                                                             axis=1) / np.linalg.norm(testing_feature)
             ind = np.argsort(similarities)[-opt.K:]
