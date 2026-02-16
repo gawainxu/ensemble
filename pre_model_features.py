@@ -178,8 +178,12 @@ def load_data(opt):
 
     num_keep_train = int(len(dataset_train) * train_ratio)
     indices_train = np.random.choice(len(dataset_train), num_keep_train, replace=False)
+    print("num_keep_train", num_keep_train)
+    print("indices_train", indices_train)
     num_keep_test = int(len(dataset_test) * test_ratio)
     indices_test = np.random.choice(len(dataset_test), num_keep_test, replace=False)
+    print("num_keep_test", num_keep_test)
+    print("indices_test", indices_test)
 
     sampler_train = SubsetRandomSampler(indices_train)
     sampler_test = SubsetRandomSampler(indices_test)
