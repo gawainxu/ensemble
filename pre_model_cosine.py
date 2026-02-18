@@ -19,6 +19,7 @@ import numpy as np
 import pickle
 from scipy.spatial.distance import mahalanobis
 from sklearn.decomposition import PCA
+from sklearn.covariance import LedoitWolf
 
 from util import accuracy_plain, AUROC, down_sampling
 
@@ -33,11 +34,11 @@ def parse_option():
     parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
 
     parser.add_argument("--exemplar_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_inliers_train")
+                        default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")
     parser.add_argument("--testing_known_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_inliers_test")
+                        default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_outliers_test")
+                        default="/features/resnet18_imagenet50_encoder.avgpool_outliers_test")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
@@ -164,7 +165,7 @@ def dimension_reduction_pca(sorted_features):
     features_bundle = [np.concatenate(sf) for sf in sorted_features]
     features_bundle = np.squeeze(np.concatenate(features_bundle))
     features_bundle = features_bundle.reshape(features_bundle.shape[0], -1)
-    pca = PCA(n_components=374, whiten=True, svd_solver='randomized')
+    pca = PCA(n_components=200, whiten=True, svd_solver='randomized')
     pca.fit(features_bundle)
 
     sorted_features = [pca.transform(np.concatenate(sf).reshape(len(sf), -1)) for sf in sorted_features]

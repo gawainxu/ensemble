@@ -33,11 +33,11 @@ def parse_option():
     parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
 
     parser.add_argument("--exemplar_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_inliers_train")
+                        default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")
     parser.add_argument("--testing_known_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_inliers_test")
+                        default="/features/resnet18_imagenet50_encoder.avgpool_inliers_test")
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/resnet18_cifar100_encoder.layer4_outliers_test")
+                        default="/features/resnet18_imagenet50_encoder.avgpool_outliers_test")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
