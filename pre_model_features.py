@@ -32,10 +32,10 @@ except ImportError:
 
 
 downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
-                "imagenet50": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
-                "imagenet50_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50_medium": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
-                "imagenet50_far": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
 
 
@@ -179,11 +179,11 @@ def load_data(opt):
     num_keep_train = int(len(dataset_train) * train_ratio)
     indices_train = np.random.choice(len(dataset_train), num_keep_train, replace=False)
     print("num_keep_train", num_keep_train)
-    print("indices_train", indices_train)
+    print("indices_train", len(indices_train))
     num_keep_test = int(len(dataset_test) * test_ratio)
     indices_test = np.random.choice(len(dataset_test), num_keep_test, replace=False)
     print("num_keep_test", num_keep_test)
-    print("indices_test", indices_test)
+    print("indices_test", len(indices_test))
 
     sampler_train = SubsetRandomSampler(indices_train)
     sampler_test = SubsetRandomSampler(indices_test)
@@ -220,6 +220,7 @@ def normalFeatureReading_hook(model, opt, data_loader):
     labels = []
 
     activation = {}
+    print("data_loader", data_loader.__len__())
 
     def get_activation(name):
         def hook(model, input, output):

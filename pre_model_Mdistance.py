@@ -19,6 +19,7 @@ import numpy as np
 import pickle
 from scipy.spatial.distance import mahalanobis
 from sklearn.decomposition import PCA
+from sklearn.covariance import LedoitWolf
 
 from util import accuracy_plain, AUROC, down_sampling
 
@@ -112,9 +113,10 @@ def feature_stats(inlier_features):
     for features in inlier_features:
         features = np.squeeze(np.array(features))
         mu = np.mean(features, axis=0)
-        var = np.cov(features.astype(float), rowvar=False)
+        #var = np.cov(features.astype(float), rowvar=False)
+        lw = LedoitWolf().fit(features)
 
-        stats.append((mu, var))
+        stats.append((mu, lw.covariance_))
 
     return stats
 
