@@ -95,6 +95,9 @@ def ImageNet100(data_path="../datasets/imagenet100", train=True, opt=None):
 
 def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, opt=None):
 
+    if outliers:
+        data_path = data_path + "_Novel"
+
     if train:
         transform = transforms_train["imagenet50"]
     else:
@@ -108,7 +111,6 @@ def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, o
         return imagenet50_outlier
 
     return imagenet50
-
 
 
 def ImageNet1k(data_path="../datasets/imagenet100", train=True, opt=None):
@@ -167,14 +169,14 @@ def ImageNet_M(data_path="../datasets/imagenet-M-train", train=True, opt=None):
 
 class iCIFAR100(CIFAR100):
 
-    def __init__(self, root="../datasets",
+    def __init__(self, data_path="../datasets",
                  train=True,
                  target_transform=None,
                  download=False,
                  label_dict=None,
                  outliers=False,
                  opt=None):
-        super(iCIFAR100, self).__init__(root,
+        super(iCIFAR100, self).__init__(data_path,
                                         train=train,
                                         target_transform=target_transform,
                                         download=download)
@@ -338,11 +340,11 @@ def DTD(data_path="../datasets/DTD"):
 
 class mnist(MNIST):
 
-    def __init__(self, root="../datasets",
+    def __init__(self, data_path = "../datasets",
                  classes=range(10),
                  train=True,
                  download=True,):
-        super(mnist, self).__init__(root, train=train,
+        super(mnist, self).__init__(data_path, train=train,
                                     download=download)
 
         self.transform = transforms_test["mnist"]

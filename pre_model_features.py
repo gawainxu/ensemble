@@ -32,7 +32,7 @@ except ImportError:
 
 
 downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
-                "imagenet50": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50": {"train":{"inliers": 1, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_medium": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
@@ -58,8 +58,7 @@ def parse_option():
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
     parser.add_argument("--train_data",  action="store_true", help="if the training data")
 
-    parser.add_argument("--data_path_train", type=str, default=None)
-    parser.add_argument("--data_path_test", type=str, default=None)
+    parser.add_argument("--data_path", type=str, default=None)
     parser.add_argument("--backbone_model_direct", type=str, default="/save/cifar100_models/CE_cifar100_vit16_lr_0.0003_decay_0.0001_bsz_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--features_save_path", type=str, default="")
@@ -139,29 +138,29 @@ def load_data(opt):
                         "imagenet50_far": 50, "cifar_far": 50,}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(train=True)
-        dataset_test = ImageNet100(train=False)
+        dataset_train = ImageNet100(data_path=opt.data_path, train=True)
+        dataset_test = ImageNet100(data_path=opt.data_path, train=False)
     elif "imagenet50" in opt.dataset:
-        dataset_train = ImageNet50(train=True, outliers=opt.outliers)
-        dataset_test = ImageNet50(train=False, outliers=opt.outliers)
+        dataset_train = ImageNet50(data_path=opt.data_path, train=True, outliers=opt.outliers)
+        dataset_test = ImageNet50(data_path=opt.data_path, train=False, outliers=opt.outliers)
     elif "imagenet-m" in opt.dataset:
-        dataset_train = ImageNet_M(train=True)
-        dataset_test = ImageNet_M(train=False)
+        dataset_train = ImageNet_M(data_path=opt.data_path, train=True)
+        dataset_test = ImageNet_M(data_path=opt.data_path, train=False)
     elif "cifar100" in opt.dataset:
-        dataset_train = iCIFAR100(root="../datasets", train=True, outliers=opt.outliers)
-        dataset_test = iCIFAR100(root="../datasets", train=False, outliers=opt.outliers)
+        dataset_train = iCIFAR100(data_path=opt.data_path, train=True, outliers=opt.outliers)
+        dataset_test = iCIFAR100(data_path=opt.data_path, train=False, outliers=opt.outliers)
     elif "imagenet50_medium" in opt.dataset:
-        dataset_train = imagenet50_medium_outliers()
-        dataset_test = imagenet50_medium_outliers()
+        dataset_train = imagenet50_medium_outliers(data_path=opt.data_path)
+        dataset_test = imagenet50_medium_outliers(data_path=opt.data_path)
     elif "cifar_medium" in opt.dataset:
-        dataset_train = cifar_medium_outliers()
-        dataset_test = cifar_medium_outliers()
+        dataset_train = cifar_medium_outliers(data_path=opt.data_path)
+        dataset_test = cifar_medium_outliers(data_path=opt.data_path)
     elif "imagenet50_far" in opt.dataset:
-        dataset_train = DTD()
-        dataset_test = DTD()
+        dataset_train = DTD(data_path=opt.data_path)
+        dataset_test = DTD(data_path=opt.data_path)
     elif "cifar_far" in opt.dataset:
-        dataset_train = mnist()
-        dataset_test = mnist()
+        dataset_train = mnist(data_path=opt.data_path)
+        dataset_test = mnist(data_path=opt.data_path)
 
     print("dataset_train", len(dataset_train))
     print("dataset_test", len(dataset_test))
