@@ -137,28 +137,28 @@ def load_data(opt):
                         "imagenet50_medium": 50, "cifar_medium": 50,
                         "imagenet50_far": 50, "cifar_far": 50,}
 
-    if "imagenet100" in opt.dataset:
+    if opt.dataset =="imagenet100":
         dataset_train = ImageNet100(data_path=opt.data_path, train=True)
         dataset_test = ImageNet100(data_path=opt.data_path, train=False)
-    elif "imagenet50" in opt.dataset:
+    elif opt.dataset == "imagenet50":
         dataset_train = ImageNet50(data_path=opt.data_path, train=True, outliers=opt.outliers)
         dataset_test = ImageNet50(data_path=opt.data_path, train=False, outliers=opt.outliers)
-    elif "imagenet-m" in opt.dataset:
+    elif opt.dataset == "imagenet-m":
         dataset_train = ImageNet_M(data_path=opt.data_path, train=True)
         dataset_test = ImageNet_M(data_path=opt.data_path, train=False)
-    elif "cifar100" in opt.dataset:
+    elif opt.dataset == "cifar100":
         dataset_train = iCIFAR100(data_path=opt.data_path, train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(data_path=opt.data_path, train=False, outliers=opt.outliers)
-    elif "imagenet50_medium" in opt.dataset:
+    elif opt.dataset == "imagenet50_medium":
         dataset_train = imagenet50_medium_outliers(data_path=opt.data_path)
         dataset_test = imagenet50_medium_outliers(data_path=opt.data_path)
-    elif "cifar_medium" in opt.dataset:
+    elif opt.dataset == "cifar_medium":
         dataset_train = cifar_medium_outliers(data_path=opt.data_path)
         dataset_test = cifar_medium_outliers(data_path=opt.data_path)
-    elif "imagenet50_far" in opt.dataset:
+    elif opt.dataset == "imagenet50_far":
         dataset_train = DTD(data_path=opt.data_path)
         dataset_test = DTD(data_path=opt.data_path)
-    elif "cifar_far" in opt.dataset:
+    elif opt.dataset == "cifar_far":
         dataset_train = mnist(data_path=opt.data_path)
         dataset_test = mnist(data_path=opt.data_path)
 
