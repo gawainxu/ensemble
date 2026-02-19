@@ -57,6 +57,7 @@ def parse_option():
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
     parser.add_argument("--train_data",  action="store_true", help="if the training data")
+    parser.add_argument("--target_class", type=int, default=-1)
 
     parser.add_argument("--data_path", type=str, default=None)
     parser.add_argument("--backbone_model_direct", type=str, default="/save/cifar100_models/CE_cifar100_vit16_lr_0.0003_decay_0.0001_bsz_128/")
@@ -82,6 +83,9 @@ def parse_option():
         opt.features_name = opt.features_name + "_" + "test"
 
     opt.features_path = os.path.join(os.path.join(opt.main_dir, "features"), opt.features_name)
+
+    if opt.target_class > 0:
+        opt.features_path = opt.features_path + "_" + str(opt.target_class)
 
     return opt
 
@@ -194,24 +198,47 @@ def load_data(opt):
 
 
 
-def normalFeatureReading(data_loader, model, opt):
+def normalFeatureReading_hook_class(model, opt, data_loader, target_class):
     outputs = []
     labels = []
+
+    activation = {}
+    print("data_loader", data_loader.__len__())
+
+    def get_activation(name):
+        def hook(model, input, output):
+            if type(output) is tuple:
+                output = output[1]
+            print("hook working!!!", name, output.shape)
+            activation[name] = output.detach()
+
+        return hook
+
+    # https://zhuanlan.zhihu.com/p/87853615
+    for name, module in model.named_modules():
+        print(name)
+        if name == opt.layers_to_see:
+            handle = module.register_forward_hook(get_activation(name))
 
     for i, (img, label) in enumerate(data_loader):
 
         print(i)
-        if i > opt.break_idx:
-            break
+        if label != target_class:
+            continue
+        with torch.no_grad():
+            if torch.cuda.is_available():
+                img = img.float().cuda()
+            else:
+                img = img.float()
+            activation = {}
+            hook_output = model(img)
+            # Output the full output tokens of the attention block, including the cls
+            outputs.append(activation[opt.layers_to_see].detach().cpu())
+            labels.append(label.numpy().item())
 
-        output_encoder = model.encoder(img)
-        output_encoder = torch.squeeze(output_encoder)
+    with open(opt.features_path, "wb") as f:
+        pickle.dump((outputs, [], labels), f)
 
-        outputs.append(output_encoder.detach().numpy())
-        labels.append(label.numpy())
-
-    with open(opt.save_path, "wb") as f:
-        pickle.dump((outputs, labels), f)
 
 
 def normalFeatureReading_hook(model, opt, data_loader):
@@ -266,10 +293,16 @@ if __name__ == "__main__":
 
     if opt.train_data:
         print("Training Data")
-        normalFeatureReading_hook(model, opt, dataloader_train)
+        if opt.target_class > 0:
+            normalFeatureReading_hook_class(model, opt, dataloader_train, opt.target_class)
+        else:
+            normalFeatureReading_hook(model, opt, dataloader_train)
     else:
         print("Testing Data")
-        normalFeatureReading_hook(model, opt, dataloader_test)
+        if opt.target_class > 0:
+            normalFeatureReading_hook_class(model, opt, dataloader_test, opt.target_class)
+        else:
+            normalFeatureReading_hook(model, opt, dataloader_test)
 
 
 """
