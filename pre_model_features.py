@@ -145,8 +145,8 @@ def load_data(opt):
         dataset_train = ImageNet100(data_path=opt.data_path, train=True)
         dataset_test = ImageNet100(data_path=opt.data_path, train=False)
     elif opt.dataset == "imagenet50":
-        dataset_train = ImageNet50(data_path=opt.data_path, train=True, outliers=opt.outliers)
-        dataset_test = ImageNet50(data_path=opt.data_path, train=False, outliers=opt.outliers)
+        dataset_train = ImageNet50(data_path=opt.data_path, train=True, outliers=opt.outliers, target_class=opt.target_class)
+        dataset_test = ImageNet50(data_path=opt.data_path, train=False, outliers=opt.outliers, target_class=opt.target_class)
     elif opt.dataset == "imagenet-m":
         dataset_train = ImageNet_M(data_path=opt.data_path, train=True)
         dataset_test = ImageNet_M(data_path=opt.data_path, train=False)
@@ -222,8 +222,9 @@ def normalFeatureReading_hook_class(model, opt, data_loader, target_class):
 
     for i, (img, label) in enumerate(data_loader):
 
-        print(i)
-        if label != target_class:
+        print(i, label.item(), target_class)
+        if label.item() != target_class:
+            print("not in target")
             continue
         with torch.no_grad():
             if torch.cuda.is_available():
@@ -292,17 +293,9 @@ if __name__ == "__main__":
     print("Model loaded!!")
 
     if opt.train_data:
-        print("Training Data")
-        if opt.target_class > 0:
-            normalFeatureReading_hook_class(model, opt, dataloader_train, opt.target_class)
-        else:
-            normalFeatureReading_hook(model, opt, dataloader_train)
+        normalFeatureReading_hook(model, opt, dataloader_train)
     else:
-        print("Testing Data")
-        if opt.target_class > 0:
-            normalFeatureReading_hook_class(model, opt, dataloader_test, opt.target_class)
-        else:
-            normalFeatureReading_hook(model, opt, dataloader_test)
+        normalFeatureReading_hook(model, opt, dataloader_test)
 
 
 """

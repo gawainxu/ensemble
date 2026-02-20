@@ -2,7 +2,7 @@ import torchvision
 import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR100, MNIST
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 
 import os
 import numpy as np
@@ -81,7 +81,7 @@ class outlier_dataset(Dataset):
 
 
 
-def ImageNet100(data_path="../datasets/imagenet100", train=True, opt=None):
+def ImageNet100(data_path="../datasets/imagenet100", train=True, target_class=-1):
 
     if train:
         transform = transforms_train["imagenet100"]
@@ -93,7 +93,7 @@ def ImageNet100(data_path="../datasets/imagenet100", train=True, opt=None):
     return imagenet100
 
 
-def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, opt=None):
+def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, target_class=-1):
 
     if outliers:
         data_path = data_path + "_Novel"
@@ -106,6 +106,11 @@ def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, o
 
     imagenet50 = torchvision.datasets.ImageFolder(data_path, transform=transform)
 
+    if target_class >= 0:
+        indices = [i for i, (_, label) in enumerate(imagenet50.samples)
+                   if label.item() == target_class]
+        imagenet50 = Subset(imagenet50, indices)
+
     if outliers:
         imagenet50_outlier = outlier_dataset(imagenet50)
         return imagenet50_outlier
@@ -113,7 +118,7 @@ def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, o
     return imagenet50
 
 
-def ImageNet1k(data_path="../datasets/imagenet100", train=True, opt=None):
+def ImageNet1k(data_path="../datasets/imagenet100", train=True, target_class=-1):
 
     if train:
         transform = transforms_train["imagenet1k"]
@@ -125,7 +130,7 @@ def ImageNet1k(data_path="../datasets/imagenet100", train=True, opt=None):
     return imagenet1k
 
 
-def ImageNet_M(data_path="../datasets/imagenet-M-train", train=True, opt=None):
+def ImageNet_M(data_path="../datasets/imagenet-M-train", train=True, target_class=-1):
 
     imagenet_m_class_list_base = ["n01728572", "n01728920",
                              "n01817953", "n01818515",
@@ -175,7 +180,7 @@ class iCIFAR100(CIFAR100):
                  download=False,
                  label_dict=None,
                  outliers=False,
-                 opt=None):
+                 target_class=-1):
         super(iCIFAR100, self).__init__(data_path,
                                         train=train,
                                         target_transform=target_transform,
@@ -309,7 +314,7 @@ class iCIFAR100(CIFAR100):
 "cat": [ "n02123045", "n01622779", "n02124075", "n02123394", "n02123159", "n02123597"]}  #"n02123045","n02497673",
 """
 
-def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers"):
+def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers", target_class=-1):
 
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
@@ -319,7 +324,7 @@ def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers")
     return imagenet50_medium_outliers
 
 
-def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers"):
+def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers", target_class=-1):
 
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
@@ -329,7 +334,7 @@ def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers"):
     return cifar_medium_outliers
 
 
-def DTD(data_path="../datasets/DTD"):
+def DTD(data_path="../datasets/DTD", target_class=-1):
 
     transform = transforms_test["dtd"]
     dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
@@ -343,7 +348,8 @@ class mnist(MNIST):
     def __init__(self, data_path = "../datasets",
                  classes=range(10),
                  train=True,
-                 download=True,):
+                 download=True,
+                 target_class=-1):
         super(mnist, self).__init__(data_path, train=train,
                                     download=download)
 
