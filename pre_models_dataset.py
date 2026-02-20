@@ -108,7 +108,7 @@ def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, t
 
     if target_class >= 0:
         indices = [i for i, (_, label) in enumerate(imagenet50.samples)
-                   if label.item() == target_class]
+                   if label == target_class]
         imagenet50 = Subset(imagenet50, indices)
 
     if outliers:
