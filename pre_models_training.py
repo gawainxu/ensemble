@@ -93,17 +93,17 @@ def load_data(opt):
     num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(train=True, opt=opt)
-        dataset_test = ImageNet100(train=False, opt=opt)
+        dataset_train = ImageNet100(train=True)
+        dataset_test = ImageNet100(train=False)
     if "imagenet50" in opt.dataset:
-        dataset_train = ImageNet50(train=True, opt=opt)
-        dataset_test = ImageNet50(train=False, opt=opt)
+        dataset_train = ImageNet50(train=True)
+        dataset_test = ImageNet50(train=False)
     elif "imagenet-m" in opt.dataset:
-        dataset_train = ImageNet_M(train=True, opt=opt)
-        dataset_test = ImageNet_M(train=False, opt=opt)
+        dataset_train = ImageNet_M(train=True)
+        dataset_test = ImageNet_M(train=False)
     elif "cifar100" in opt.dataset:
-        dataset_train = iCIFAR100(root="../datasets", train=True, opt=opt)
-        dataset_test = iCIFAR100(root="../datasets", train=False, opt=opt)
+        dataset_train = iCIFAR100(root="../datasets", train=True)
+        dataset_test = iCIFAR100(root="../datasets", train=False)
 
     opt.num_classes = num_classes_dict[opt.dataset]
     dataloader_train = DataLoader(dataset_train, batch_size=opt.batch_size, shuffle=True)

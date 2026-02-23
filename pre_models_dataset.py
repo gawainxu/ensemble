@@ -274,24 +274,6 @@ class iCIFAR100(CIFAR100):
         else:
             return len(self.test_data)
 
-    def get_image_class(self, label):
-        return self.train_data[np.array(self.train_labels) == label]
-
-    def get_part_data(self, xidxs):
-
-        self.train_data = np.delete(self.train_data, xidxs, 0)
-        self.train_labels = np.delete(self.train_labels, xidxs, 0)
-
-    def append(self, images, labels):
-        """Append dataset with images and labels
-
-        Args:
-            images: Tensor of shape (N, C, H, W)
-            labels: list of labels
-        """
-
-        self.train_data = np.concatenate((self.train_data, images), axis=0)
-        self.train_labels = self.train_labels + labels
 
 
 """
@@ -319,7 +301,7 @@ def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers",
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                     transforms.CenterCrop(224),])
-    imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
+    imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  #
 
     return imagenet50_medium_outliers
 
@@ -337,7 +319,7 @@ def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers", target_
 def DTD(data_path="../datasets/DTD", target_class=-1):
 
     transform = transforms_test["dtd"]
-    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
+    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  # TODO No error here, check the feature reading script
 
     return dtd
 

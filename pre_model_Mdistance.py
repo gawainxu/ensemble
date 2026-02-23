@@ -32,6 +32,7 @@ def parse_option():
 
     parser.add_argument("--num_classes", type=int, default=50)
     parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
+    parser.add_argument("--split_mode", action="store_true")
 
     parser.add_argument("--exemplar_features_path", type=str,
                         default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")

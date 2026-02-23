@@ -30,14 +30,14 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
     parser.add_argument("--num_classes", type=int, default=50)
-    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
+    parser.add_argument("--mode", type=str, default="none", choices=["pca", "pooling", "none"])
 
     parser.add_argument("--exemplar_features_path", type=str,
                         default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")
     parser.add_argument("--testing_known_features_path", type=str,
                         default="/features/resnet18_imagenet50_encoder.avgpool_inliers_test")
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/resnet18_imagenet50_encoder.avgpool_outliers_test")
+                        default="/features/resnet18_imagenet50_medium_encoder.avgpool_inliers_test")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
