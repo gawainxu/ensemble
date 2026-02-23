@@ -43,6 +43,10 @@ image_sizes = {"cifar100": 32, "imagenet50": 224,
                 "imagenet50_medium": 224, "cifar_medium": 32,
                 "imagenet50_far": 224, "cifar_far": 32}
 
+num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50,
+                        "imagenet50_medium": 50, "cifar_medium": 50,
+                        "imagenet50_far": 50, "cifar_far": 50,}
+
 
 def parse_option():
     parser = argparse.ArgumentParser('argument for training')
@@ -51,7 +55,7 @@ def parse_option():
                         help='num of workers to use')
     parser.add_argument('--layers_to_see', type=str, default="transformer.layers.5.1.net.5")
 
-    parser.add_argument('--model', type=str, default='vgg16',
+    parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "vgg16", "vit"])
     parser.add_argument("--dataset", type=str, default="cifar100")
     parser.add_argument("--batch_size", type=int, default=1)
@@ -71,6 +75,7 @@ def parse_option():
     opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
 
     opt.features_name = opt.model + "_" + opt.dataset + "_" + opt.layers_to_see
+    opt.num_classes = num_classes_dict[opt.dataset]
 
     if opt.outliers:
         opt.features_name = opt.features_name + "_" + "outliers"
@@ -86,6 +91,8 @@ def parse_option():
 
     if opt.target_class > 0:
         opt.features_path = opt.features_path + "_" + str(opt.target_class)
+
+    print("train_data", opt.train_data, "outliers", opt.outliers)
 
     return opt
 
@@ -137,10 +144,6 @@ def set_model(opt):
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50,
-                        "imagenet50_medium": 50, "cifar_medium": 50,
-                        "imagenet50_far": 50, "cifar_far": 50,}
-
     if opt.dataset =="imagenet100":
         dataset_train = ImageNet100(data_path=opt.data_path, train=True)
         dataset_test = ImageNet100(data_path=opt.data_path, train=False)
@@ -168,8 +171,6 @@ def load_data(opt):
 
     print("dataset_train", len(dataset_train))
     print("dataset_test", len(dataset_test))
-
-    opt.num_classes = num_classes_dict[opt.dataset]
 
     # downssample the dataset
     if opt.outliers:
@@ -286,11 +287,11 @@ if __name__ == "__main__":
 
     opt = parse_option()
 
-    featurePaths = []
-    dataloader_train, dataloader_test = load_data(opt)
-
     model = set_model(opt)
     print("Model loaded!!")
+
+    featurePaths = []
+    dataloader_train, dataloader_test = load_data(opt)
 
     if opt.train_data:
         normalFeatureReading_hook(model, opt, dataloader_train)
@@ -415,5 +416,130 @@ transformer.layers.5.1.net.4
 transformer.layers.5.1.net.5
 to_latent
 mlp_head
+
+
+vgg layers
+
+features
+features.0
+features.1
+features.2
+features.3
+features.4
+features.5
+features.6
+features.7
+features.8
+features.9
+features.10
+features.11
+features.12
+features.13
+features.14
+features.15
+features.16
+features.17
+features.18
+features.19
+features.20
+features.21
+features.22
+features.23
+features.24
+features.25
+features.26
+features.27
+features.28
+features.29
+features.30
+features.31
+features.32
+features.33
+features.34
+features.35
+features.36
+features.37
+features.38
+features.39
+features.40
+features.41
+features.42
+features.43
+avgpool
+classifier
+classifier.0
+classifier.1
+classifier.2
+classifier.3
+classifier.4
+classifier.5
+classifier.6
+
+resnet layers
+
+encoder
+encoder.conv1
+encoder.bn1
+encoder.layer1
+encoder.layer1.0
+encoder.layer1.0.conv1
+encoder.layer1.0.bn1
+encoder.layer1.0.conv2
+encoder.layer1.0.bn2
+encoder.layer1.0.shortcut
+encoder.layer1.1
+encoder.layer1.1.conv1
+encoder.layer1.1.bn1
+encoder.layer1.1.conv2
+encoder.layer1.1.bn2
+encoder.layer1.1.shortcut
+encoder.layer2
+encoder.layer2.0
+encoder.layer2.0.conv1
+encoder.layer2.0.bn1
+encoder.layer2.0.conv2
+encoder.layer2.0.bn2
+encoder.layer2.0.shortcut
+encoder.layer2.0.shortcut.0
+encoder.layer2.0.shortcut.1
+encoder.layer2.1
+encoder.layer2.1.conv1
+encoder.layer2.1.bn1
+encoder.layer2.1.conv2
+encoder.layer2.1.bn2
+encoder.layer2.1.shortcut
+encoder.layer3
+encoder.layer3.0
+encoder.layer3.0.conv1
+encoder.layer3.0.bn1
+encoder.layer3.0.conv2
+encoder.layer3.0.bn2
+encoder.layer3.0.shortcut
+encoder.layer3.0.shortcut.0
+encoder.layer3.0.shortcut.1
+encoder.layer3.1
+encoder.layer3.1.conv1
+encoder.layer3.1.bn1
+encoder.layer3.1.conv2
+encoder.layer3.1.bn2
+encoder.layer3.1.shortcut
+encoder.layer4
+encoder.layer4.0
+encoder.layer4.0.conv1
+encoder.layer4.0.bn1
+encoder.layer4.0.conv2
+encoder.layer4.0.bn2
+encoder.layer4.0.shortcut
+encoder.layer4.0.shortcut.0
+encoder.layer4.0.shortcut.1
+encoder.layer4.1
+encoder.layer4.1.conv1
+encoder.layer4.1.bn1
+encoder.layer4.1.conv2
+encoder.layer4.1.bn2
+encoder.layer4.1.shortcut
+encoder.avgpool
+fc
+
 
 """
