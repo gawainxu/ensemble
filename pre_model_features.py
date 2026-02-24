@@ -32,7 +32,7 @@ except ImportError:
 
 
 downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
-                "imagenet50": {"train":{"inliers": 0.4, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50": {"train":{"inliers": 0.3, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_medium": {"train":{"inliers": 0.1 , "outliers": 0.1}, "test":{"inliers": 0.1, "outliers": 0.1}},
                 "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
