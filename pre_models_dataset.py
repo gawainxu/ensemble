@@ -10,6 +10,8 @@ from PIL import Image
 
 
 
+IMAGENET_DATA_SIZE = 224
+
 transforms_train = {"imagenet100": transforms.Compose([transforms.ToTensor(),
                                                  transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                                  transforms.CenterCrop(224),
@@ -112,10 +114,32 @@ def ImageNet50(data_path="../datasets/imagenet50", train=True, outliers=False, t
         imagenet50 = Subset(imagenet50, indices)
 
     if outliers:
-        imagenet50_outlier = outlier_dataset(imagenet50)
-        return imagenet50_outlier
+        imagenet50 = outlier_dataset(imagenet50)
 
     return imagenet50
+
+
+def imagenet50_reshape(data_path="../datasets/imagenet50", train=True, outliers=False, target_resize_ratio=1.0):
+
+    new_datasize = int(IMAGENET_DATA_SIZE * target_resize_ratio)
+
+    if outliers:
+        data_path = data_path + "_Novel"
+
+    if not train:
+        data_path = data_path + "_test"
+
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                    transforms.CenterCrop(224),
+                                    transforms.Resize(new_datasize, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+    
+    imagenet50_reshaped = torchvision.datasets.ImageFolder(data_path, transform=transform)
+
+    if outliers:
+        imagenet50_reshaped = outlier_dataset(imagenet50_reshaped)
+
+    return imagenet50_reshaped
 
 
 def ImageNet1k(data_path="../datasets/imagenet100", train=True, target_class=-1):

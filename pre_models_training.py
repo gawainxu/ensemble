@@ -7,7 +7,7 @@ import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100, ImageNet_M, ImageNet50
+from pre_models_dataset import ImageNet100, ImageNet_M, ImageNet50, imagenet50_reshape
 from pre_models_dataset import iCIFAR100
 from torch.utils.data import DataLoader
 
@@ -27,6 +27,7 @@ def parse_option():
     parser.add_argument("--data_path_test", type=str, default=None)
     parser.add_argument("--model", type=str, default="vit16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
+    parser.add_argument("--data_reshape_ratio", type=float, default=1.)
 
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument('--lr_decay_epochs', type=str, default='60,60,40,40',
@@ -93,14 +94,17 @@ def load_data(opt):
     num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
-        dataset_train = ImageNet100(train=True)
-        dataset_test = ImageNet100(train=False)
+        dataset_train = ImageNet100(data_path= opt.data_path_train, train=True)
+        dataset_test = ImageNet100(data_path= opt.data_path_test, train=False)
     if "imagenet50" in opt.dataset:
-        dataset_train = ImageNet50(train=True)
-        dataset_test = ImageNet50(train=False)
+        dataset_train = ImageNet50(data_path = opt.data_path_train, train=True)
+        dataset_test = ImageNet50(data_path= opt.data_path_test, train=False)
+    if "imagenet50_reshape" in opt.dataset:
+        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True)
+        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False)
     elif "imagenet-m" in opt.dataset:
-        dataset_train = ImageNet_M(train=True)
-        dataset_test = ImageNet_M(train=False)
+        dataset_train = ImageNet_M(data_path= opt.data_path_train, train=True)
+        dataset_test = ImageNet_M(data_path= opt.data_path_test, train=False)
     elif "cifar100" in opt.dataset:
         dataset_train = iCIFAR100(root="../datasets", train=True)
         dataset_test = iCIFAR100(root="../datasets", train=False)
