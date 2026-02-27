@@ -103,8 +103,8 @@ def load_data(opt):
         dataset_train = ImageNet50(data_path = opt.data_path_train, train=True)
         dataset_test = ImageNet50(data_path= opt.data_path_test, train=False)
     if "imagenet50_reshape" in opt.dataset:
-        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True)
-        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False)
+        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False, target_resize_ratio=opt.data_reshape_ratio)
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(data_path= opt.data_path_train, train=True)
         dataset_test = ImageNet_M(data_path= opt.data_path_test, train=False)
