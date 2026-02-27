@@ -17,7 +17,6 @@ from networks.ViT import ViT, get_b16_config_cifar, get_b16_config
 from networks.ViT_cifar import ViT_cifar
 from util import AverageMeter
 
-image_size_mapping = {"cifar100": 32, "imagenet50": 224}
 
 def parse_option():
 
@@ -89,12 +88,14 @@ def parse_option():
     if not os.path.isdir(opt.save_folder):
         os.makedirs(opt.save_folder)
 
+    image_size_mapping = {"cifar100": 32, "imagenet50": 224, "imagenet50": int(224 * opt.data_reshape_ratio)}
+
     return opt
 
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
+    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet50_reshape": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(data_path= opt.data_path_train, train=True)
