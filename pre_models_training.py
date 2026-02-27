@@ -68,6 +68,9 @@ def parse_option():
     if opt.cosine:
         opt.model_name = '{}_cosine'.format(opt.model_name)
 
+    if opt.reshape_ratio < 1:
+        opt.model_name = "{model_name}_reshape_{ratio}".format(model_name=opt.model_name, ratio=str(opt.data_reshape_ratio))
+
     # warm-up for large-batch training,
     if opt.batch_size > 256:
         opt.warm = True
