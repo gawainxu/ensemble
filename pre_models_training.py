@@ -51,8 +51,6 @@ def parse_option():
 
     opt = parser.parse_args()
 
-    opt.image_size = image_size_mapping[opt.dataset]
-
     opt.model_path = './save/{}_models'.format(opt.dataset)
 
     iterations = opt.lr_decay_epochs.split(',')
@@ -89,6 +87,7 @@ def parse_option():
         os.makedirs(opt.save_folder)
 
     image_size_mapping = {"cifar100": 32, "imagenet50": 224, "imagenet50": int(224 * opt.data_reshape_ratio)}
+    opt.image_size = image_size_mapping[opt.dataset]
 
     return opt
 
