@@ -263,7 +263,8 @@ def normalFeatureReading_hook(model, opt, data_loader):
 
     # https://zhuanlan.zhihu.com/p/87853615
     for name, module in model.named_modules():
-        print(name)
+        #print(name)
+        print("layers_to_see", opt.layers_to_see)
         if name == opt.layers_to_see:
             handle = module.register_forward_hook(get_activation(name))
 
