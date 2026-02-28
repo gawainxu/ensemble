@@ -275,6 +275,7 @@ def normalFeatureReading_hook(model, opt, data_loader):
             else:
                 img = img.float()
             activation = {}
+            print("image", img.shape)
             hook_output = model(img)
             # Output the full output tokens of the attention block, including the cls
             print("activation", activation.keys())
