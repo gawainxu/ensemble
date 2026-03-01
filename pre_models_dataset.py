@@ -5,9 +5,8 @@ from torchvision.datasets import CIFAR100, MNIST
 from torch.utils.data import Dataset, Subset
 
 import medmnist
-from medmnist import INFO, Evaluator
+from medmnist import INFO
 
-import os
 import numpy as np
 from PIL import Image
 
@@ -302,7 +301,7 @@ class iCIFAR100(CIFAR100):
             return len(self.test_data)
 
 
-def my_mnistmed(data_path="", data_size=32, if_train=False):
+def my_mnistmed(data_path="", data_size=28, if_train=False):
 
     data_flag = 'pathmnist'
     download = True
