@@ -174,11 +174,11 @@ def load_data(opt):
         dataset_train = mnist(data_path=opt.data_path)
         dataset_test = mnist(data_path=opt.data_path)
     elif opt.dataset == "medmnist_32":
-        train_dataset = my_mnistmed(data_size=32, if_train=True)
-        train_dataset = my_mnistmed(data_size=32, if_train=False)
+        dataset_train = my_mnistmed(data_size=32, if_train=True)
+        dataset_test = my_mnistmed(data_size=32, if_train=False)
     elif opt.dataset == "medmnist_224":
-        train_dataset = my_mnistmed(data_size=224, if_train=True)
-        train_dataset = my_mnistmed(data_size=224, if_train=False)
+        dataset_train = my_mnistmed(data_size=224, if_train=True)
+        dataset_test = my_mnistmed(data_size=224, if_train=False)
 
     print("dataset_train", len(dataset_train))
     print("dataset_test", len(dataset_test))
