@@ -4,6 +4,9 @@ import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR100, MNIST
 from torch.utils.data import Dataset, Subset
 
+import medmnist
+from medmnist import INFO, Evaluator
+
 import os
 import numpy as np
 from PIL import Image
@@ -297,6 +300,28 @@ class iCIFAR100(CIFAR100):
             return len(self.train_data)
         else:
             return len(self.test_data)
+
+
+def my_mnistmed(data_path="", data_size=32, if_train=False):
+
+    data_flag = 'pathmnist'
+    download = True
+    data_transform = transforms.Compose([transforms.ToTensor(),
+    transforms.Normalize(mean=[.5], std=[.5])])
+
+    info = INFO[data_flag]
+    DataClass = getattr(medmnist, info['python_class'])
+
+    # load the data
+    if if_train:
+        mnistmed_dataset = DataClass(split='train', transform=data_transform, download=download, size=data_size, mmap_mode='r')
+    else:
+        mnistmed_dataset = DataClass(split='test', transform=data_transform, download=download, size=data_size,
+                                     mmap_mode='r')
+
+    mnistmed_dataset = outlier_dataset(mnistmed_dataset)
+
+    return mnistmed_dataset
 
 
 

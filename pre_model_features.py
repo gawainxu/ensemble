@@ -16,7 +16,7 @@ import torch
 import torch.backends.cudnn as cudnn
 from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50
 from pre_models_dataset import imagenet50_medium_outliers, cifar_medium_outliers
-from pre_models_dataset import DTD, mnist
+from pre_models_dataset import DTD, mnist, my_mnistmed
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from networks.resnet_big import SupCEResNet
@@ -36,12 +36,15 @@ downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"in
                 "imagenet50_medium": {"train":{"inliers": 0.1 , "outliers": 0.1}, "test":{"inliers": 0.1, "outliers": 0.1}},
                 "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
-                "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
+                "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "medmnist_32": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "medmnist_224": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
 
 
 image_sizes = {"cifar100": 32, "imagenet50": 224,
                 "imagenet50_medium": 224, "cifar_medium": 32,
-                "imagenet50_far": 224, "cifar_far": 32}
+                "imagenet50_far": 224, "cifar_far": 32,
+                "medmnist_32": 32, "medmnist_224": 224}
 
 num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50,
                         "imagenet50_medium": 50, "cifar_medium": 50,
@@ -168,6 +171,12 @@ def load_data(opt):
     elif opt.dataset == "cifar_far":
         dataset_train = mnist(data_path=opt.data_path)
         dataset_test = mnist(data_path=opt.data_path)
+    elif opt.dataset == "medmnist_32":
+        train_dataset = my_mnistmed(data_size=32, if_train=True)
+        train_dataset = my_mnistmed(data_size=32, if_train=False)
+    elif opt.dataset == "medmnist_224":
+        train_dataset = my_mnistmed(data_size=224, if_train=True)
+        train_dataset = my_mnistmed(data_size=224, if_train=False)
 
     print("dataset_train", len(dataset_train))
     print("dataset_test", len(dataset_test))
