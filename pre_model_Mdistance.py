@@ -137,6 +137,7 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = gap(features).numpy()
             features = features.view()
         else:
+            print("test_features", features.shape)
             features = features.numpy()
             features = features.reshape(1, -1)
             features = np.squeeze(features)
