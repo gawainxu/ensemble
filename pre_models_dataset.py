@@ -306,18 +306,20 @@ def my_mnistmed(data_path="", data_size=32, if_train=False):
 
     data_flag = 'pathmnist'
     download = True
-    data_transform = transforms.Compose([transforms.ToTensor(),
-    transforms.Normalize(mean=[.5], std=[.5])])
 
     info = INFO[data_flag]
     DataClass = getattr(medmnist, info['python_class'])
 
     # load the data
     if if_train:
+        data_transform = transforms.Compose([transforms.ToTensor(),
+                                             transforms.Normalize(mean=[.5], std=[.5])])
         mnistmed_dataset = DataClass(split='train', transform=data_transform, download=download, size=data_size, mmap_mode='r')
     else:
-        mnistmed_dataset = DataClass(split='test', transform=data_transform, download=download, size=data_size,
-                                     mmap_mode='r')
+        data_transform = transforms.Compose([transforms.ToTensor(),
+                                             transforms.Normalize(mean=[.5], std=[.5]),
+                                             transforms.Resize((32, 32), interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+        mnistmed_dataset = DataClass(split='test', transform=data_transform, download=download, mmap_mode='r')
 
     mnistmed_dataset = outlier_dataset(mnistmed_dataset)
 
