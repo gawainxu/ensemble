@@ -46,9 +46,11 @@ image_sizes = {"cifar100": 32, "imagenet50": 224,
                 "imagenet50_far": 224, "cifar_far": 32,
                 "medmnist_32": 32, "medmnist_224": 224}
 
-num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50,
-                        "imagenet50_medium": 50, "cifar_medium": 50,
-                        "imagenet50_far": 50, "cifar_far": 50,}
+num_classes_dict = {"imagenet100": 100, "imagenet50": 50,
+                    "imagenet-m": 18, "cifar100": 50,
+                    "imagenet50_medium": 50, "cifar_medium": 50,
+                    "imagenet50_far": 50, "cifar_far": 50,
+                    "medmnist_32": 50, "medmnist_224": 50}
 
 
 def parse_option():
