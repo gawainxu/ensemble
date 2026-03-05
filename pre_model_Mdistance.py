@@ -130,6 +130,7 @@ def distances(stats, test_features, mode="pca", pca=None):
     dis_logits_in = []
     dis_preds = []
     for features in test_features:
+        print("features 1", features.shape)
         if "pca" in mode:
             features = features.numpy()
             features = features.reshape(1, -1)
@@ -142,10 +143,11 @@ def distances(stats, test_features, mode="pca", pca=None):
         else:
             features = features.numpy()
             features = features.reshape(1, -1)
+            print("features 2", features.shape)
             features = np.squeeze(features)
         diss = []
         for i, (mu, var) in enumerate(stats):
-            print("features", features.shape, "mu", mu.shape, "var", var.shape)
+            print("features 3", features.shape, "mu", mu.shape, "var", var.shape)
             dis = mahalanobis(features, mu, np.linalg.inv(var))
             diss.append(dis)
 
