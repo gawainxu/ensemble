@@ -130,10 +130,10 @@ def set_model(opt):
     elif "vgg" in opt.model:
         model = vgg16_bn(num_classes=opt.num_classes)
     elif "vit" in opt.model:
-        if "cifar" in opt.dataset:
+        if "cifar" in opt.dataset or "medmnist_32" in opt.dataset:
             configs = get_b16_config_cifar()
             #model = ViT_cifar(num_classes=opt.num_classes)
-        elif "imagenet" in opt.dataset:
+        elif "imagenet" in opt.dataset or "medmnist_224" in opt.dataset:
             configs = get_b16_config()
         opt.image_size = image_sizes[opt.dataset]
         model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
