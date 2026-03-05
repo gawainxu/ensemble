@@ -245,7 +245,6 @@ def feature_classifier(opt):
             features_testing_known, _, labels_testing_known = pickle.load(f)
         if "vit" in opt.testing_known_features_path:
             features_testing_known = [feat[:, 0] for feat in features_testing_known]
-            print("features_testing_known", features_testing_known[0].shape)
 
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
@@ -301,7 +300,6 @@ def feature_classifier(opt):
         features_testing_unknown, _, labels_testing_unknown = pickle.load(f)
     if "vit" in opt.testing_unknown_features_path:
         features_testing_unknown = [feat[:, 0] for feat in features_testing_unknown]
-        print("features_testing_unknown", features_testing_unknown[0].shape)
 
     if opt.testing_unknown_features_path1 is not None:
         with open(opt.testing_unknown_features_path1, "rb") as f:
