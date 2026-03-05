@@ -145,7 +145,7 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = np.squeeze(features)
         diss = []
         for i, (mu, var) in enumerate(stats):
-            #print("features", features.shape, "mu", mu.shape, "var", var.shape)
+            print("features", features.shape, "mu", mu.shape, "var", var.shape)
             dis = mahalanobis(features, mu, np.linalg.inv(var))
             diss.append(dis)
 
