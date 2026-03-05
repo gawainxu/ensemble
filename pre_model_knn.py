@@ -32,6 +32,7 @@ def parse_option():
     parser.add_argument("--num_classes", type=int, default=50)
     parser.add_argument("--mode", type=str, default="none", choices=["pca", "pooling", "none"])
     parser.add_argument("--K", type=int, default=3)
+    parser.add_argument("--pca_dim", type=int, default=374)
 
     parser.add_argument("--exemplar_features_path", type=str,
                         default="/features/vit_cifar100_transformer.layers.5.1.net.5_inliers_train")
@@ -68,6 +69,8 @@ def parse_option():
         opt.testing_known_features_path2 = opt.main_dir + opt.testing_known_features_path2
     if opt.testing_unknown_features_path2 is not None:
         opt.testing_unknown_features_path2 = opt.main_dir + opt.testing_unknown_features_path2
+
+    print("pca_dim", opt.pca_dim)
 
     return opt
 
@@ -194,12 +197,12 @@ def sort_features(features_list, labels_list, opt):
     return sorted_features
 
 
-def dimension_reduction_pca(sorted_features):
+def dimension_reduction_pca(sorted_features, opt):
 
     features_bundle = [np.concatenate(sf) for sf in sorted_features]
     features_bundle = np.squeeze(np.concatenate(features_bundle))
     features_bundle = features_bundle.reshape(features_bundle.shape[0], -1)
-    pca = PCA(n_components=374, whiten=True, svd_solver='randomized')
+    pca = PCA(n_components=opt.pca_dim, whiten=True, svd_solver='randomized')
     pca.fit(features_bundle)
 
     sorted_features = [pca.transform(np.concatenate(sf).reshape(len(sf), -1)) for sf in sorted_features]

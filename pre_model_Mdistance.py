@@ -33,6 +33,7 @@ def parse_option():
     parser.add_argument("--num_classes", type=int, default=50)
     parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
     parser.add_argument("--split_mode", action="store_true")
+    parser.add_argument("--pca_dim", type=int, default=374)
 
     parser.add_argument("--exemplar_features_path", type=str,
                         default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")
@@ -80,6 +81,8 @@ def parse_option():
         opt.testing_known_features_path3 = opt.main_dir + opt.testing_known_features_path3
     if opt.testing_unknown_features_path3 is not None:
         opt.testing_unknown_features_path3 = opt.main_dir + opt.testing_unknown_features_path3
+
+    print("pca_dim", opt.pca_dim)
 
     return opt
 
@@ -173,12 +176,12 @@ def sort_features(features_list, labels_list, opt):
     return sorted_features
 
 
-def dimension_reduction_pca(sorted_features):
+def dimension_reduction_pca(sorted_features, opt):
 
     features_bundle = [np.concatenate(sf) for sf in sorted_features]
     features_bundle = np.squeeze(np.concatenate(features_bundle))
     features_bundle = features_bundle.reshape(features_bundle.shape[0], -1)
-    pca = PCA(n_components=374, whiten=True, svd_solver='randomized')
+    pca = PCA(n_components=opt.pca_dim, whiten=True, svd_solver='randomized')
     pca.fit(features_bundle)
 
     sorted_features = [pca.transform(np.concatenate(sf).reshape(len(sf), -1)) for sf in sorted_features]
@@ -227,13 +230,13 @@ def feature_classifier(opt):
 
 
     if "pca" in opt.mode:
-        pca, sorted_features_exemplar = dimension_reduction_pca(sorted_features_exemplar)
+        pca, sorted_features_exemplar = dimension_reduction_pca(sorted_features_exemplar, opt)
         if opt.exemplar_features_path1 is not None:
-            pca1, sorted_features_exemplar1 = dimension_reduction_pca(sorted_features_exemplar1)
+            pca1, sorted_features_exemplar1 = dimension_reduction_pca(sorted_features_exemplar1, opt)
         if opt.exemplar_features_path2 is not None:
-            pca2, sorted_features_exemplar2 = dimension_reduction_pca(sorted_features_exemplar2)
+            pca2, sorted_features_exemplar2 = dimension_reduction_pca(sorted_features_exemplar2, opt)
         if opt.exemplar_features_path3 is not None:
-            pca3, sorted_features_exemplar3 = dimension_reduction_pca(sorted_features_exemplar3)
+            pca3, sorted_features_exemplar3 = dimension_reduction_pca(sorted_features_exemplar3, opt)
     elif "pooling" in opt.mode:
         sorted_features_exemplar = dimension_reduction_pooling(sorted_features_exemplar)
 
