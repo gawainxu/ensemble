@@ -241,7 +241,7 @@ def feature_classifier(opt):
 
     sorted_features_exemplar = sort_features(features_exemplar, labels_examplar, opt)
     if "pca" in opt.mode:
-        pca, sorted_features_exemplar = dimension_reduction_pca(sorted_features_exemplar)
+        pca, sorted_features_exemplar = dimension_reduction_pca(sorted_features_exemplar, opt)
     elif "pooling" in opt.mode:
         sorted_features_exemplar = dimension_reduction_pooling(sorted_features_exemplar)
 
