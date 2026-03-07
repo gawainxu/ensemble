@@ -69,6 +69,9 @@ def parse_option():
     if opt.data_reshape_ratio < 1:
         opt.model_name = "{model_name}_reshape_{ratio}".format(model_name=opt.model_name, ratio=str(opt.data_reshape_ratio))
 
+    if opt.last_model_path is not None:
+        opt.model_name = "{model_name}_restart".format(model_name=opt.model_name)
+
     # warm-up for large-batch training,
     if opt.batch_size > 256:
         opt.warm = True
