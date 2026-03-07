@@ -27,6 +27,7 @@ def parse_option():
     parser.add_argument("--model", type=str, default="vit16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
     parser.add_argument("--data_reshape_ratio", type=float, default=1.)
+    parser.add_argument("--last_model_path", type=str, default=None)
 
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument('--lr_decay_epochs', type=str, default='60,60,40,40',
@@ -139,6 +140,17 @@ def load_model(opt):
                     dim_head = configs.head_dim, dropout = configs.dropout, emb_dropout = configs.emb_dropout)
 
     criterion = torch.nn.CrossEntropyLoss()
+
+    if opt.last_model_path is not None:
+        ckpt = torch.load(opt.last_model_path, map_location='cpu')
+        state_dict = ckpt['model']
+        if torch.cuda.device_count() > 1:
+            new_state_dict = {}
+            for k, v in state_dict.items():
+                k = k.replace("module.", "")
+                new_state_dict[k] = v
+            state_dict = new_state_dict
+        model.load_state_dict(state_dict)
 
     if torch.cuda.is_available():
         if torch.cuda.device_count() > 1:

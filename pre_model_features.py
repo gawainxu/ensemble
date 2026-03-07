@@ -118,7 +118,7 @@ def load_model(model, path):
         model = model.cuda()
         cudnn.benchmark = True
 
-        model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict)
 
     return model
 
