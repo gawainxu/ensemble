@@ -287,7 +287,7 @@ def normalFeatureReading_hook(model, opt, data_loader):
 
     for i, (img, label) in enumerate(data_loader):
 
-        print(i)
+        print(i, "image", img.shape)
         with torch.no_grad():
             if torch.cuda.is_available():
                 img = img.float().cuda()
