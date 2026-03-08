@@ -41,13 +41,6 @@ downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"in
                 "medmnist_32": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "medmnist_224": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
 
-
-image_sizes = {"cifar100": 32, "imagenet50": 224,
-                "imagenet50_medium": 224, "cifar_medium": 32,
-                "imagenet50_far": 224, "cifar_far": 32,
-                "medmnist_32": 32, "medmnist_224": 224,
-                "imagenet50_reshape": int(224 * opt.data_reshape_ratio)}
-
 num_classes_dict = {"imagenet100": 100, "imagenet50": 50,
                     "imagenet-m": 18, "cifar100": 50,
                     "imagenet50_medium": 50, "cifar_medium": 50,
