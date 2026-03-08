@@ -301,7 +301,7 @@ class iCIFAR100(CIFAR100):
             return len(self.test_data)
 
 
-def my_mnistmed(data_path="", data_size=32, if_train=False):
+def my_mnistmed(data_path="", data_size=32, if_train=False, target_resize_ratio=1.0):
 
     data_flag = 'pathmnist'
     download = True
@@ -316,9 +316,12 @@ def my_mnistmed(data_path="", data_size=32, if_train=False):
                                                            interpolation=transforms.functional.InterpolationMode.BILINEAR)])
         ori_size = 28
     else:
-        data_transform = transforms.Compose([transforms.ToTensor(),
-                                             transforms.Normalize(mean=[.5], std=[.5]),])
+
         ori_size = 224
+        reshaped_size = int(ori_size * target_resize_ratio)
+        data_transform = transforms.Compose([transforms.ToTensor(),
+                                             transforms.Normalize(mean=[.5], std=[.5]),
+                                             transforms.Resize(reshaped_size, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
 
     # load the data
     if if_train:
@@ -352,11 +355,14 @@ def my_mnistmed(data_path="", data_size=32, if_train=False):
 "cat": [ "n02123045", "n01622779", "n02124075", "n02123394", "n02123159", "n02123597"]}  #"n02123045","n02497673",
 """
 
-def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers", target_class=-1):
+def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers", target_class=-1, target_resize_ratio=1.0):
 
+    new_datasize = int(IMAGENET_DATA_SIZE * target_resize_ratio)
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-                                    transforms.CenterCrop(224),])
+                                    transforms.CenterCrop(224),
+                                    transforms.Resize(new_datasize, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+
     imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  #
 
     return imagenet50_medium_outliers
@@ -372,9 +378,13 @@ def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers", target_
     return cifar_medium_outliers
 
 
-def DTD(data_path="../datasets/DTD", target_class=-1):
+def DTD(data_path="../datasets/DTD", target_class=-1, target_resize_ratio=1.0):
 
-    transform = transforms_test["dtd"]
+    new_datasize = int(IMAGENET_DATA_SIZE * target_resize_ratio)
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                    transforms.Resize((224, 224), interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                    transforms.Resize(new_datasize, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
     dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  # TODO No error here, check the feature reading script
 
     return dtd
