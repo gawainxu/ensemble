@@ -169,14 +169,14 @@ def load_data(opt):
         dataset_train = iCIFAR100(data_path=opt.data_path, train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(data_path=opt.data_path, train=False, outliers=opt.outliers)
     elif opt.dataset == "imagenet50_medium":
-        dataset_train = imagenet50_medium_outliers(data_path=opt.data_path)
-        dataset_test = imagenet50_medium_outliers(data_path=opt.data_path)
+        dataset_train = imagenet50_medium_outliers(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_medium_outliers(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar_medium":
         dataset_train = cifar_medium_outliers(data_path=opt.data_path)
         dataset_test = cifar_medium_outliers(data_path=opt.data_path)
     elif opt.dataset == "imagenet50_far":
-        dataset_train = DTD(data_path=opt.data_path)
-        dataset_test = DTD(data_path=opt.data_path)
+        dataset_train = DTD(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = DTD(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar_far":
         dataset_train = mnist(data_path=opt.data_path)
         dataset_test = mnist(data_path=opt.data_path)
@@ -184,8 +184,8 @@ def load_data(opt):
         dataset_train = my_mnistmed(data_size=32, if_train=True)
         dataset_test = my_mnistmed(data_size=32, if_train=False)
     elif opt.dataset == "medmnist_224":
-        dataset_train = my_mnistmed(data_size=224, if_train=True)
-        dataset_test = my_mnistmed(data_size=224, if_train=False)
+        dataset_train = my_mnistmed(data_size=224, if_train=True, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = my_mnistmed(data_size=224, if_train=False, target_resize_ratio=opt.data_reshape_ratio)
 
     print("dataset_train", len(dataset_train))
     print("dataset_test", len(dataset_test))
