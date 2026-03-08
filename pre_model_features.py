@@ -161,8 +161,8 @@ def load_data(opt):
         dataset_train = ImageNet_M(data_path=opt.data_path, train=True)
         dataset_test = ImageNet_M(data_path=opt.data_path, train=False)
     elif "imagenet50_reshape" in opt.dataset:
-        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True, target_resize_ratio=opt.data_reshape_ratio)
-        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_train = imagenet50_reshape(data_path= opt.data_path, train=True, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_reshape(data_path= opt.data_path, train=False, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar100":
         dataset_train = iCIFAR100(data_path=opt.data_path, train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(data_path=opt.data_path, train=False, outliers=opt.outliers)
