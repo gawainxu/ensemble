@@ -385,7 +385,7 @@ def DTD(data_path="../datasets/DTD", target_class=-1, target_resize_ratio=1.0):
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                                     transforms.Resize((224, 224), interpolation=transforms.functional.InterpolationMode.BILINEAR),
                                     transforms.Resize(new_datasize, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
-    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  # TODO No error here, check the feature reading script
+    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
 
     return dtd
 
