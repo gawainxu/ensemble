@@ -14,7 +14,7 @@ import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50
+from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50, imagenet50_reshape
 from pre_models_dataset import imagenet50_medium_outliers, cifar_medium_outliers
 from pre_models_dataset import DTD, mnist, my_mnistmed
 from torch.utils.data import DataLoader, SubsetRandomSampler
@@ -33,6 +33,7 @@ except ImportError:
 
 downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50": {"train":{"inliers": 0.3, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50_reshape": {"train":{"inliers": 0.3, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_medium": {"train":{"inliers": 0.1 , "outliers": 0.1}, "test":{"inliers": 0.1, "outliers": 0.1}},
                 "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
@@ -44,7 +45,8 @@ downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"in
 image_sizes = {"cifar100": 32, "imagenet50": 224,
                 "imagenet50_medium": 224, "cifar_medium": 32,
                 "imagenet50_far": 224, "cifar_far": 32,
-                "medmnist_32": 32, "medmnist_224": 224}
+                "medmnist_32": 32, "medmnist_224": 224,
+                "imagenet50_reshape": int(224 * opt.data_reshape_ratio)}
 
 num_classes_dict = {"imagenet100": 100, "imagenet50": 50,
                     "imagenet-m": 18, "cifar100": 50,
@@ -63,6 +65,7 @@ def parse_option():
     parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "vgg16", "vit"])
     parser.add_argument("--dataset", type=str, default="cifar100")
+    parser.add_argument("--data_reshape_ratio", type=float, default=1.)
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
     parser.add_argument("--train_data",  action="store_true", help="if the training data")
@@ -98,6 +101,13 @@ def parse_option():
         opt.features_path = opt.features_path + "_" + str(opt.target_class)
 
     print("train_data", opt.train_data, "outliers", opt.outliers)
+
+    image_sizes = {"cifar100": 32, "imagenet50": 224,
+                   "imagenet50_medium": 224, "cifar_medium": 32,
+                   "imagenet50_far": 224, "cifar_far": 32,
+                   "medmnist_32": 32, "medmnist_224": 224,
+                   "imagenet50_reshape": int(224 * opt.data_reshape_ratio)}
+    opt.image_size = image_sizes[opt.dataset]
 
     return opt
 
@@ -135,7 +145,6 @@ def set_model(opt):
             #model = ViT_cifar(num_classes=opt.num_classes)
         elif "imagenet" in opt.dataset or "medmnist_224" in opt.dataset:
             configs = get_b16_config()
-        opt.image_size = image_sizes[opt.dataset]
         model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
                         embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads,
                         mlp_dim=configs.hidden_dim,
@@ -158,6 +167,9 @@ def load_data(opt):
     elif opt.dataset == "imagenet-m":
         dataset_train = ImageNet_M(data_path=opt.data_path, train=True)
         dataset_test = ImageNet_M(data_path=opt.data_path, train=False)
+    elif "imagenet50_reshape" in opt.dataset:
+        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar100":
         dataset_train = iCIFAR100(data_path=opt.data_path, train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(data_path=opt.data_path, train=False, outliers=opt.outliers)
