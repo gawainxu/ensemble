@@ -76,7 +76,7 @@ def parse_option():
     opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
 
     opt.features_name = opt.model + "_" + opt.dataset + "_" + opt.layers_to_see
-    if "imagenet50_reshape" in opt.dataset:
+    if opt.data_reshape_ratio < 1:
         opt.features_name = opt.features_name + "_" + str(opt.data_reshape_ratio)
     opt.num_classes = num_classes_dict[opt.dataset]
 
