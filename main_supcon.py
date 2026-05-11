@@ -114,7 +114,10 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp1) + "_" + str(opt.temp2) +"_" + str(opt.temp3) + "_" + str(opt.batch_size)
+    if "multi" in opt.model:
+        opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp1) + "_" + str(opt.temp2) +"_" + str(opt.temp3) + "_" + str(opt.batch_size)
+    else:
+        opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp)
 
     # warm-up for large-batch training,
     if opt.batch_size > 256:
