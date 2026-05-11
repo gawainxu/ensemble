@@ -223,6 +223,10 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
     data_time = AverageMeter()
     losses = AverageMeter()
 
+    losses1 = AverageMeter()
+    losses2 = AverageMeter()
+    losses3 = AverageMeter()
+
     criterion1, criterion2, criterion3 = criterions
 
     end = time.time()
@@ -246,9 +250,6 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
 
         # compute loss
         if opt.model == "resnet_multi":
-            losses1 = AverageMeter()
-            losses2 = AverageMeter()
-            losses3 = AverageMeter()
             features1, features2, features3 = model(images)
             features1_1, features1_2 = torch.split(features1, [bsz, bsz], dim=0)
             features2_1, features2_2 = torch.split(features2, [bsz, bsz], dim=0)
