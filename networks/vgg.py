@@ -167,3 +167,12 @@ class classifier(nn.Module):
         return  out
 
 
+if __name__ == "__main__":
+
+    vgg_conf = [64, 64, "M", 128, 128, "M", 256, 256, 256, "M", 512, 512, 512, "M", 512, 512, 512, "M"]
+    features = _make_layers(vgg_conf)
+    print(features)
+
+    a = torch.tensor([28,28,3])
+    b = features[a]
+    print(b)

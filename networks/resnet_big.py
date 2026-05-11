@@ -362,10 +362,10 @@ class MoCoResNet(nn.Module):
 
 class SupCEResNet(nn.Module):
     """encoder + classifier"""
-    def __init__(self, name='resnet18', num_classes=10):
+    def __init__(self, name='resnet18', in_channels=3, num_classes=10):
         super(SupCEResNet, self).__init__()
         model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
+        self.encoder = model_fun(in_channels=in_channels)
         self.fc = nn.Linear(dim_in, num_classes)
 
     def forward(self, x):
