@@ -11,22 +11,17 @@ import os
 import sys
 import argparse
 import time
-import math
 import pickle
-import random
-import copy
 
 import torch
 import torch.backends.cudnn as cudnn
-from torchvision import transforms, datasets
 
-from util import TwoCropTransform, AverageMeter
-from util import adjust_learning_rate, warmup_learning_rate
-from util import set_optimizer, label_convert
-from dataUtil import num_inlier_classes_mapping, get_train_datasets
+from util import AverageMeter
+from util import adjust_learning_rate
+from util import set_optimizer
+from util import accuracy
+from dataUtil import num_inlier_classes_mapping, get_train_datasets, get_test_datasets
 from networks.resnet_big import SupCEResNet
-from losses import SupConLoss
-from loss_mixup import SupConLoss_mix
 
 import matplotlib
 matplotlib.use('Agg')
@@ -133,13 +128,15 @@ def set_loader(opt):
     # construct data loader
     
     train_dataset =  get_train_datasets(opt)
+    test_dataset = get_test_datasets(opt)
 
     train_sampler = None
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
                                                num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler, drop_last=True)
-
-    return train_loader
-
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False,
+                                               num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler,
+                                               drop_last=True)
+    return train_loader, test_loader
 
 
 def set_model(opt):
@@ -195,7 +192,6 @@ def save_model(model=None, optimizer=None, opt=None, epoch=0, save_file=None):
     del state
 
 
-
 def train(train_loader, model, criterion, optimizer, epoch, opt):
     """one epoch training"""
     model.train()
@@ -203,6 +199,7 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
+    accs = AverageMeter()
 
     end = time.time()
     for idx, (images, labels) in enumerate(train_loader):
@@ -216,8 +213,10 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
         bsz = labels.shape[0]
         
         logits = model(images)
+        acc1, _, _ = accuracy(logits, labels)
         loss = criterion(logits, labels)
         losses.update(loss.item())
+        accs.update(acc1)
 
 
         # update metric
@@ -237,19 +236,60 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
             print('Train: [{0}][{1}/{2}]\t'
                   'BT {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'DT {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                  'loss {loss.val:.3f} ({loss.avg:.3f})\t'.format(
+                  'loss {loss.val:.3f} ({loss.avg:.3f})\t'
+                  'acc {accs.val:.3f} ({accs.avg:.3f})\t'.format(
                    epoch, idx + 1, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses, ))
+                   data_time=data_time, loss=losses, accs=accs))
             sys.stdout.flush()
 
     return losses.avg
+
+
+
+def val(val_loader, model, criterion, opt):
+    """validation"""
+    model.eval()
+
+    batch_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()
+
+    with torch.no_grad():
+        end = time.time()
+        for idx, (images, labels) in enumerate(val_loader):
+            images = images.float().cuda()
+            labels = labels.cuda()
+            bsz = labels.shape[0]
+
+            # forward
+            output = model(images)
+            loss = criterion(output, labels)
+
+            # update metric
+            losses.update(loss.item(), bsz)
+            acc1, _, _ = accuracy(output, labels)
+            top1.update(acc1, bsz)
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+        print('Test: [{0}/{1}]\t'
+              'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+              'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+              'Acc {top1.val:.3f} ({top1.avg:.3f})'.format(
+              idx, len(val_loader), batch_time=batch_time,
+               loss=losses, top1=top1))
+
+    return top1.avg
+
 
 
 def main():
     opt = parse_option()
 
     # build data loader
-    train_loader = set_loader(opt)
+    train_loader, test_loader = set_loader(opt)
     print("train_loader, ", train_loader.__len__())
 
     # build model and criterion
@@ -266,6 +306,7 @@ def main():
         # train for one epoch
         time1 = time.time()
         loss = train(train_loader, model, criterion, optimizer, epoch, opt)
+        acc_val = val(test_loader, model, criterion, opt)
         time2 = time.time()
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
