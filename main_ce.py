@@ -50,13 +50,13 @@ def parse_option():
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=4,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=100,
+    parser.add_argument('--epochs', type=int, default=200,
                         help='number of training epochs')
 
     # optimization
     parser.add_argument('--learning_rate', type=float, default=0.01,
                         help='learning rate')
-    parser.add_argument('--lr_decay_epochs', type=str, default='1000',
+    parser.add_argument('--lr_decay_epochs', type=str, default='60, 120, 160',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
@@ -207,7 +207,9 @@ def set_optimizer(opt, model):
                           lr=opt.learning_rate,
                           momentum=opt.momentum,
                           weight_decay=opt.weight_decay)
-    return optimizer
+    train_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=opt.lr_decay_epochs,
+                                                     gamma=0.2)
+    return optimizer, train_scheduler
 
 
 def train(train_loader, model, criterion, optimizer, epoch, opt):
@@ -326,12 +328,13 @@ def main():
     model, criterion= set_model(opt)
 
     # build optimizer
-    optimizer = set_optimizer(opt, model)
+    optimizer, train_scheduler = set_optimizer(opt, model)
     losses = []
 
     # training routine
     for epoch in range(0, opt.epochs):
-        adjust_learning_rate(opt, optimizer, epoch)
+        #adjust_learning_rate(opt, optimizer, epoch)
+        train_scheduler.step(epoch)
 
         # train for one epoch
         time1 = time.time()
