@@ -14,7 +14,9 @@ import time
 import pickle
 
 import torch
+import torchvision
 import torch.backends.cudnn as cudnn
+import torch.nn as nn
 
 from util import AverageMeter
 from util import adjust_learning_rate
@@ -22,6 +24,8 @@ from util import set_optimizer
 from util import accuracy
 from dataUtil import num_inlier_classes_mapping, get_train_datasets, get_test_datasets
 from networks.resnet_big import SupCEResNet
+from  networks.vgg import vgg16, vgg11_bn
+from networks.LeNet import LeNet5
 
 import matplotlib
 matplotlib.use('Agg')
@@ -48,7 +52,7 @@ def parse_option():
                         help='number of training epochs')
 
     # optimization
-    parser.add_argument('--learning_rate', type=float, default=0.001,
+    parser.add_argument('--learning_rate', type=float, default=0.0001,
                         help='learning rate')
     parser.add_argument('--lr_decay_epochs', type=str, default='1000',
                         help='where to decay lr, can be a list')
@@ -61,10 +65,10 @@ def parse_option():
     parser.add_argument("--pretrained", type=int, default=1)
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet18', choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP", "MaskCon"])
+    parser.add_argument('--model', type=str, default='vgg16', choices=["resnet18", "resnet34", "vgg16", "simCNN", "MLP", "lenet"])
     parser.add_argument("--resnet_wide", type=int, default=1, help="factor for expanding channels in wide resnet")
     parser.add_argument('--datasets', type=str, default='cifar100_marco',
-                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
+                        choices=['cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
@@ -143,12 +147,16 @@ def set_model(opt):
 
     if opt.datasets == "mnist":
         in_channels = 1
-    elif opt.datasets == "FUB":
-        in_channels = 1
     else:
         in_channels = 3
-        
-    model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes)
+
+    if "resnet" in opt.model:
+        model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes)
+    elif "vgg" in opt.model:
+        model = vgg11_bn(num_classes=opt.num_classes)
+    elif "lenet" in opt.model:
+        model = LeNet5(num_classes=opt.num_classes)
+
     criterion = torch.nn.CrossEntropyLoss()
        
     if torch.cuda.is_available():
