@@ -20,8 +20,8 @@ import torch.nn as nn
 
 from util import AverageMeter
 from util import adjust_learning_rate
-from util import set_optimizer
 from util import accuracy
+import torch.optim as optim
 from dataUtil import num_inlier_classes_mapping, get_train_datasets, get_test_datasets
 from networks.resnet_big import SupCEResNet
 from  networks.vgg import vgg16, vgg11_bn
@@ -58,7 +58,7 @@ def parse_option():
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
-    parser.add_argument('--weight_decay', type=float, default=1e-4,
+    parser.add_argument('--weight_decay', type=float, default=5e-4,
                         help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9,
                         help='momentum')
@@ -198,6 +198,14 @@ def save_model(model=None, optimizer=None, opt=None, epoch=0, save_file=None):
             'epoch': epoch,}
     torch.save(state, save_file)
     del state
+
+
+def set_optimizer(opt, model):
+    optimizer = optim.SGD(model.parameters(),
+                          lr=opt.learning_rate,
+                          momentum=opt.momentum,
+                          weight_decay=opt.weight_decay)
+    return optimizer
 
 
 def train(train_loader, model, criterion, optimizer, epoch, opt):
