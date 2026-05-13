@@ -27,6 +27,8 @@ from networks.resnet_big import SupCEResNet
 from  networks.vgg import vgg16, vgg11_bn
 from networks.LeNet import LeNet5
 
+from data_test import get_training_dataloader, get_test_dataloader
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -44,7 +46,7 @@ def parse_option():
                         help='print frequency')
     parser.add_argument('--save_freq', type=int, default=20,
                         help='save frequency')
-    parser.add_argument('--batch_size', type=int, default=256,
+    parser.add_argument('--batch_size', type=int, default=128,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=4,
                         help='num of workers to use')
@@ -52,7 +54,7 @@ def parse_option():
                         help='number of training epochs')
 
     # optimization
-    parser.add_argument('--learning_rate', type=float, default=0.0001,
+    parser.add_argument('--learning_rate', type=float, default=0.01,
                         help='learning rate')
     parser.add_argument('--lr_decay_epochs', type=str, default='1000',
                         help='where to decay lr, can be a list')
@@ -153,7 +155,7 @@ def set_model(opt):
     if "resnet" in opt.model:
         model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes)
     elif "vgg" in opt.model:
-        model = vgg11_bn(num_classes=opt.num_classes)
+        model = vgg16(num_classes=opt.num_classes)
     elif "lenet" in opt.model:
         model = LeNet5(num_classes=opt.num_classes)
 
@@ -305,7 +307,18 @@ def main():
     opt = parse_option()
 
     # build data loader
-    train_loader, test_loader = set_loader(opt)
+    #train_loader, test_loader = set_loader(opt)
+    train_loader = get_training_dataloader(
+        num_workers=4,
+        batch_size=opt.batch_size,
+        shuffle=True
+    )
+
+    test_loader = get_test_dataloader(
+        num_workers=4,
+        batch_size=opt.batch_size,
+        shuffle=True
+    )
     print("train_loader, ", train_loader.__len__())
 
     # build model and criterion
