@@ -57,7 +57,7 @@ def parse_option():
     parser.add_argument('--datasets', type=str, default='cifar100_marco',
                         choices=["cifar100_marco", 'cifar10', "tinyimgnet", 'mnist', "svhn"],
                         help='dataset')
-    parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_0_128_256/")
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_0_128_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--temp_list", type=str, default="")
@@ -129,6 +129,8 @@ def set_model(opt):
         model = model.cuda()
         criterion = criterion.cuda()
         cudnn.benchmark = True
+
+    model = load_model(model, opt.backbone_model_path)
 
     return model, criterion
 

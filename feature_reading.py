@@ -47,10 +47,10 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
     parser.add_argument('--datasets', type=str, default='cifar10',
-                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
+                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
-    parser.add_argument('--model', type=str, default="resnet_multi",
+    parser.add_argument('--model', type=str, default="resnet18",
                         choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
     parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_0_128_0.05_256/last.pth")
     parser.add_argument("--linear_model_path", type=str, default=None)
@@ -92,7 +92,7 @@ def parse_option():
         opt.model_name = opt.model_path.split("/")[-2]
     opt.save_path_all = opt.feature_save + opt.model_name + "_" + opt.if_train
 
-    opt.num_classes = num_inlier_classes_mapping[opt.datasets]
+    opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
 
     return opt
 

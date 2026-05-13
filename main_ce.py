@@ -22,7 +22,7 @@ from util import AverageMeter
 from util import adjust_learning_rate
 from util import accuracy
 import torch.optim as optim
-from dataUtil import num_inlier_classes_mapping, get_train_datasets, get_test_datasets
+from dataUtil import osr_splits_inliers, get_train_datasets, get_test_datasets
 from networks.resnet_big import SupCEResNet
 from  networks.vgg import vgg16, vgg11_bn
 from networks.LeNet import LeNet5
@@ -125,7 +125,7 @@ def parse_option():
     if not os.path.isdir(opt.save_folder):
         os.makedirs(opt.save_folder)
     
-    opt.num_classes = num_inlier_classes_mapping[opt.datasets]
+    opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
 
     return opt
 
