@@ -301,7 +301,7 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
     normalize = transforms.Normalize(mean=mean, std=std)
     size = image_size_mapping[opt.datasets]
 
-    if opt.action == "training_supcon" or opt.action == "trainging_linear":
+    if opt.action == "training_supcon" or opt.action == "trainging_linear" or opt.action == "training_ce":
         if opt.datasets == "mnist":
             train_transform = transforms.Compose([transforms.ToTensor(), transforms.RandomRotation((-5, 5)),])
                                                                             
