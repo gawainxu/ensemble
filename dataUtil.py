@@ -121,7 +121,8 @@ osr_splits_inliers = {
                       173, 176, 177, 181, 184, 188, 191, 194, 195, 2, 7, 9, 16, 20, 26, 28, 44, 54, 95,
                       98, 102, 127, 178, 182, 22, 41, 82, 93, 112, 125, 189]],
                   
-    "cifar100_marco": [[0, 1, 5, 6, 10, 11, 15, 16, 20, 21, 25, 26, 30, 31, 35, 36, 40, 41, 45, 46,
+    "cifar100_marco": [ list(range(50)),
+                        [0, 1, 5, 6, 10, 11, 15, 16, 20, 21, 25, 26, 30, 31, 35, 36, 40, 41, 45, 46,
                         50, 51, 55, 56, 60, 61, 65, 66, 70, 71, 75, 76, 80, 81, 85, 86, 90, 91, 95, 96],
                        [0, 1, 5, 6, 10, 11, 15, 16, 20, 21, 25, 26, 30, 31, 35, 36, 40, 41, 45, 46]], }
 
@@ -239,7 +240,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 
-num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-50": 4, "cifar100_marco": 40,
+num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-50": 4, "cifar100_marco": 50,
                               "tinyimgnet": 20, "mnist": 6, "svhn": 6, "cub": 100, "aircraft": 50}
 
 
