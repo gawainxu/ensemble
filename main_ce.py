@@ -307,18 +307,19 @@ def main():
     opt = parse_option()
 
     # build data loader
-    #train_loader, test_loader = set_loader(opt)
+    train_loader, test_loader = set_loader(opt)
+    """
     train_loader = get_training_dataloader(
         num_workers=4,
         batch_size=opt.batch_size,
         shuffle=True
     )
-
     test_loader = get_test_dataloader(
         num_workers=4,
         batch_size=opt.batch_size,
         shuffle=True
     )
+    """
     print("train_loader, ", train_loader.__len__())
 
     # build model and criterion
