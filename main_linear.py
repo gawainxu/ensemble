@@ -62,7 +62,7 @@ def parse_option():
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
     parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_1_128_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
-    parser.add_argument("--trail", type=int, default=4)
+    parser.add_argument("--trail", type=int, default=7)
     parser.add_argument("--temp_list", type=str, default="")
 
      # upsampling parameters
