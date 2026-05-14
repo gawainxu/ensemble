@@ -41,12 +41,12 @@ def parse_option():
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
-    parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet18_original_data__vanilia__SimCLR_0.01_trail_0/ckpt_epoch_400.pth")
+    parser.add_argument("--model_path", type=str, default=None)
     parser.add_argument("--model_path1", type=str, default=None)
     parser.add_argument("--model_path2", type=str, default=None)
     parser.add_argument("--end", type=bool, default=False, help="if it is end to end training")
     parser.add_argument("--ensembles", type=int, default=1)
-    parser.add_argument("--linear_model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet18_original_data__vanilia__SimCLR_0.01_trail_0/last_linear.pth")
+    parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--num_classes", type=int, default=6)
     parser.add_argument("--feat_dim", type=int, default=128)
     
@@ -386,12 +386,13 @@ def sort_multiheadfeatures(multiheadfeatures):
 def feature_classifier(opt):
 
     with open(opt.exemplar_features_path, "rb") as f:
-        features_exemplar_head, _, labels_examplar = pickle.load(f)
+        features_exemplar_head, features_exemplar_backbone, labels_examplar = pickle.load(f)
         labels_examplar = np.squeeze(np.array(labels_examplar))
         if "multi_head" in opt.method:
             features_exemplar_head = sort_multiheadfeatures(features_exemplar_head)
         else:
             features_exemplar_head = np.squeeze(np.array(features_exemplar_head))
+            features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
 
     if opt.exemplar_features_path1 is not None:
         with open(opt.exemplar_features_path1, "rb") as f:
@@ -416,16 +417,17 @@ def feature_classifier(opt):
             labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=1)
 
     sorted_features_exemplar_head = sortFeatures(features_exemplar_head, labels_examplar, opt)
-
+    sorted_features_exemplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            features_testing_known_head, _, labels_testing_known = pickle.load(f)
+            features_testing_known_head, features_testing_known_backbone, labels_testing_known = pickle.load(f)
             labels_testing_known = np.squeeze(np.array(labels_testing_known))
             if "multi_head" in opt.method:
                 features_testing_known_head = sort_multiheadfeatures(features_testing_known_head)
             else:
                 features_testing_known_head = np.squeeze(np.array(features_testing_known_head))
+                features_testing_known_backbone = np.squeeze(np.array(features_testing_known_backbone))
     
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
@@ -450,18 +452,19 @@ def feature_classifier(opt):
             labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known2), axis=1)
 
 
-    features_testing_known_head, labels_testing_known = down_sampling(features_testing_known_head, labels_testing_known, opt.downsampling_ratio_known)
-    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_head, labels_testing_known, sorted_features_exemplar_head)
-    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(features_testing_known_head, labels_testing_known, sorted_features_exemplar_head)
+    features_testing_known_backbone, labels_testing_known = down_sampling(features_testing_known_backbone, labels_testing_known, opt.downsampling_ratio_known)
+    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_backbone, labels_testing_known, sorted_features_exemplar_backbone)
+    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(features_testing_known_backbone, labels_testing_known, sorted_features_exemplar_backbone)
 
 
     with open(opt.testing_unknown_features_path, "rb") as f:
-        features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
+        features_testing_unknown_head, features_testing_unknown_backbone, labels_testing_unknown = pickle.load(f)
         labels_testing_unknown = np.squeeze(np.array(labels_testing_unknown))
     if "multi_head" in opt.method:
         features_testing_unknown_head = sort_multiheadfeatures(features_testing_unknown_head)
     else:
         features_testing_unknown_head = np.squeeze(np.array(features_testing_unknown_head))
+        features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
         
 
     if opt.testing_unknown_features_path1 is not None:
@@ -487,9 +490,9 @@ def feature_classifier(opt):
             labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
 
 
-    features_testing_unknown_head, labels_testing_unknown = down_sampling(features_testing_unknown_head, labels_testing_unknown, opt.downsampling_ratio_unknown)
-    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
-    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
+    features_testing_unknown_backbone, labels_testing_unknown = down_sampling(features_testing_unknown_backbone, labels_testing_unknown, opt.downsampling_ratio_unknown)
+    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_backbone, labels_testing_unknown, sorted_features_exemplar_backbone)
+    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_backbone, labels_testing_unknown, sorted_features_exemplar_backbone)
     
     knn_predictions = np.concatenate((predictions_known, predictions_unknown), axis=0)
     distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)

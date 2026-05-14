@@ -47,9 +47,9 @@ def parse_option():
                         help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
-    parser.add_argument("--model_path", type=str, default="/save/SupCon/tinyimgnet_models/tinyimgnet_resnet18_vanilia__SimCLR_1.0_0.0_0.5_trail_0_128_256/last.pth")
-    parser.add_argument("--model_path1", type=str, default="/save/SupCon/tinyimgnet_models/tinyimgnet_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256/last.pth")
-    parser.add_argument("--model_path2", type=str, default="/save/SupCon/tinyimgnet_models/tinyimgnet_resnet18_vanilia__SimCLR_1.0_0.0_0.005_trail_0_128_256/last.pth")
+    parser.add_argument("--model_path", type=str, default=None)
+    parser.add_argument("--model_path1", type=str, default=None)
+    parser.add_argument("--model_path2", type=str, default=None)
     parser.add_argument("--end", type=bool, default=False, help="if it is end to end training")
     parser.add_argument("--ensembles", type=int, default=1)
     parser.add_argument("--linear_model_path", type=str, default=None)
@@ -57,11 +57,11 @@ def parse_option():
     parser.add_argument("--feat_dim", type=int, default=128)
 
     parser.add_argument("--exemplar_features_path", type=str,
-                        default="/features/FUB_simCNN_mixup_positive_alpha_1.0_beta_1.0_layersaliencymix_3_SimCLR_1.0_1.0_0.05_trail_0_128_128_old_augmented_600_train")
+                        default=None)
     parser.add_argument("--testing_known_features_path", type=str,
-                        default="/features/FUB_simCNN_mixup_positive_alpha_1.0_beta_1.0_layersaliencymix_3_SimCLR_1.0_1.0_0.05_trail_0_128_128_old_augmented_600_test_known")
+                        default=None)
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/FUB_simCNN_mixup_positive_alpha_1.0_beta_1.0_layersaliencymix_3_SimCLR_1.0_1.0_0.05_trail_0_128_128_old_augmented_600_test_unknown")
+                        default=None)
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
