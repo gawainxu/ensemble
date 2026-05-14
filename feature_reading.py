@@ -21,7 +21,7 @@ import numpy as np
 import pickle
 from itertools import chain
 
-from networks.resnet_big import SupConResNet, LinearClassifier
+from networks.resnet_big import SupConResNet, LinearClassifier, SupCEResNet
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
 from networks.mlp import SupConMLP
@@ -55,6 +55,7 @@ def parse_option():
     parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_0_128_0.05_256/last.pth")
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--trail", type=int, default=0)
+    parser.add_argument("--trail_backbone", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
     parser.add_argument("--action", type=str, default="testing_unknown",
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
@@ -92,7 +93,7 @@ def parse_option():
         opt.model_name = opt.model_path.split("/")[-2]
     opt.save_path_all = opt.feature_save + opt.model_name + "_" + opt.if_train
 
-    opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
+    opt.num_classes_backbone = len(osr_splits_inliers[opt.datasets][opt.trail_backbone])
 
     return opt
 
@@ -104,16 +105,18 @@ def load_model(opt):
     else:
         in_channels = 3
 
-    if opt.model == "resnet18" or opt.model == "resnet34":
-        model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
-        model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "MLP":
-        model = SupConMLP(feat_dim=opt.feat_dim)
-    elif opt.model == "resnet_multi":
-        model = SupConResNet_MultiHead(input_size=opt.size, feat_dim=opt.feat_dim, in_channels=in_channels)
+    if "cifar100_marco" in opt.datasets:
+        model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes_backbone)
     else:
-        model = simCNN_contrastive(opt,  feature_dim=opt.feat_dim, in_channels=in_channels)
+        if opt.model == "resnet18" or opt.model == "resnet34":
+            model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+        elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
+            model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+        elif opt.model == "MLP":
+            model = SupConMLP(feat_dim=opt.feat_dim)
+        else:
+            model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
+
     ckpt = torch.load(opt.model_path, map_location='cpu')
     state_dict = ckpt['model']
 
