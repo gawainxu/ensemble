@@ -82,7 +82,7 @@ def parse_option():
 
     opt = parser.parse_args()
    
-    opt.num_classes = 100 #len(osr_splits_inliers[opt.datasets][opt.trail])
+    opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
 
     iterations = opt.lr_decay_epochs.split(',')
     opt.lr_decay_epochs = list([])
