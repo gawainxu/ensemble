@@ -37,7 +37,8 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 breaks = {"cifar-10-100-10": {"train": 5000, "test_known":500, "test_unknown": 50, "full": 100000}, 
           "cifar-10-100-50": {"train": 5000, "test_known": 500, "test_unknown": 50, "full": 100000}, 
-           'cifar10':{"train": 5000, "test_known": 500, "test_unknown": 500, "full": 100000}, 
+           'cifar10':{"train": 5000, "test_known": 500, "test_unknown": 500, "full": 100000},
+           'cifar100_marco':{"train": 5000, "test_known": 500, "test_unknown": 500, "full": 100000},
            "tinyimgnet":{"train": 5000, "test_known": 100, "test_unknown": 20, "full": 100000}, 
            'mnist':{"train": 5000, "test_known": 500, "test_unknown": 500, "full": 100000}, 
            "svhn":{"train": 5000, "test_known": 500, "test_unknown": 500, "full": 100000}}
