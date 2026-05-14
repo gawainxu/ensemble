@@ -41,18 +41,14 @@ def parse_option():
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
-    parser.add_argument("--model_path", type=str, default=None)
-    parser.add_argument("--model_path1", type=str, default=None)
-    parser.add_argument("--model_path2", type=str, default=None)
     parser.add_argument("--end", type=bool, default=False, help="if it is end to end training")
     parser.add_argument("--ensembles", type=int, default=1)
-    parser.add_argument("--linear_model_path", type=str, default=None)
-    parser.add_argument("--num_classes", type=int, default=6)
+    parser.add_argument("--num_classes", type=int, default=20)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar100_marco_resnet18_1trail_0_128_128_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar100_marco_resnet18_1trail_0_128_128_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar100_marco_resnet18_1trail_0_128_128_test_unknown")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
@@ -93,15 +89,6 @@ def parse_option():
 
     opt = parser.parse_args()
     opt.main_dir = os.getcwd()
-    opt.model_path = opt.main_dir + opt.model_path
-    if opt.model_path1 is not None:
-        opt.model_path1 = opt.main_dir + opt.model_path1
-
-    if opt.model_path2 is not None:
-        opt.model_path2 = opt.main_dir + opt.model_path2
-
-    if opt.linear_model_path is not None:
-        opt.linear_model_path = opt.main_dir + opt.linear_model_path
 
     opt.exemplar_features_path = opt.main_dir + opt.exemplar_features_path
     opt.testing_known_features_path = opt.main_dir + opt.testing_known_features_path
@@ -129,82 +116,6 @@ def parse_option():
     return opt
 
 
-def load_model(model, linear_model=None, path=None):
-    ckpt = torch.load(path, map_location='cpu')
-    state_dict = ckpt['model']
-
-    new_state_dict = {}
-    for k, v in state_dict.items():
-        k = k.replace("module.", "")
-        new_state_dict[k] = v
-    state_dict = new_state_dict
-    model.load_state_dict(state_dict)
-
-    if linear_model is not None:
-        state_dict_linear = ckpt['linear']
-        new_state_dict = {}
-        for k, v in state_dict_linear.items():
-            k = k.replace("module.", "")
-            new_state_dict[k] = v
-        state_dict = new_state_dict
-        linear_model.load_state_dict(state_dict)
-
-        return model, linear_model
-    
-    return model
-
-
-def set_model(opt):
-
-    if opt.datasets == "mnist":
-        in_channels = 1
-    else:
-        in_channels = 3
-
-    if opt.model == "resnet18" or opt.model == "resnet34":
-        model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
-        model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    else:
-        model = simCNN_contrastive(opt)
-
-    if opt.end == True:
-        linear_model = LinearClassifier(name=opt.model, num_classes=opt.num_classes)
-        model, linear_model = load_model(model, linear_model, opt.model_path)
-        linear_model.eval()
-        linear_model = linear_model.cpu()
-    else:
-        model = load_model(model, opt.model_path)
-        linear_model = None
-    
-    model.eval()
-    model = model.cpu()
-    models = []
-    models.append(model)
-
-    if opt.model_path1 is not None:
-        model1 = copy.deepcopy(model)
-        model1 = load_model(model1, opt.model_path1)
-        models.append(model1)
-
-    if opt.model_path2 is not None:
-        model2 = copy.deepcopy(model)
-        model2 = load_model(model2, opt.model_path2)
-        models.append(model2)
-
-    if opt.linear_model_path is not None:
-        linear_model = LinearClassifier(name=opt.model, num_classes=opt.num_classes)
-        ckpt = torch.load(opt.linear_model_path, map_location='cpu')
-        #print(ckpt.keys())
-        state_dict = ckpt['model']
-        linear_model.load_state_dict(state_dict)
-        linear_model = linear_model.cpu()
-        linear_model.eval()
-
-    return models, linear_model
-
-
-
 def set_loader(opt):
     # construct data loader
     test_dataset = get_test_datasets(opt)
@@ -216,39 +127,6 @@ def set_loader(opt):
                                               num_workers=opt.num_workers, pin_memory=True)
 
     return test_loader, outlier_loader
-
-
-def testing_nn_classifier(models, classifier, dataloader):
-
-    for model in models:
-        model.eval()
-    classifier.eval()
-
-    top1 = AverageMeter()
-    scores_max = []
-    preds = []
-    labels = []
-
-    for idx, (images, label) in enumerate(dataloader):
-
-        #print(idx)
-        #images = images.cuda(non_blocking=True)
-        #labels = labels.cuda(non_blocking=True)
-        bsz = label.shape[0]
-
-        features = torch.empty((bsz, 0), dtype=torch.float32)
-        for model in models:
-            feature = model.encoder(images)
-            features = torch.cat((features, feature), dim=1)
-        output = classifier(features)
-
-        acc, pred, score_max = accuracy(output, label)
-        top1.update(acc, bsz)
-        scores_max.append(score_max.numpy())
-        preds.append(pred)
-        labels.append(label)
-
-    return top1.avg, scores_max, preds, labels
 
 
 def KNN_logits(testing_features, sorted_exemplar_features):
@@ -317,7 +195,7 @@ def LoF(testing_features, sorted_exemplar_features, opt):
     return scores
 
 
-def distances(stats, test_features, mode="mahalanobis"):
+def distances(stats, test_features, mode="normal"):
 
     dis_logits_out = []
     dis_logits_in = []
@@ -546,34 +424,8 @@ def feature_classifier(opt):
 if __name__ == "__main__":
     
     opt = parse_option()
-
-    #models, linear_model = set_model(opt)
-    #print("Model loaded!!")
     
     auroc = feature_classifier(opt)                        # oscr, acc_known
-    
-    """
-    models, linear_model = set_model(opt)
-    test_loader, outlier_loader = set_loader(opt)
-    avg_accuracy_test, scores_max_test, preds, labels = testing_nn_classifier(models, linear_model, test_loader)
-    _, scores_max_outlier, _, _ = testing_nn_classifier(models, linear_model, outlier_loader)
-    #with open("./scores", "wb") as f:
-    #    pickle.dump((scores_max_test, scores_max_outlier), f)
-    print("ID", opt.trail, "Average NN accuracy on inlier testing data is: ", avg_accuracy_test)
-
-    labels_binary_known = [1 for _ in range(len(scores_max_test))]
-    labels_binary_unknown = [0 for _ in range(len(scores_max_outlier))]
-    labels_binary = np.array(labels_binary_known + labels_binary_unknown)
-    scores_binary = np.array(scores_max_test + scores_max_outlier)
-    auroc = AUROC(labels_binary, scores_binary, opt)
-    print("NN AUROC is: ", auroc)
-
-    scores_max_test = np.array(scores_max_test)
-    scores_max_outlier = np.array(scores_max_outlier)
-    oscr = OSCR(-scores_max_test, scores_max_outlier, preds, labels)
-    print("NN OSCR is: ", oscr)
-    """
-
 
     """
     1. use penultimate layer instead of head
