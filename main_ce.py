@@ -81,7 +81,7 @@ def parse_option():
     parser.add_argument("--randaug", type=int, default=0)
 
     # method
-    parser.add_argument("--trail", type=int, default=0, choices=[0,1,2,3,4,5], help="index of repeating training")
+    parser.add_argument("--trail", type=int, default=0, choices=[0,1,2,3,4,5,6], help="index of repeating training")
     parser.add_argument("--action", type=str, default="training_ce",
                         choices=["training_supcon", "training_ce", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])            
         
