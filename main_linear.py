@@ -14,7 +14,7 @@ from util import AverageMeter
 from main_supcon import set_loader
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer, save_model
-from networks.resnet_big import SupConResNet, LinearClassifier
+from networks.resnet_big import SupConResNet, SupCEResNet, LinearClassifier
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
 from networks.mlp import SupConMLP
@@ -41,7 +41,7 @@ def parse_option():
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=100,
+    parser.add_argument('--epochs', type=int, default=30,
                         help='number of training epochs')
 
     # optimization 
@@ -57,12 +57,12 @@ def parse_option():
                         help='momentum')
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet34', choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
-    parser.add_argument('--datasets', type=str, default='cifar10',
-                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
-    parser.add_argument("--backbone_model_direct", type=str, default=None)      
-    parser.add_argument("--backbone_model_name", type=str, default=None)                                             
-    parser.add_argument("--trail", type=int, default=0)
+    parser.add_argument('--model', type=str, default='resnet18', choices=["resnet18", "resnet34", "vgg16", "simCNN", "MLP"])
+    parser.add_argument('--datasets', type=str, default='cifar100_marco',
+                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_1_128_128/")
+    parser.add_argument("--backbone_model_name", type=str, default="last.pth")
+    parser.add_argument("--trail", type=int, default=4)
     parser.add_argument("--temp_list", type=str, default="")
 
      # upsampling parameters
@@ -82,7 +82,7 @@ def parse_option():
 
     opt = parser.parse_args()
    
-    opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
+    opt.num_classes = 100 #len(osr_splits_inliers[opt.datasets][opt.trail])
 
     iterations = opt.lr_decay_epochs.split(',')
     opt.lr_decay_epochs = list([])
@@ -120,7 +120,7 @@ def load_model(model, path):
 
 def set_model(opt):
     criterion = torch.nn.CrossEntropyLoss()
-    classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes)
+    classifier = LinearClassifier(name=opt.model, num_classes=20)
     classifier = classifier.cuda()
     criterion = criterion.cuda()
 
@@ -129,14 +129,18 @@ def set_model(opt):
     else:
         in_channels = 3
 
-    if opt.model == "resnet18" or opt.model == "resnet34":
-        model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
-        model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "MLP":
-        model = SupConMLP(feat_dim=opt.feat_dim)
+    if "cifar100_marco" in opt.datasets:
+        model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes)
     else:
-        model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
+        if opt.model == "resnet18" or opt.model == "resnet34":
+            model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+        elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
+            model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+        elif opt.model == "MLP":
+            model = SupConMLP(feat_dim=opt.feat_dim)
+        else:
+            model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
+
     model = load_model(model, opt.backbone_model_path)
 
     return model, classifier, criterion
