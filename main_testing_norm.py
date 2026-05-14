@@ -369,13 +369,13 @@ def feature_classifier(opt):
 
     print(opt.exemplar_features_path)
     with open(opt.exemplar_features_path, "rb") as f:
-        features_exemplar_head, features_exemplar_backbone, _, labels_examplar = pickle.load(f) 
+        features_exemplar_head, features_exemplar_backbone, labels_examplar = pickle.load(f)
         features_exemplar_head = np.squeeze(np.array(features_exemplar_head))    
         features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
 
     if opt.exemplar_features_path1 is not None:
         with open(opt.exemplar_features_path1, "rb") as f:       
-            features_exemplar_head1, features_exemplar_backbone1, _, labels_examplar1 = pickle.load(f)         
+            features_exemplar_head1, features_exemplar_backbone1, labels_examplar1 = pickle.load(f)
             features_exemplar_head1 = np.squeeze(np.array(features_exemplar_head1))
             features_exemplar_backbone1 = np.squeeze(np.array(features_exemplar_backbone1))
         #features_exemplar_head = np.concatenate((features_exemplar_head, features_exemplar_head1), axis=1)
@@ -383,7 +383,7 @@ def feature_classifier(opt):
     
     if opt.exemplar_features_path2 is not None:
         with open(opt.exemplar_features_path2, "rb") as f:       
-            features_exemplar_head2, features_exemplar_backbone2, _, labels_examplar2 = pickle.load(f)         
+            features_exemplar_head2, features_exemplar_backbone2, labels_examplar2 = pickle.load(f)
             features_exemplar_head2 = np.squeeze(np.array(features_exemplar_head2))
             features_exemplar_backbone2 = np.squeeze(np.array(features_exemplar_backbone2))
         #features_exemplar_head = np.concatenate((features_exemplar_head, features_exemplar_head2), axis=1)
@@ -397,14 +397,14 @@ def feature_classifier(opt):
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            features_testing_known_head, features_testing_known_backbone, _, labels_testing_known = pickle.load(f) 
+            features_testing_known_head, features_testing_known_backbone, labels_testing_known = pickle.load(f)
             features_testing_known_head = np.squeeze(np.array(features_testing_known_head))       
             features_testing_known_backbone = np.squeeze(np.array(features_testing_known_backbone))
             labels_testing_known = np.squeeze(np.array(labels_testing_known))
     
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:             
-            features_testing_known_head1, features_testing_known_backbone1, _, labels_testing_known1 = pickle.load(f)          
+            features_testing_known_head1, features_testing_known_backbone1, labels_testing_known1 = pickle.load(f)
             features_testing_known_head1 = np.squeeze(np.array(features_testing_known_head1))       
             features_testing_known_backbone1 = np.squeeze(np.array(features_testing_known_backbone1))
             labels_testing_known1 = np.squeeze(np.array(labels_testing_known1))
@@ -413,7 +413,7 @@ def feature_classifier(opt):
 
     if opt.testing_known_features_path2 is not None:
         with open(opt.testing_known_features_path2, "rb") as f:             
-            features_testing_known_head2, features_testing_known_backbone2, _, labels_testing_known2 = pickle.load(f)           
+            features_testing_known_head2, features_testing_known_backbone2, labels_testing_known2 = pickle.load(f)
             features_testing_known_head2 = np.squeeze(np.array(features_testing_known_head2))
             features_testing_known_backbone2 = np.squeeze(np.array(features_testing_known_backbone2))
             labels_testing_known2 = np.squeeze(np.array(labels_testing_known2))
@@ -428,7 +428,7 @@ def feature_classifier(opt):
 
 
     with open(opt.testing_unknown_features_path, "rb") as f:
-        features_testing_unknown_head, features_testing_unknown_backbone, _, labels_testing_unknown = pickle.load(f)          
+        features_testing_unknown_head, features_testing_unknown_backbone, labels_testing_unknown = pickle.load(f)
         features_testing_unknown_head = np.squeeze(np.array(features_testing_unknown_head))
         features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
         labels_testing_unknown = np.squeeze(np.array(labels_testing_unknown))
@@ -436,7 +436,7 @@ def feature_classifier(opt):
 
     if opt.testing_unknown_features_path1 is not None:
         with open(opt.testing_unknown_features_path1, "rb") as f:            
-            features_testing_unknown_head1, features_testing_unknown_backbone1, _, labels_testing_unknown1 = pickle.load(f)            
+            features_testing_unknown_head1, features_testing_unknown_backbone1, labels_testing_unknown1 = pickle.load(f)
             features_testing_unknown_head1 = np.squeeze(np.array(features_testing_unknown_head1))
             features_testing_unknown_backbone1 = np.squeeze(np.array(features_testing_unknown_backbone1))
             labels_testing_unknown1 = np.squeeze(np.array(labels_testing_unknown1))
@@ -445,7 +445,7 @@ def feature_classifier(opt):
     
     if opt.testing_unknown_features_path2 is not None:
         with open(opt.testing_unknown_features_path2, "rb") as f:               
-            features_testing_unknown_head2, features_testing_unknown_backbone2, _, labels_testing_unknown2 = pickle.load(f)            
+            features_testing_unknown_head2, features_testing_unknown_backbone2, labels_testing_unknown2 = pickle.load(f)
             features_testing_unknown_head2 = np.squeeze(np.array(features_testing_unknown_head2))
             features_testing_unknown_backbone2 = np.squeeze(np.array(features_testing_unknown_backbone2))
             labels_testing_unknown2 = np.squeeze(np.array(labels_testing_unknown2))
