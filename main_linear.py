@@ -62,6 +62,7 @@ def parse_option():
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
     parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_1_128_128/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
+    parser.add_argument("--trail_backbone", type=int, default=7)
     parser.add_argument("--trail", type=int, default=7)
     parser.add_argument("--temp_list", type=str, default="")
 
@@ -82,6 +83,7 @@ def parse_option():
 
     opt = parser.parse_args()
    
+    opt.num_classes_backbone = len(osr_splits_inliers[opt.datasets][opt.trail_backbone])
     opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
 
     iterations = opt.lr_decay_epochs.split(',')
@@ -120,7 +122,7 @@ def load_model(model, path):
 
 def set_model(opt):
     criterion = torch.nn.CrossEntropyLoss()
-    classifier = LinearClassifier(name=opt.model, num_classes=20)
+    classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes)
     classifier = classifier.cuda()
     criterion = criterion.cuda()
 
@@ -130,7 +132,7 @@ def set_model(opt):
         in_channels = 3
 
     if "cifar100_marco" in opt.datasets:
-        model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes)
+        model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes_backbone)
     else:
         if opt.model == "resnet18" or opt.model == "resnet34":
             model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
