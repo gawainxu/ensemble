@@ -159,7 +159,7 @@ def normalFeatureReading_normal(model, opt, data_loader):
             outputs.append(output)
         elif "ce" in opt.method:
             if "resnet" in opt.model:
-                output, output_encoder = model(img)[0], model.encoder(img)
+                output, output_encoder = model(img)[0], model.f1(model.encoder(img))
                 outputs.append(output.detach().numpy())
                 outputs_backbone.append(output_encoder[-1].detach().numpy())
             elif "vgg" in opt.model:
