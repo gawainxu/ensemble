@@ -24,6 +24,7 @@ from itertools import chain
 from networks.resnet_big import SupConResNet, LinearClassifier, SupCEResNet
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
+from  networks.vgg import vgg16, vgg11_bn
 from networks.mlp import SupConMLP
 from networks.resnet_multi import SupConResNet_MultiHead
 from featureMerge import featureMerge
@@ -52,7 +53,7 @@ def parse_option():
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
     parser.add_argument('--model', type=str, default="resnet18",
-                        choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
+                        choices=["resnet18", "resnet_multi", "resnet34", "vgg16", "preactresnet34", "simCNN", "MLP"])
     parser.add_argument("--model_path", type=str, default="/save/SupCon/cifar10_models/cifar10_resnet_multi_trail_0_128_0.05_256/last.pth")
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--trail", type=int, default=0)
@@ -107,7 +108,10 @@ def load_model(opt):
         in_channels = 3
 
     if "cifar100_marco" in opt.datasets:
-        model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes_backbone)
+        if opt.model == "resnet18" or opt.model == "resnet34":
+            model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes_backbone)
+        else:
+            model = vgg16(num_classes=opt.num_classes)
     else:
         if opt.model == "resnet18" or opt.model == "resnet34":
             model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
