@@ -111,7 +111,7 @@ def load_model(opt):
         if opt.model == "resnet18" or opt.model == "resnet34":
             model = SupCEResNet(name=opt.model, in_channels=in_channels, num_classes=opt.num_classes_backbone)
         else:
-            model = vgg16(num_classes=opt.num_classes)
+            model = vgg16(num_classes=opt.num_classes_backbone)
     else:
         if opt.model == "resnet18" or opt.model == "resnet34":
             model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
