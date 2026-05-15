@@ -270,7 +270,7 @@ def feature_classifier(opt):
             features_exemplar_head = sort_multiheadfeatures(features_exemplar_head)
         else:
             features_exemplar_head = np.squeeze(np.array(features_exemplar_head))
-            features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
+            #features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
 
     if opt.exemplar_features_path1 is not None:
         with open(opt.exemplar_features_path1, "rb") as f:
@@ -295,7 +295,7 @@ def feature_classifier(opt):
             labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=1)
 
     sorted_features_exemplar_head = sortFeatures(features_exemplar_head, labels_examplar, opt)
-    sorted_features_exemplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
+    #sorted_features_exemplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
@@ -305,7 +305,7 @@ def feature_classifier(opt):
                 features_testing_known_head = sort_multiheadfeatures(features_testing_known_head)
             else:
                 features_testing_known_head = np.squeeze(np.array(features_testing_known_head))
-                features_testing_known_backbone = np.squeeze(np.array(features_testing_known_backbone))
+                #features_testing_known_backbone = np.squeeze(np.array(features_testing_known_backbone))
     
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
@@ -342,7 +342,7 @@ def feature_classifier(opt):
         features_testing_unknown_head = sort_multiheadfeatures(features_testing_unknown_head)
     else:
         features_testing_unknown_head = np.squeeze(np.array(features_testing_unknown_head))
-        features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
+        #features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
         
 
     if opt.testing_unknown_features_path1 is not None:
@@ -366,7 +366,6 @@ def feature_classifier(opt):
             features_testing_unknown_head2 = np.squeeze(np.array(features_testing_unknown_head2))
             features_testing_unknown_head = np.concatenate((features_testing_unknown_head, features_testing_unknown_head2),axis=1)
             labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
-
 
     features_testing_unknown_head, labels_testing_unknown = down_sampling(features_testing_unknown_head, labels_testing_unknown, opt.downsampling_ratio_unknown)
     prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
