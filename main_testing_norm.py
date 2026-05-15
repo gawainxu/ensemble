@@ -252,7 +252,7 @@ def feature_classifier(opt):
     with open(opt.exemplar_features_path, "rb") as f:
         features_exemplar_head, features_exemplar_backbone, labels_examplar = pickle.load(f)
         features_exemplar_head = np.squeeze(np.array(features_exemplar_head))    
-        #features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
+        features_exemplar_backbone = np.squeeze(np.array(features_exemplar_backbone))
 
     if opt.exemplar_features_path1 is not None:
         with open(opt.exemplar_features_path1, "rb") as f:       
@@ -273,7 +273,7 @@ def feature_classifier(opt):
     if opt.ensemble_features is True:
         features_exemplar_head = np.concatenate((features_exemplar_backbone, features_exemplar_head), axis=1)
     sorted_features_examplar_head = sortFeatures(features_exemplar_head, labels_examplar, opt)
-    #sorted_features_examplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
+    sorted_features_examplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
@@ -306,7 +306,7 @@ def feature_classifier(opt):
     with open(opt.testing_unknown_features_path, "rb") as f:
         features_testing_unknown_head, features_testing_unknown_backbone, labels_testing_unknown = pickle.load(f)
         features_testing_unknown_head = np.squeeze(np.array(features_testing_unknown_head))
-        #features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
+        features_testing_unknown_backbone = np.squeeze(np.array(features_testing_unknown_backbone))
         labels_testing_unknown = np.squeeze(np.array(labels_testing_unknown))
         
 
@@ -341,8 +341,8 @@ def feature_classifier(opt):
     #features_testing_known_backbone = features_testing_known_backbone.astype(np.float32)
     #features_testing_unknown_backbone = features_testing_unknown_backbone.astype(np.float32)
 
-    norm_score_known1 = np.linalg.norm(features_testing_known_head, axis=1)
-    norm_score_unknown1 = np.linalg.norm(features_testing_unknown_head, axis=1)
+    norm_score_known1 = np.linalg.norm(features_testing_known_backbone, axis=1)
+    norm_score_unknown1 = np.linalg.norm(features_testing_unknown_backbone, axis=1)
     norm_score_binary1 = np.concatenate((norm_score_known1, norm_score_unknown1), axis=0)
     auroc = AUROC(labels_binary, norm_score_binary1, opt)
     print("AUROC norm is: ", auroc)
