@@ -62,7 +62,7 @@ def parse_option():
     parser.add_argument("--action", type=str, default="testing_unknown",
                         choices=["training_supcon", "trainging_linear", "testing_known", "testing_unknown", "feature_reading"])
     parser.add_argument('--method', type=str, default='multi_head',
-                        choices=['SupCon', 'multi_head'], help='choose method')
+                        choices=['SupCon', 'multi_head', "ce"], help='choose method')
     parser.add_argument("--feature_save", type=str, default="/features/")
     parser.add_argument("--layers_to_see", type=list, default=["encoder.conv1", "encoder.layer1", "encoder.layer2",
                                                                "encoder.layer3", "encoder.layer4", "encoder.avgpool", "head"])
@@ -150,16 +150,22 @@ def normalFeatureReading_normal(model, opt, data_loader):
         if i > opt.break_idx:
             break
 
-        if opt.method == "SupCon":
+        if "SupCon" in opt.method:
             output, output_encoder = model(img)[0], model.encoder(img)
             outputs.append(output.detach().numpy())
             outputs_backbone.append(output_encoder[-1].detach().numpy())
-        elif opt.method == "multi_head":
+        elif "multi_head" in opt.method:
             output = model(img)
             outputs.append(output)
-        else:
-            output = model.encoder(img)
-            outputs.append(output)
+        elif "ce" in opt.method:
+            if "resnet" in opt.model:
+                output, output_encoder = model(img)[0], model.encoder(img)
+                outputs.append(output.detach().numpy())
+                outputs_backbone.append(output_encoder[-1].detach().numpy())
+            elif "vgg" in opt.model:
+                output = model(img)[0]
+                outputs.append(output.detach().numpy())
+                outputs_backbone.append(None)
 
         labels.append(label.numpy())
 
