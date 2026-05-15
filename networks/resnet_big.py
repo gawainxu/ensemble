@@ -366,10 +366,12 @@ class SupCEResNet(nn.Module):
         super(SupCEResNet, self).__init__()
         model_fun, dim_in = model_dict[name]
         self.encoder = model_fun(in_channels=in_channels)
-        self.fc = nn.Linear(dim_in, num_classes)
+        #self.fc = nn.Linear(dim_in, num_classes)
+        self.fc1 = nn.Linear(dim_in, 128)
+        self.fc2 = nn.Linear(128, num_classes)
 
     def forward(self, x):
-        return self.fc(self.encoder(x))
+        return self.fc2(self.fc1(self.encoder(x)))
 
 
 class LinearClassifier(nn.Module):
