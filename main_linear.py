@@ -122,7 +122,7 @@ def load_model(model, path):
 
 def set_model(opt):
     criterion = torch.nn.CrossEntropyLoss()
-    classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes)
+    classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes, feat_dim=128)
     classifier = classifier.cuda()
     criterion = criterion.cuda()
 
@@ -172,7 +172,7 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
 
         # compute loss
         with torch.no_grad():
-            features = model.encoder(images)       
+            features = model.fc1(model.encoder(images))
             features = features.cuda(non_blocking=True)
         
         output = classifier(features)
@@ -224,7 +224,7 @@ def validate(val_loader, model, classifier, criterion, opt):
             bsz = labels.shape[0]
 
             # forward
-            output = classifier(model.encoder(images))
+            output = classifier(model.fc1(model.encoder(images)))
             loss = criterion(output, labels)
 
             # update metric

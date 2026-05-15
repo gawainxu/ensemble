@@ -376,9 +376,10 @@ class SupCEResNet(nn.Module):
 
 class LinearClassifier(nn.Module):
     """Linear classifier"""
-    def __init__(self, name='resnet50', num_classes=10):
+    def __init__(self, name='resnet50', num_classes=10, feat_dim=0):
         super(LinearClassifier, self).__init__()
-        _, feat_dim = model_dict[name]
+        if feat_dim == 0:
+            _, feat_dim = model_dict[name]
         self.fc = nn.Linear(feat_dim, num_classes)
 
     def forward(self, features):
