@@ -40,7 +40,7 @@ def parse_option():
     parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
-    parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "preactresnet18", "preactresnet34", "simCNN"])
+    parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "vgg16", "preactresnet34", "simCNN"])
     parser.add_argument("--end", type=bool, default=False, help="if it is end to end training")
     parser.add_argument("--ensembles", type=int, default=1)
     parser.add_argument("--num_classes", type=int, default=20)
