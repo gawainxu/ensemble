@@ -4,7 +4,6 @@ import argparse
 import numpy as np
 import torch
 import pickle
-from dataUtil import continual_splits
 
 
 def parse_option():
@@ -13,16 +12,14 @@ def parse_option():
 
     parser.add_argument('--datasets', type=str, default='voc',
                         choices=["cifar100", 'cifar10', "tinyimgnet", 'mnist', "svhn", "voc"], help='dataset')
-    parser.add_argument("--feature_path1", type=str, default="/features/voc_resnet18_task_0_128_32_mask_0_0")
-    parser.add_argument("--feature_path2", type=str, default="/features/voc_resnet18_task_1_128_32_mask_0_0")
-    parser.add_argument("--task_id", type=int, default=0, help="Task ID for comparing")
+    parser.add_argument("--feature_path1", type=str, default="/features/cifar10_resnet18_trail_0_128_0.005_train")
+    parser.add_argument("--feature_path2", type=str, default="/features/cifar10_resnet18_trail_0_128_0.01_train")
+    parser.add_argument("--num_classes", type=int, default=6, help="Number of classes")
     
     opt = parser.parse_args()
     opt.main_dir = os.getcwd()
     opt.feature_path1 = opt.main_dir + opt.feature_path1
     opt.feature_path2 = opt.main_dir + opt.feature_path2
-    
-    opt.num_classes = opt.task_id * continual_splits[opt.datasets]
     
     return opt
 
@@ -106,13 +103,12 @@ class TorchCKA(object):
 def sort_features(opt, features, labels):
    
     sorted_features = []
-    min_num_samples = 1300
+    min_num_samples = 1000
 
     for i in range(opt.num_classes):
         features_i = []
         for f, l in zip(features, labels):
-
-            if l == + opt.num_classes * opt.data_task_id:    # i: #
+            if l == i:
                 features_i.append(f)
         if len(features_i) < min_num_samples:
             min_num_samples = len(features_i)
@@ -120,7 +116,6 @@ def sort_features(opt, features, labels):
         
     sorted_features = [features[:min_num_samples] for features in sorted_features]
     sorted_features = np.array(sorted_features)
-    print("sorted_features", sorted_features.shape)
     return sorted_features
 
 
@@ -129,10 +124,10 @@ if __name__ == "__main__":
     opt = parse_option()
     
     with open(opt.feature_path1, "rb") as f:
-        features1, labels1 = pickle.load(f)
+        features1, _, labels1 = pickle.load(f)
         
     with open(opt.feature_path2, "rb") as f:
-        features2, labels2 = pickle.load(f)
+        features2, _, labels2 = pickle.load(f)
         
     sorted_features1 = sort_features(opt, features1, labels1)
     sorted_features2 = sort_features(opt, features2, labels2)
@@ -140,7 +135,6 @@ if __name__ == "__main__":
     cka = []
     
     for i in range(opt.num_classes):
-        print(i)
         cka_i = linear_cka(sorted_features1[i], sorted_features2[i])
         cka.append(cka_i)
         
