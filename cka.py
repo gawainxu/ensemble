@@ -23,8 +23,6 @@ def parse_option():
     
     return opt
 
-
-
 def hsic(matrix_x: np.ndarray, matrix_y: np.ndarray) -> float:
     n = matrix_x.shape[0]
     matrix_h = np.identity(n) - (1.0 / n) * np.ones((n, n))
@@ -119,6 +117,25 @@ def sort_features(opt, features, labels):
     return sorted_features
 
 
+def linear_cka_gpt(X, Y, eps=1e-12):
+    X = np.asarray(X)
+    Y = np.asarray(Y)
+
+    if X.ndim > 2:
+        X = X.reshape(X.shape[0], -1)
+    if Y.ndim > 2:
+        Y = Y.reshape(Y.shape[0], -1)
+
+    X = X - X.mean(axis=0, keepdims=True)
+    Y = Y - Y.mean(axis=0, keepdims=True)
+
+    hsic = np.linalg.norm(X.T @ Y, ord="fro") ** 2
+    var_x = np.linalg.norm(X.T @ X, ord="fro")
+    var_y = np.linalg.norm(Y.T @ Y, ord="fro")
+
+    return hsic / (var_x * var_y + eps)
+
+
 if __name__ == "__main__":
     
     opt = parse_option()
@@ -128,18 +145,19 @@ if __name__ == "__main__":
         
     with open(opt.feature_path2, "rb") as f:
         features2, _, labels2 = pickle.load(f)
-        
+
+    """
     sorted_features1 = sort_features(opt, features1, labels1)
     sorted_features2 = sort_features(opt, features2, labels2)
-    
     cka = []
-    
     for i in range(opt.num_classes):
         cka_i = linear_cka(sorted_features1[i], sorted_features2[i])
-        cka.append(cka_i)
-        
+        cka.append(cka_i)     
     print(opt.feature_path1, "mean cka", sum(cka)/len(cka))
-        
+    """
+
+    cka_gpt = linear_cka_gpt(features1, features2)
+    print("cka gpt", cka_gpt)
     
     
     
