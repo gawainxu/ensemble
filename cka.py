@@ -112,7 +112,7 @@ def sort_features(opt, features, labels):
             min_num_samples = len(features_i)
         sorted_features.append(features_i)
         
-    sorted_features = [features[:min_num_samples] for features in sorted_features]
+    #sorted_features = [features[:min_num_samples] for features in sorted_features]
     sorted_features = np.array(sorted_features)
     return sorted_features
 
