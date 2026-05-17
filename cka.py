@@ -146,15 +146,16 @@ if __name__ == "__main__":
     with open(opt.feature_path2, "rb") as f:
         features2, _, labels2 = pickle.load(f)
 
-    """
+
     sorted_features1 = sort_features(opt, features1, labels1)
     sorted_features2 = sort_features(opt, features2, labels2)
     cka = []
     for i in range(opt.num_classes):
-        cka_i = linear_cka(sorted_features1[i], sorted_features2[i])
+        cka_i = linear_cka_gpt(sorted_features1[i], sorted_features2[i])
+        print("class", i, "cka", cka_i)
         cka.append(cka_i)     
-    print(opt.feature_path1, "mean cka", sum(cka)/len(cka))
-    """
+    print("mean cka", sum(cka)/len(cka))
+
 
     cka_gpt = linear_cka_gpt(features1, features2)
     print("cka gpt", cka_gpt)
