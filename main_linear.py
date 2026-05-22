@@ -1,12 +1,14 @@
 from __future__ import print_function
 
 import os
+import pickle
 import sys
 import argparse
 import time
 import math
 import copy
 
+import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -18,7 +20,7 @@ from networks.resnet_big import SupConResNet, SupCEResNet, LinearClassifier
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
 from networks.mlp import SupConMLP
-from dataUtil import osr_splits_inliers
+from dataUtil import osr_splits_inliers, get_train_datasets
 
 try:
     import apex
@@ -41,7 +43,7 @@ def parse_option():
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=30,
+    parser.add_argument('--epochs', type=int, default=10,
                         help='number of training epochs')
 
     # optimization 
@@ -58,12 +60,12 @@ def parse_option():
 
     # model dataset
     parser.add_argument('--model', type=str, default='resnet18', choices=["resnet18", "resnet34", "vgg16", "simCNN", "MLP"])
-    parser.add_argument('--datasets', type=str, default='cifar100_marco',
+    parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
-    parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_1_128_128/")
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_0.5/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
-    parser.add_argument("--trail_backbone", type=int, default=7)
-    parser.add_argument("--trail", type=int, default=7)
+    parser.add_argument("--trail_backbone", type=int, default=0)
+    parser.add_argument("--trail", type=int, default=6)
     parser.add_argument("--temp_list", type=str, default="")
 
      # upsampling parameters
@@ -148,6 +150,21 @@ def set_model(opt):
     return model, classifier, criterion
 
 
+def set_loader(opt):
+    # construct data loader
+
+    train_dataset =  get_train_datasets(opt)
+    train_dataset4test = get_train_datasets(opt)
+
+    train_sampler = None
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True,
+                                               num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler, drop_last=True)
+    train_loader4test = torch.utils.data.DataLoader(train_dataset4test, batch_size=opt.batch_size, shuffle=False,
+                                                    num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler,
+                                                    drop_last=True)
+    return train_loader, train_loader4test
+
+
 def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
     """one epoch training"""
 
@@ -158,6 +175,7 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
     data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
+    predicts = []
 
     end = time.time()
     for idx, (images, labels) in enumerate(train_loader):
@@ -172,12 +190,11 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
 
         # compute loss
         with torch.no_grad():
-            features = model.fc1(model.encoder(images))
+            features = model(images)
             features = features.cuda(non_blocking=True)
         
         output = classifier(features)
         loss = criterion(output, labels)
-        #print(output, labels)
 
         # update metric
         losses.update(loss.item(), bsz)
@@ -216,6 +233,8 @@ def validate(val_loader, model, classifier, criterion, opt):
     losses = AverageMeter()
     top1 = AverageMeter()
 
+    preds = []
+
     with torch.no_grad():
         end = time.time()
         for idx, (images, labels) in enumerate(val_loader):
@@ -224,12 +243,13 @@ def validate(val_loader, model, classifier, criterion, opt):
             bsz = labels.shape[0]
 
             # forward
-            output = classifier(model.fc1(model.encoder(images)))
+            output = classifier(model(images))
             loss = criterion(output, labels)
+            preds.append(torch.argmax(output.cpu(), dim=1).numpy())
 
             # update metric
             losses.update(loss.item(), bsz)
-            acc1, _ = accuracy(output, labels)
+            acc1, _, _ = accuracy(output, labels)
             top1.update(acc1, bsz)
 
             # measure elapsed time
@@ -244,6 +264,9 @@ def validate(val_loader, model, classifier, criterion, opt):
                        idx, len(val_loader), batch_time=batch_time,
                        loss=losses, top1=top1))
 
+    preds = np.array(preds)
+    with open(os.path.join(opt.backbone_model_direct, "pred_out"), "wb") as f:
+        pickle.dump(preds, f)
     return losses.avg, top1.avg
 
 
@@ -251,7 +274,7 @@ def main():
     opt = parse_option()
 
     # build data loader
-    train_loader = set_loader(opt)
+    train_loader, train_loader4test = set_loader(opt)
 
     # build model and criterion
     model, classifier, criterion = set_model(opt)
@@ -274,6 +297,9 @@ def main():
     save_file = opt.backbone_model_name.replace(".pth", "_linear_") + opt.temp_list + ".pth"
     save_file = os.path.join(opt.backbone_model_direct, save_file)
     save_model(classifier, optimizer, opt, epoch, save_file)
+
+    _, acc_val = validate(train_loader4test, model, classifier, criterion, opt)
+    print('Evl accuracy:{:.2f}'.format(acc_val))
 
 
 if __name__ == '__main__':

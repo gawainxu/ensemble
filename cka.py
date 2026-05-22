@@ -157,7 +157,7 @@ if __name__ == "__main__":
     print("mean cka", sum(cka)/len(cka))
 
 
-    cka_gpt = linear_cka_gpt(features1, features2)
+    cka_gpt = linear_cka_gpt(features1[:6001], features2[:6001])
     print("cka gpt", cka_gpt)
     
     

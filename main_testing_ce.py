@@ -54,12 +54,12 @@ def parse_option():
     # model dataset
     parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "resnet34", "simCNN", "MLP"])
-    parser.add_argument('--datasets', type=str, default='cifar100_marco',
+    parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar100_marco", 'cifar10', "tinyimgnet", 'mnist', "svhn"],
                         help='dataset')
-    parser.add_argument("--backbone_model_direct", type=str, default="/save/CE/cifar100_marco_models/cifar100_marco_resnet18_1trail_0_128_128/")
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_0.5//")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
-    parser.add_argument("--trail", type=int, default=0)
+    parser.add_argument("--trail", type=int, default=6)
     parser.add_argument("--temp_list", type=str, default="")
 
     # upsampling parameters
