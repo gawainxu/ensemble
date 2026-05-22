@@ -20,7 +20,7 @@ from networks.resnet_big import SupConResNet, SupCEResNet, LinearClassifier
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
 from networks.mlp import SupConMLP
-from dataUtil import osr_splits_inliers, get_train_datasets
+from dataUtil import osr_splits_inliers, get_train_datasets, get_test_datasets
 
 try:
     import apex
@@ -63,9 +63,12 @@ def parse_option():
     parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
     parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_0.5/")
+    parser.add_argument("--backbone_model_direct2", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_1.0/")
+    parser.add_argument("--backbone_model_direct3", type=str, default=None)
+    parser.add_argument("--num_ensembles", type=int, default=2)
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--trail_backbone", type=int, default=0)
-    parser.add_argument("--trail", type=int, default=6)
+    parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--temp_list", type=str, default="")
 
      # upsampling parameters
@@ -95,7 +98,14 @@ def parse_option():
 
     opt.main_dir = os.getcwd()
     opt.backbone_model_direct = opt.main_dir + opt.backbone_model_direct
-    opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)  
+    opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
+    if opt.backbone_model_direct2 is not None:
+        opt.backbone_model_direct2 = opt.main_dir + opt.backbone_model_direct2
+        opt.backbone_model_path2 = os.path.join(opt.backbone_model_direct2, opt.backbone_model_name)
+    if opt.backbone_model_direct3 is not None:
+        opt.backbone_model_direct3 = opt.main_dir + opt.backbone_model_direct3
+        opt.backbone_model_path3 = os.path.join(opt.backbone_model_direct3, opt.backbone_model_name)
+
     opt.linear_model_path = os.path.join(opt.backbone_model_direct, "last_linear.pth")
 
     return opt
@@ -124,7 +134,7 @@ def load_model(model, path):
 
 def set_model(opt):
     criterion = torch.nn.CrossEntropyLoss()
-    classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes, feat_dim=128)
+    classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes, feat_dim=128*opt.num_ensembles)
     classifier = classifier.cuda()
     criterion = criterion.cuda()
 
@@ -138,6 +148,10 @@ def set_model(opt):
     else:
         if opt.model == "resnet18" or opt.model == "resnet34":
             model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+            if opt.backbone_model_direct2 is not None:
+                model2 = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+            if opt.backbone_model_direct3 is not None:
+                model3 = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
         elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
             model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
         elif opt.model == "MLP":
@@ -146,36 +160,50 @@ def set_model(opt):
             model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
     model = load_model(model, opt.backbone_model_path)
-
-    return model, classifier, criterion
+    if opt.backbone_model_direct2 is not None and opt.backbone_model_direct3 is None:
+        model2 = load_model(model2, opt.backbone_model_path2)
+        return model, model2, None, classifier, criterion
+    if opt.backbone_model_direct3 is not None:
+        model2 = load_model(model2, opt.backbone_model_path2)
+        model3 = load_model(model3, opt.backbone_model_path3)
+        return model, model2, model3, classifier, criterion
+    else:
+        return model, None, None, classifier, criterion
 
 
 def set_loader(opt):
     # construct data loader
 
     train_dataset =  get_train_datasets(opt)
+    test_dataset = get_test_datasets(opt)
     train_dataset4test = get_train_datasets(opt)
 
     train_sampler = None
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True,
                                                num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler, drop_last=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False,
+                                               num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler,
+                                               drop_last=True)
     train_loader4test = torch.utils.data.DataLoader(train_dataset4test, batch_size=opt.batch_size, shuffle=False,
                                                     num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler,
                                                     drop_last=True)
-    return train_loader, train_loader4test
+    return train_loader, test_loader, train_loader4test
 
 
-def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
+def train(train_loader, model, model2, model3, classifier, criterion, optimizer, epoch, opt):
     """one epoch training"""
 
     model.eval()
-    classifier.train()                                        
+    classifier.train()
+    if model2 is not None:
+        model2.eval()
+    if model3 is not None:
+        model3.eval()
 
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
-    predicts = []
 
     end = time.time()
     for idx, (images, labels) in enumerate(train_loader):
@@ -192,6 +220,14 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
         with torch.no_grad():
             features = model(images)
             features = features.cuda(non_blocking=True)
+            if model2 is not None:
+                features2 = model2(images)
+                features2 = features2.cuda(non_blocking=True)
+                features = torch.cat((features, features2), dim=1)
+            if model3 is not None:
+                features3 = model3(images)
+                features3 = features3.cuda(non_blocking=True)
+                features = torch.cat((features, features3), dim=1)
         
         output = classifier(features)
         loss = criterion(output, labels)
@@ -224,10 +260,14 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
     return losses.avg, top1.avg
 
 
-def validate(val_loader, model, classifier, criterion, opt):
+def validate(val_loader, model, model2, model3, classifier, criterion, opt):
     """validation"""
     model.eval()
-    classifier.train()
+    classifier.eval()
+    if model2 is not None:
+        model2.eval()
+    if model3 is not None:
+        model3.eval()
 
     batch_time = AverageMeter()
     losses = AverageMeter()
@@ -243,7 +283,17 @@ def validate(val_loader, model, classifier, criterion, opt):
             bsz = labels.shape[0]
 
             # forward
-            output = classifier(model(images))
+            features = model(images)
+            features = features.cuda(non_blocking=True)
+            if model2 is not None:
+                features2 = model2(images)
+                features2 = features2.cuda(non_blocking=True)
+                features = torch.cat((features, features2), dim=1)
+            if model3 is not None:
+                features3 = model3(images)
+                features3 = features3.cuda(non_blocking=True)
+                features = torch.cat((features, features3), dim=1)
+            output = classifier(features)
             loss = criterion(output, labels)
             preds.append(torch.argmax(output.cpu(), dim=1).numpy())
 
@@ -265,8 +315,8 @@ def validate(val_loader, model, classifier, criterion, opt):
                        loss=losses, top1=top1))
 
     preds = np.array(preds)
-    with open(os.path.join(opt.backbone_model_direct, "pred_out"), "wb") as f:
-        pickle.dump(preds, f)
+    #with open(os.path.join(opt.backbone_model_direct, "pred_out"), "wb") as f:
+    #    pickle.dump(preds, f)
     return losses.avg, top1.avg
 
 
@@ -274,10 +324,10 @@ def main():
     opt = parse_option()
 
     # build data loader
-    train_loader, train_loader4test = set_loader(opt)
+    train_loader, test_loader, train_loader4test = set_loader(opt)
 
     # build model and criterion
-    model, classifier, criterion = set_model(opt)
+    model, model2, model3, classifier, criterion = set_model(opt)
 
     # build optimizer
     optimizer = set_optimizer(opt, classifier)
@@ -288,7 +338,7 @@ def main():
 
         # train for one epoch
         time1 = time.time()
-        loss, acc = train(train_loader, model, classifier, criterion,
+        loss, acc = train(train_loader, model, model2, model3, classifier, criterion,
                           optimizer, epoch, opt)
         time2 = time.time()
         print('Train epoch {}, total time {:.2f}, accuracy:{:.2f}, loss:{:.2f}'.format(
@@ -298,7 +348,7 @@ def main():
     save_file = os.path.join(opt.backbone_model_direct, save_file)
     save_model(classifier, optimizer, opt, epoch, save_file)
 
-    _, acc_val = validate(train_loader4test, model, classifier, criterion, opt)
+    _, acc_val = validate(train_loader4test, model, model2, model3, classifier, criterion, opt)
     print('Evl accuracy:{:.2f}'.format(acc_val))
 
 
