@@ -60,9 +60,9 @@ def parse_option():
 
     # model dataset
     parser.add_argument('--model', type=str, default='resnet18', choices=["resnet18", "resnet34", "vgg16", "simCNN", "MLP"])
-    parser.add_argument('--datasets', type=str, default='cifar10',
+    parser.add_argument('--datasets', type=str, default='tinyimgnet',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
-    parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_0.5/")
+    parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/tinyimgnet_resnet18_trail_0_128_0.5/")
     parser.add_argument("--backbone_model_direct2", type=str, default=None)
     parser.add_argument("--backbone_model_direct3", type=str, default=None)
     parser.add_argument("--num_ensembles", type=int, default=1)
@@ -348,7 +348,7 @@ def main():
     save_file = os.path.join(opt.backbone_model_direct, save_file)
     save_model(classifier, optimizer, opt, epoch, save_file)
 
-    _, acc_val = validate(train_loader4test, model, model2, model3, classifier, criterion, opt)
+    _, acc_val = validate(test_loader, model, model2, model3, classifier, criterion, opt)
     print('Evl accuracy:{:.2f}'.format(acc_val))
 
 
