@@ -275,19 +275,20 @@ from sklearn.pipeline import make_pipeline
 
 
 num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-50": 4, "cifar100_marco": 20,
-                              "tinyimgnet": 20, "mnist": 6, "svhn": 6, "cub": 100, "aircraft": 20}
+                              "tinyimgnet": 20, "mnist": 6, "svhn": 6, "cub": 100, "aircraft": 20, "cifar100": 100}
 
 
 data_function_mapping = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR10, "cifar-10-100-50": iCIFAR10, "cifar100_marco": iCIFAR100,
-                          "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
+                         "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
 
 data_function_mapping_testing = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR100, "cifar-10-100-50": iCIFAR100, "cifar100_marco": iCIFAR100,
-                                 "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
+                                 "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
 
 
 mean_mapping = {"mnist":  (0.1307,),
                 "svhn": (0.4376821, 0.4437697, 0.47280442),
                 "cifar10": (0.4914, 0.4822, 0.4465),
+                "cifar100": (0.4914, 0.4822, 0.4465),
                 "cifar100_marco": (0.4914, 0.4822, 0.4465),
                 "cifar-10-100-10": (0.4914, 0.4822, 0.4465),
                 "cifar-10-100-50": (0.4914, 0.4822, 0.4465),
@@ -298,6 +299,7 @@ mean_mapping = {"mnist":  (0.1307,),
 std_mapping = {"mnist": (0.3081,),
                "svhn": (0.19803012, 0.20101562, 0.19703614),
                "cifar10": (0.2023, 0.1994, 0.2010),
+               "cifar100": (0.2023, 0.1994, 0.2010),
                "cifar100_marco": (0.2023, 0.1994, 0.2010),
                "cifar-10-100-10": (0.2023, 0.1994, 0.2010),
                "cifar-10-100-50": (0.2023, 0.1994, 0.2010),
@@ -309,6 +311,7 @@ std_mapping = {"mnist": (0.3081,),
 image_size_mapping = {"mnist": 32,
                       "svhn": 32,
                       "cifar10": 32,
+                      "cifar100": 32,
                       "cifar100_marco": 32,
                       "cifar-10-100-10": 32,
                       "cifar-10-100-50": 32,
