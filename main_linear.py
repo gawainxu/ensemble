@@ -63,7 +63,7 @@ def parse_option():
     parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco"], help='dataset')
     parser.add_argument("--backbone_model_direct", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_0.5/")
-    parser.add_argument("--backbone_model_direct2", type=str, default="/save/SupCon/cifar10_resnet18_trail_0_128_1.0/")
+    parser.add_argument("--backbone_model_direct2", type=str, default=None)
     parser.add_argument("--backbone_model_direct3", type=str, default=None)
     parser.add_argument("--num_ensembles", type=int, default=2)
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
