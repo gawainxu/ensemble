@@ -315,8 +315,8 @@ def validate(val_loader, model, model2, model3, classifier, criterion, opt):
                        loss=losses, top1=top1))
 
     preds = np.array(preds)
-    #with open(os.path.join(opt.backbone_model_direct, "pred_out"), "wb") as f:
-    #    pickle.dump(preds, f)
+    with open(os.path.join(opt.backbone_model_direct, "pred_out"), "wb") as f:
+        pickle.dump(preds, f)
     return losses.avg, top1.avg
 
 
@@ -348,7 +348,7 @@ def main():
     save_file = os.path.join(opt.backbone_model_direct, save_file)
     save_model(classifier, optimizer, opt, epoch, save_file)
 
-    _, acc_val = validate(test_loader, model, model2, model3, classifier, criterion, opt)
+    _, acc_val = validate(train_loader4test, model, model2, model3, classifier, criterion, opt)
     print('Evl accuracy:{:.2f}'.format(acc_val))
 
 
