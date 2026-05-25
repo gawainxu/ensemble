@@ -85,6 +85,7 @@ def parse_option():
     parser.add_argument('--temp1', type=float, default=0.005, help='temperature for loss')
     parser.add_argument('--temp2', type=float, default=0.01, help='temperature for loss')
     parser.add_argument('--temp3', type=float, default=0.05, help='temperature for loss')
+    parser.add_argument("--out_dim", type=int, default=512, help="output dimension of the resnet blocks")
     parser.add_argument("--clip", type=float, default=None, help="for gradient clipping")
 
     # other setting
@@ -115,7 +116,7 @@ def parse_option():
         opt.lr_decay_epochs.append(int(it))
 
     if "multi" in opt.model:
-        opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp1) + "_" + str(opt.temp2) +"_" + str(opt.temp3) + "_" + str(opt.batch_size)
+        opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.out_dim) +  "_" + str(opt.temp1) + "_" + str(opt.temp2) +"_" + str(opt.temp3) + "_" + str(opt.batch_size)
     else:
         opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp)
 
@@ -166,7 +167,7 @@ def set_model(opt):
     elif opt.model == "MLP":
         model = SupConMLP(feat_dim=opt.feat_dim)
     elif opt.model == "resnet_multi":
-        model = SupConResNet_MultiHead(input_size=opt.size, feat_dim=opt.feat_dim, in_channels=in_channels)
+        model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
         model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
