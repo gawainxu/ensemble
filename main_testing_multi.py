@@ -122,95 +122,6 @@ def parse_option():
     return opt
 
 
-def load_model(model, path):
-    ckpt = torch.load(path, map_location='cpu')
-    state_dict = ckpt['model']
-
-    new_state_dict = {}
-    for k, v in state_dict.items():
-        k = k.replace("module.", "")
-        new_state_dict[k] = v
-    state_dict = new_state_dict
-    model.load_state_dict(state_dict)
-    
-    return model
-
-
-
-def set_model(opt):
-
-    model = SupConResNet(name=opt.model)
-    model = load_model(model, opt.model_path)
-    model.eval()
-    model = model.cpu()
-    models = []
-    models.append(model)
-
-    if opt.model_path1 is not None:
-        model1 = copy.deepcopy(model)
-        model1 = load_model(model1, opt.model_path1)
-        models.append(model1)
-
-    if opt.model_path2 is not None:
-        model2 = copy.deepcopy(model)
-        model2 = load_model(model2, opt.model_path2)
-        models.append(model2)
-
-    if opt.linear_model_path is not None:
-        linear_model = LinearClassifier(name=opt.model, num_classes=opt.num_classes, emsembles=opt.ensembles)
-        ckpt = torch.load(opt.linear_model_path, map_location='cpu')
-        #print(ckpt.keys())
-        state_dict = ckpt['model']
-        linear_model.load_state_dict(state_dict)
-        linear_model = linear_model.cpu()
-        linear_model.eval()
-
-        return models, linear_model
-
-    return models
-
-
-def set_loader(opt):
-    # construct data loader
-    test_dataset = get_test_datasets(opt)
-
-    if opt.with_outliers:
-        outlier_dataset = get_outlier_datasets(opt)
-        test_dataset = torch.utils.data.ConcatDataset([test_dataset, outlier_dataset])   
-    
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=opt.batch_size, shuffle=True,
-                                              num_workers=opt.num_workers, pin_memory=True)
-
-    return test_loader
-
-
-def testing_nn_classifier(models, classifier, dataloader):
-
-    for model in models:
-        model.eval()
-    classifier.eval()
-
-    top1 = AverageMeter()
-
-    for idx, (images, labels) in enumerate(dataloader):
-
-        #print(idx)
-        #images = images.cuda(non_blocking=True)
-        #labels = labels.cuda(non_blocking=True)
-        bsz = labels.shape[0]
-
-        features = torch.empty((bsz, 0), dtype=torch.float32)
-        for model in models:
-            feature = model.encoder(images)
-            features = torch.cat((features, feature), dim=1)
-        output = classifier(features)
-
-        acc, _ = accuracy(output, labels)
-        top1.update(acc, bsz)
-
-    return top1.avg
-
-
 
 def KNN_logits(testing_features, sorted_exemplar_features):
 
@@ -438,13 +349,6 @@ def feature_classifier(opt):
 if __name__ == "__main__":
     
     opt = parse_option()
-
-    #models, linear_model = set_model(opt)
-    #print("Model loaded!!")
     
     auroc = feature_classifier(opt)                        # oscr, acc_known
-
-    #data_loader = set_loader(opt)
-    #avg_accuracy = testing_nn_classifier(models, linear_model, data_loader)
-    #print("ID", opt.trail, "Average NN accuracy on inlier testing data is: ", avg_accuracy)
   
