@@ -122,8 +122,6 @@ def load_model(opt):
             model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
         elif opt.model == "MLP":
             model = SupConMLP(feat_dim=opt.feat_dim)
-        else:
-            model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
     ckpt = torch.load(opt.model_path, map_location='cpu')
     state_dict = ckpt['model']
