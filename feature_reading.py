@@ -70,6 +70,7 @@ def parse_option():
     # temperature
     parser.add_argument('--temp', type=float, default=0.005, help='temperature for loss')
     parser.add_argument("--ensemble_num", type=int, default=1)
+    parser.add_argument("--out_dim", type=int, default=512, help="output dimension of the resnet blocks")
     parser.add_argument("--feat_dim", type=int, default=128)
 
     parser.add_argument("--if_train", type=str, default="train", choices=['train', 'val', 'test_known', 'test_unknown', "full"])
@@ -117,6 +118,8 @@ def load_model(opt):
             model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
         elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
             model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
+        elif opt.model == "SupConResNet_MultiHead":
+            model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
         elif opt.model == "MLP":
             model = SupConMLP(feat_dim=opt.feat_dim)
         else:
