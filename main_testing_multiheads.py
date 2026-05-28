@@ -190,9 +190,9 @@ def sort_head_features(head_features):
     new_head_features3 = []
 
     for hf in head_features:
-        new_head_features1.append(np.squeeze(hf[0]))
-        new_head_features2.append(np.squeeze(hf[1]))
-        new_head_features3.append(np.squeeze(hf[2]))
+        new_head_features1.append(np.squeeze(hf[0].detach().numpy()))
+        new_head_features2.append(np.squeeze(hf[1].detach().numpy()))
+        new_head_features3.append(np.squeeze(hf[2].detach().numpy()))
 
     new_head_features1 = np.array(new_head_features1)
     new_head_features2 = np.array(new_head_features2)
