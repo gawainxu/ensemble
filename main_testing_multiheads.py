@@ -184,42 +184,101 @@ def cat_head_features(head_features):
     return head_features
 
 
+def sort_head_features(head_features):
+    new_head_features1 = []
+    new_head_features2 = []
+    new_head_features3 = []
+
+    for hf in head_features:
+        new_head_features1.append(np.squeeze(hf[0]))
+        new_head_features2.append(np.squeeze(hf[1]))
+        new_head_features3.append(np.squeeze(hf[2]))
+
+    new_head_features1 = np.array(new_head_features1)
+    new_head_features2 = np.array(new_head_features2)
+    new_head_features3 = np.array(new_head_features3)
+
+    return new_head_features1, new_head_features2, new_head_features3
+
+
 def feature_classifier(opt):
     with open(opt.exemplar_features_path, "rb") as f:
         features_exemplar_heads, _, labels_examplar = pickle.load(f)
-        features_exemplar_backbone = cat_head_features(features_exemplar_heads)
-        sorted_features_examplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
+        #features_exemplar_backbone = cat_head_features(features_exemplar_heads)
+        #sorted_features_examplar_backbone = sortFeatures(features_exemplar_heads, labels_examplar, opt)
+        head_features1, head_features2, head_features3 = sort_head_features(features_exemplar_heads)
+        sorted_features_head1 = sortFeatures(head_features1, labels_examplar, opt)
+        sorted_features_head2 = sortFeatures(head_features2, labels_examplar, opt)
+        sorted_features_head3 = sortFeatures(head_features3, labels_examplar, opt)
+
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            features_testing_known_backbone, _, labels_testing_known = pickle.load(f)
-            features_testing_known_backbone = cat_head_features(features_testing_known_backbone)
-            labels_testing_known = np.squeeze(np.array(labels_testing_known))
+            features_testing_known_heads, _, labels_testing_known = pickle.load(f)
+            #features_testing_known_backbone = cat_head_features(features_testing_known_backbone)
+            #labels_testing_known = np.squeeze(np.array(labels_testing_known))
+            head_testing_features1, head_testing_features2, head_testing_features3 = sort_head_features(features_testing_known_heads)
 
-    features_testing_known_backbone, labels_testing_known = down_sampling(features_testing_known_backbone,
-                                                                          labels_testing_known,
-                                                                          opt.downsampling_ratio_known)
-    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_backbone,
+    head_testing_features1, labels_testing_known = down_sampling(head_testing_features1,
+                                                                 labels_testing_known,
+                                                                 opt.downsampling_ratio_known)
+    head_testing_features2, labels_testing_known = down_sampling(head_testing_features2,
+                                                                 labels_testing_known,
+                                                                 opt.downsampling_ratio_known)
+    head_testing_features3, labels_testing_known = down_sampling(head_testing_features3,
+                                                                 labels_testing_known,
+                                                                 opt.downsampling_ratio_known)
+
+    prediction_logits_known1, predictions_known1, acc_known1 = KNN_classifier(head_testing_features1,
                                                                            labels_testing_known,
-                                                                           sorted_features_examplar_backbone)
-    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(
-        features_testing_known_backbone, labels_testing_known, sorted_features_examplar_backbone)
+                                                                           sorted_features_head1)
+    prediction_logits_known2, predictions_known2, acc_known2 = KNN_classifier(head_testing_features2,
+                                                                              labels_testing_known,
+                                                                              sorted_features_head2)
+    prediction_logits_known3, predictions_known3, acc_known3 = KNN_classifier(head_testing_features3,
+                                                                              labels_testing_known,
+                                                                              sorted_features_head3)
+
+    prediction_logits_known_dis_in1, prediction_logits_known_dis_out1, predictions_known_dis1, acc_known_dis1 = distance_classifier(
+        head_testing_features1, labels_testing_known, sorted_features_head1)
+    prediction_logits_known_dis_in2, prediction_logits_known_dis_out2, predictions_known_dis2, acc_known_dis2 = distance_classifier(
+        head_testing_features2, labels_testing_known, sorted_features_head2)
+    prediction_logits_known_dis_in3, prediction_logits_known_dis_out3, predictions_known_dis3, acc_known_dis3 = distance_classifier(
+        head_testing_features3, labels_testing_known, sorted_features_head3)
 
 
     with open(opt.testing_unknown_features_path, "rb") as f:
-        features_testing_unknown_backbone, _, labels_testing_unknown = pickle.load(f)
-        features_testing_unknown_backbone = cat_head_features(features_testing_unknown_backbone)
-        labels_testing_unknown = np.squeeze(np.array(labels_testing_unknown))
-        print("features_testing_unknown_backbone", features_testing_unknown_backbone.shape)
+        features_unknown_heads, _, labels_testing_unknown = pickle.load(f)
+        #features_testing_unknown_backbone = cat_head_features(features_testing_unknown_backbone)
+        #labels_testing_unknown = np.squeeze(np.array(labels_testing_unknown))
+        head_unknown_features1, head_unknown_features2, head_unknown_features3 = sort_head_features(
+            features_unknown_heads)
 
-    features_testing_unknown_backbone, labels_testing_unknown = down_sampling(features_testing_unknown_backbone,
+    head_unknown_features1, labels_testing_unknown = down_sampling(head_unknown_features1,
                                                                               labels_testing_unknown,
                                                                               opt.downsampling_ratio_unknown)
-    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_backbone,
+    head_unknown_features2, labels_testing_unknown = down_sampling(head_unknown_features2,
+                                                                   labels_testing_unknown,
+                                                                   opt.downsampling_ratio_unknown)
+    head_unknown_features3, labels_testing_unknown = down_sampling(head_unknown_features3,
+                                                                   labels_testing_unknown,
+                                                                   opt.downsampling_ratio_unknown)
+    prediction_logits_unknown1, predictions_unknown1, _ = KNN_classifier(head_unknown_features1,
                                                                        labels_testing_unknown,
-                                                                       sorted_features_examplar_backbone)
-    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(
-        features_testing_unknown_backbone, labels_testing_unknown, sorted_features_examplar_backbone)
+                                                                       sorted_features_head1)
+    prediction_logits_unknown2, predictions_unknown2, _ = KNN_classifier(head_unknown_features2,
+                                                                         labels_testing_unknown,
+                                                                         sorted_features_head2)
+    prediction_logits_unknown3, predictions_unknown3, _ = KNN_classifier(head_unknown_features3,
+                                                                         labels_testing_unknown,
+                                                                         sorted_features_head3)
+
+    prediction_logits_unknown_dis_in1, prediction_logits_unknown_dis_out1, predictions_unknown_dis1, acc_unknown_dis1 = distance_classifier(
+        head_unknown_features1, labels_testing_unknown, sorted_features_head1)
+    prediction_logits_unknown_dis_in2, prediction_logits_unknown_dis_out2, predictions_unknown_dis2, acc_unknown_dis2 = distance_classifier(
+        head_unknown_features2, labels_testing_unknown, sorted_features_head2)
+    prediction_logits_unknown_dis_in3, prediction_logits_unknown_dis_out3, predictions_unknown_dis3, acc_unknown_dis3 = distance_classifier(
+        head_unknown_features3, labels_testing_unknown, sorted_features_head3)
 
     # Process results AUROC and OSCR
     # for AUROC, convert labels to binary labels, assume inliers are positive
@@ -228,11 +287,15 @@ def feature_classifier(opt):
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
     # print("labels_binary", labels_binary)
 
+    prediction_logits_known = prediction_logits_known1 + prediction_logits_known2 + prediction_logits_known3
+    prediction_logits_unknown = prediction_logits_unknown1 + prediction_logits_unknown2 + prediction_logits_unknown3
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
 
     auroc = AUROC(labels_binary, probs_binary, opt)
     print("AUROC is: ", auroc)
 
+    prediction_logits_known_dis_in = prediction_logits_known_dis_in1 + prediction_logits_known_dis_in2 + prediction_logits_known_dis_in3
+    prediction_logits_unknown_dis_in = prediction_logits_unknown_dis_in1 + prediction_logits_unknown_dis_in2 + prediction_logits_unknown_dis_in3
     probs_binary_dis = np.concatenate((prediction_logits_known_dis_in, prediction_logits_unknown_dis_in), axis=0)
     # print("probs_binary", probs_binary_dis)
 
@@ -240,6 +303,9 @@ def feature_classifier(opt):
     print("Dis AUROC is: ", auroc)
 
     # OSCR
+    prediction_logits_known_dis_out = prediction_logits_known_dis_out1 + prediction_logits_known_dis_out2 + prediction_logits_known_dis_out3
+    prediction_logits_unknown_dis_out = prediction_logits_unknown_dis_out1 + prediction_logits_unknown_dis_out2 + prediction_logits_unknown_dis_out3
+    predictions_known = predictions_known1 + predictions_known2 + predictions_known3
     oscr = OSCR(np.array(prediction_logits_known_dis_out), np.array(prediction_logits_unknown_dis_out),
                 predictions_known, labels_testing_known)
     print("OSCR is: ", oscr)
