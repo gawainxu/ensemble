@@ -43,12 +43,12 @@ def parse_option():
     parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "vgg16", "preactresnet34", "simCNN"])
     parser.add_argument("--end", type=bool, default=False, help="if it is end to end training")
     parser.add_argument("--ensembles", type=int, default=1)
-    parser.add_argument("--num_classes", type=int, default=20)
+    parser.add_argument("--num_classes", type=int, default=6)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar100_marco_resnet18_1trail_0_128_128_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar100_marco_resnet18_1trail_0_128_128_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar100_marco_resnet18_1trail_0_128_128_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_unknown")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)

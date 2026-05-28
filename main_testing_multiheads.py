@@ -25,9 +25,6 @@ import copy
 from itertools import chain
 from scipy.spatial.distance import mahalanobis
 
-from networks.resnet_big import SupConResNet, LinearClassifier
-
-from util import feature_stats
 from util import accuracy, AverageMeter, accuracy_plain, AUROC, OSCR, down_sampling
 from distance_utils import sortFeatures
 from dataUtil import get_test_datasets, get_outlier_datasets
@@ -126,7 +123,7 @@ def distances(stats, test_features, mode="mahalanobis"):
                 # dis =  np.matmul(features_normalized, np.linalg.inv(var))
                 # dis = np.matmul(dis, np.swapaxes(features_normalized, 0, 1))
                 # dis = dis[0][0]
-                dis = mahalanobis(features, mu, np.linalg.inv(var))
+                dis = mahalanobis(features, mu, np.linalg.pinv(var))
             else:
                 features = np.squeeze(np.array(features))
                 dis = features - mu
@@ -162,6 +159,18 @@ def distance_classifier(testing_features, testing_labels, sorted_training_featur
     print("Distance Accuracy is: ", acc)
 
     return dis_logits_in, dis_logits_out, dis_preds, acc
+
+
+def feature_stats(inlier_features):
+    stats = []
+    for features in inlier_features:
+        features = np.squeeze(np.array(features))
+        mu = np.mean(features, axis=0)
+        var = np.cov(features.astype(float), rowvar=False)
+
+        stats.append((mu, var))
+
+    return stats
 
 
 def cat_head_features(head_features):

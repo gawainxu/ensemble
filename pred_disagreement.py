@@ -40,12 +40,11 @@ if __name__ == "__main__":
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 1. Create a random 10x10 matrix
 agreement1 = np.array([[0.2196,	0.2286,	0.2685,	0.1221,	0.1822,	0.2206],
              [0, 0.2323, 0.3176, 0.1343, 0.1661, 0.2015],
              [0, 0,	0.3557,	0.205, 0.2268, 0.2687],
-             [0, 0,	0, 0.1534, 0.2212, 0.2685],
-             [0, 0,	0, 0, 0.2259, 0.3287],
+             [0, 0,	0, 0.2534, 0.2212, 0.2685],
+             [0, 0,	0, 0, 0.3259, 0.3287],
              [0, 0,	0, 0, 0, 0.3277]])
 
 
@@ -77,10 +76,13 @@ x_labels = ['1.0', '0.5', '0.1', '0.05', "0.01", "0.005"]
 y_labels = ['1.0', '0.5', '0.1', '0.05', "0.01", "0.005"]
 
 
+values1 = agreement1
+values2 = agreement2
+
 # 3. Create the upper triangular mask
-mask = np.triu(np.ones_like(agreement1, dtype=bool))
-masked_data1 = np.ma.array(acc1, mask=~mask)
-masked_data2 = np.ma.array(acc2, mask=~mask)
+mask = np.triu(np.ones_like(values1, dtype=bool))
+masked_data1 = np.ma.array(values1, mask=~mask)
+masked_data2 = np.ma.array(values2, mask=~mask)
 
 # 4. Set up side-by-side subplots (1 row, 2 columns)
 # constrained_layout=True manages the spacing automatically
@@ -91,28 +93,32 @@ current_cmap = plt.cm.get_cmap('YlOrBr').copy()
 current_cmap.set_bad(color='white')
 
 # 6. Plot Matrix 1
-im1 = axes[0].imshow(masked_data1, cmap=current_cmap, origin='upper', vmin=acc1.min(), vmax=acc1.max())
+im1 = axes[0].imshow(masked_data1, cmap=current_cmap, origin='upper', vmin=values1.min(), vmax=values1.max())
 axes[0].set_title("Cifar10", fontsize=26)
 
 axes[0].set_xticks(range(len(x_labels)))              # Set positions first
-axes[0].set_xticklabels(x_labels, rotation=45, ha='right') # Set text + formatting
+axes[0].set_xticklabels(x_labels, rotation=45, fontsize=15, ha='right') # Set text + formatting
+axes[0].set_xlabel("Temperature 1", fontsize=18)
 axes[0].set_yticks(range(len(y_labels)))              # Set positions first
-axes[0].set_yticklabels(y_labels, fontsize=12)        # Set text + formatting
+axes[0].set_yticklabels(y_labels, fontsize=15)        # Set text + formatting
+axes[0].set_ylabel("Temperature 2", fontsize=18)
 
 # 7. Plot Matrix 2 (CRITICAL: pass the exact same vmin and vmax)
-im2 = axes[1].imshow(masked_data2, cmap=current_cmap, origin='upper', vmin=acc2.min(), vmax=acc2.max())
+im2 = axes[1].imshow(masked_data2, cmap=current_cmap, origin='upper', vmin=values2.min(), vmax=values2.max())
 axes[1].set_title("TInyImageNet", fontsize=26)
 
 axes[1].set_xticks(range(len(x_labels)))              # Set positions first
-axes[1].set_xticklabels(x_labels, rotation=45, ha='right') # Set text + formatting
+axes[1].set_xticklabels(x_labels, rotation=45, fontsize=15, ha='right') # Set text + formatting
+axes[1].set_xlabel("Temperature 1", fontsize=18)
 axes[1].set_yticks(range(len(y_labels)))              # Set positions first
-axes[1].set_yticklabels(y_labels, fontsize=12)        # Set text + formatting
+axes[1].set_yticklabels(y_labels, fontsize=15)        # Set text + formatting
+axes[1].set_ylabel("Temperature 2", fontsize=18)
 
 # 8. Create one single colorbar attached to the entire figure
 # Passing 'im2' (or im1) works perfectly now since they share the same scale mapping
 fig.colorbar(im2, ax=axes, shrink=0.7)
 
-plt.savefig("./plots/pred.pdf")
+plt.savefig("./plots/agreement.pdf")
 plt.show()
 
 
