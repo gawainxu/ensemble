@@ -153,7 +153,7 @@ def KNN_classifier(testing_features, testing_labels, sorted_training_features):
 
 def distance_classifier(testing_features, testing_labels, sorted_training_features):
     stats = feature_stats(sorted_training_features)
-    dis_logits_in, dis_logits_out, dis_preds = distances(stats, testing_features, mode="sub")
+    dis_logits_in, dis_logits_out, dis_preds = distances(stats, testing_features)
 
     acc = accuracy_plain(dis_preds, testing_labels)
     print("Distance Accuracy is: ", acc)
