@@ -143,8 +143,8 @@ class SupConResNet_MultiHead(nn.Module):
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
         feat1 = F.normalize(self.output_head1(out), dim=1)
-        feat2 = F.normalize(self.output_head1(out), dim=1)
-        feat3 = F.normalize(self.output_head1(out), dim=1)
+        feat2 = F.normalize(self.output_head2(out), dim=1)
+        feat3 = F.normalize(self.output_head3(out), dim=1)
 
         return feat1, feat2, feat3
 

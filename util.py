@@ -243,7 +243,8 @@ def down_sampling(features, labels, ratio):
 
     indices = [i for i in range(length) if i % ratio == 0]
     features =  features[indices]
-    labels = labels[indices]
+    if len(labels) == len(features):
+        labels = labels[indices]
 
     return features, labels
 
