@@ -46,9 +46,9 @@ def parse_option():
     parser.add_argument("--num_classes", type=int, default=6)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_0.8_0.2_0.05_trail_0_128_256_old_augmented_600_outliers_0_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_0.8_0.2_0.05_trail_0_128_256_old_augmented_600_outliers_0_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_0.8_0.2_0.05_trail_0_128_256_old_augmented_600_outliers_0_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_unknown")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
