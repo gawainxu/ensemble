@@ -330,9 +330,9 @@ def feature_classifier(opt):
             labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known2), axis=1)
 
 
-    features_testing_known_backbone, labels_testing_known = down_sampling(features_testing_known_backbone, labels_testing_known, opt.downsampling_ratio_known)
-    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_backbone, labels_testing_known, sorted_features_exemplar_backbone)
-    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(features_testing_known_backbone, labels_testing_known, sorted_features_exemplar_backbone)
+    features_testing_known_head, labels_testing_known = down_sampling(features_testing_known_head, labels_testing_known, opt.downsampling_ratio_known)
+    prediction_logits_known, predictions_known, acc_known = KNN_classifier(features_testing_known_head, labels_testing_known, sorted_features_exemplar_head)
+    prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(features_testing_known_head, labels_testing_known, sorted_features_exemplar_head)
 
 
     with open(opt.testing_unknown_features_path, "rb") as f:
@@ -367,9 +367,9 @@ def feature_classifier(opt):
             features_testing_unknown_head = np.concatenate((features_testing_unknown_head, features_testing_unknown_head2),axis=1)
             labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
 
-    features_testing_unknown_backbone, labels_testing_unknown = down_sampling(features_testing_unknown_backbone, labels_testing_unknown, opt.downsampling_ratio_unknown)
-    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_backbone, labels_testing_unknown, sorted_features_exemplar_backbone)
-    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_backbone, labels_testing_unknown, sorted_features_exemplar_backbone)
+    features_testing_unknown_head, labels_testing_unknown = down_sampling(features_testing_unknown_head, labels_testing_unknown, opt.downsampling_ratio_unknown)
+    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
+    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
     
     knn_predictions = np.concatenate((predictions_known, predictions_unknown), axis=0)
     distance_predictions = np.concatenate((predictions_known_dis, predictions_unknown_dis), axis=0)
