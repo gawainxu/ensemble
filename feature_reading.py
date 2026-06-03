@@ -31,6 +31,7 @@ from featureMerge import featureMerge
 from dataUtil import num_inlier_classes_mapping
 
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 from dataUtil import get_train_datasets, get_test_datasets, get_outlier_datasets, osr_splits_inliers, osr_splits_outliers
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -139,6 +140,22 @@ def load_model(opt):
     return model
 
 
+def multihead_forward(model, x):
+
+    out = F.relu(model.bn1(model.conv1(x)))
+    out = model.layer1(out)
+    out = model.layer2(out)
+    out = model.layer3(out)
+    out = model.layer4(out)
+    out = model.avgpool(out)
+    out = torch.flatten(out, 1)
+    feat1 = F.normalize(model.output_head1(out), dim=1)
+    feat2 = F.normalize(model.output_head2(out), dim=1)
+    feat3 = F.normalize(model.output_head3(out), dim=1)
+
+    return out, (feat1, feat2, feat3)
+
+
 def normalFeatureReading_normal(model, opt, data_loader):
     
     outputs_backbone = []
@@ -156,8 +173,9 @@ def normalFeatureReading_normal(model, opt, data_loader):
             outputs.append(output.detach().numpy())
             outputs_backbone.append(output_encoder[-1].detach().numpy())
         elif "multi_head" in opt.method:
-            output = model(img)
+            output_backbone, output = multihead_forward(model, img)
             outputs.append(output)
+            outputs_backbone.append(output_backbone)
         elif "ce" in opt.method:
             if "resnet" in opt.model:
                 output, output_encoder = model(img)[0], model.fc1(model.encoder(img))

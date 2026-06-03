@@ -37,22 +37,22 @@ def parse_option():
 
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument('--datasets', type=str, default='cifar10',
+    parser.add_argument('--datasets', type=str, default='tinyimgnet',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18",  choices=["resnet18", "resnet34", "vgg16", "preactresnet34", "simCNN"])
     parser.add_argument("--end", type=bool, default=False, help="if it is end to end training")
     parser.add_argument("--ensembles", type=int, default=1)
-    parser.add_argument("--num_classes", type=int, default=6)
+    parser.add_argument("--num_classes", type=int, default=20)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet18_vanilia__SimCLR_1.0_0.0_0.05_trail_0_128_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_1.0_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_1.0_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_1.0_test_unknown")
 
-    parser.add_argument("--exemplar_features_path1", type=str, default=None)
-    parser.add_argument("--testing_known_features_path1", type=str, default=None)
-    parser.add_argument("--testing_unknown_features_path1", type=str, default=None)
+    parser.add_argument("--exemplar_features_path1", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_0.5_train")
+    parser.add_argument("--testing_known_features_path1", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_0.5_test_known")
+    parser.add_argument("--testing_unknown_features_path1", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_0.5_test_unknown")
 
     parser.add_argument("--exemplar_features_path2", type=str, default=None)
     parser.add_argument("--testing_known_features_path2", type=str, default=None)
@@ -281,7 +281,7 @@ def feature_classifier(opt):
         else:
             features_exemplar_head1 = np.squeeze(np.array(features_exemplar_head1))
             features_exemplar_head= np.concatenate((features_exemplar_head, features_exemplar_head1), axis=1)
-            labels_examplar = np.concatenate((labels_examplar, labels_examplar1), axis=1)
+            labels_examplar = np.concatenate((labels_examplar, labels_examplar1), axis=0)
     
     if opt.exemplar_features_path2 is not None:
         with open(opt.exemplar_features_path2, "rb") as f:
@@ -292,7 +292,7 @@ def feature_classifier(opt):
         else:
             features_exemplar_head2 = np.squeeze(np.array(features_exemplar_head2))
             features_exemplar_head = np.concatenate((features_exemplar_head, features_exemplar_head2), axis=1)
-            labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=1)
+            labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=0)
 
     sorted_features_exemplar_head = sortFeatures(features_exemplar_head, labels_examplar, opt)
     sorted_features_exemplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
