@@ -49,9 +49,9 @@ def parse_option():
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--num_classes", type=int, default=20)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_1024_1.0_0.5_0.1_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_1024_1.0_0.5_0.1_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_1024_1.0_0.5_0.1_256_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -129,9 +129,12 @@ def distances(stats, test_features, mode="mahalanobis"):
                 #dis = np.matmul(dis, np.swapaxes(features_normalized, 0, 1))
                 #dis = dis[0][0]
                 if np.linalg.cond(var) < 1/sys.float_info.epsilon:
-                    dis = mahalanobis(features, mu, np.linalg.inv(var))
+                    var_rev = np.linalg.inv(var)
+                    dis = mahalanobis(features, mu, var_rev)
                 else:
                     dis = np.linalg.norm(features_normalized)
+                    #var_rev = np.linalg.pinv(var)
+                    #dis = mahalanobis(features, mu, var_rev)
             else:
                 features = np.squeeze(np.array(features))
                 dis = features - mu
@@ -154,7 +157,6 @@ def KNN_classifier(testing_features, testing_labels, sorted_training_features):
     prediction_logits, predictions = np.amax(testing_similarity_logits, axis=1), np.argmax(testing_similarity_logits, axis=1)       
 
     acc = accuracy_plain(predictions, testing_labels)
-    print("KNN Accuracy is: ", acc)
 
     return prediction_logits, predictions, acc
 
@@ -165,7 +167,6 @@ def distance_classifier(testing_features, testing_labels, sorted_training_featur
     dis_logits_in, dis_logits_out, dis_preds = distances(stats, testing_features)
 
     acc = accuracy_plain(dis_preds, testing_labels)
-    print("Distance Accuracy is: ", acc)
 
     return np.array(dis_logits_in), np.array(dis_logits_out), np.array(dis_preds), acc
 
@@ -218,6 +219,8 @@ def feature_classifier(opt):
     prediction_logits_known_dis_in1, prediction_logits_known_dis_out1, predictions_known_dis1, acc_known_dis1 = distance_classifier(features_testing_known_head1,
                                                                                                                                     labels_testing_known1,
                                                                                                                                     sorted_features_examplar_head1)
+    print("Distance Accuracy 1 is: ", acc_known_dis1)
+    print("KNN Accuracy 1 is: ", acc_known1)
     features_testing_known_head2, labels_testing_known2 = down_sampling(features_testing_known_head2, opt.downsampling_ratio_known, labels_testing_known)
     prediction_logits_known2, predictions_known2, acc_known2 = KNN_classifier(features_testing_known_head2,
                                                                               labels_testing_known2,
@@ -225,6 +228,9 @@ def feature_classifier(opt):
     prediction_logits_known_dis_in2, prediction_logits_known_dis_out2, predictions_known_dis2, acc_known_dis2 = distance_classifier(features_testing_known_head2,
                                                                                                                                     labels_testing_known2,
                                                                                                                                     sorted_features_examplar_head2)
+    print("Distance Accuracy 2 is: ", acc_known_dis2)
+    print("KNN Accuracy 2 is: ", acc_known2)
+
     features_testing_known_head3, labels_testing_known3 = down_sampling(features_testing_known_head3, opt.downsampling_ratio_known, labels_testing_known)
     prediction_logits_known3, predictions_known3, acc_known3 = KNN_classifier(features_testing_known_head3,
                                                                               labels_testing_known3,
@@ -232,8 +238,8 @@ def feature_classifier(opt):
     prediction_logits_known_dis_in3, prediction_logits_known_dis_out3, predictions_known_dis3, acc_known_dis3 = distance_classifier(features_testing_known_head3,
                                                                                                                                     labels_testing_known3,
                                                                                                                                     sorted_features_examplar_head3)
-
-
+    print("Distance Accuracy 3 is: ", acc_known_dis3)
+    print("KNN Accuracy 3 is: ", acc_known3)
 
     with open(opt.testing_unknown_features_path, "rb") as f:
         features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
@@ -316,13 +322,15 @@ def feature_classifier(opt):
         (features_testing_known_head1, features_testing_known_head2, features_testing_known_head3), axis=1)
     features_testing_unknown_head = np.concatenate(
         (features_testing_unknown_head1, features_testing_unknown_head2, features_testing_unknown_head3), axis=1)
-    prediction_logits_known, predictions_known, acc_known3 = KNN_classifier(features_testing_known_head,
+    prediction_logits_known, predictions_known, acc_cat = KNN_classifier(features_testing_known_head,
                                                                             labels_testing_known,
                                                                             sorted_features_examplar_head)
-    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head,
+    prediction_logits_unknown, predictions_unknown, acc_dis_cat = KNN_classifier(features_testing_unknown_head,
                                                                        labels_testing_unknown,
                                                                        sorted_features_examplar_head)
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
+    print("Distance Accuracy cat is: ", acc_dis_cat)
+    print("KNN Accuracy cat is: ", acc_cat)
 
     auroc_cat = AUROC(labels_binary, probs_binary, opt)
     print("AUROC cat is: ", auroc_cat)
