@@ -46,17 +46,17 @@ def parse_option():
     parser.add_argument("--num_classes", type=int, default=20)
     parser.add_argument("--feat_dim", type=int, default=128)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_1.0_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_1.0_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet18_trail_0_128_1.0_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_1.0_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_1.0_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_1.0_test_unknown")
 
-    parser.add_argument("--exemplar_features_path1", type=str, default=None)
-    parser.add_argument("--testing_known_features_path1", type=str, default=None)
-    parser.add_argument("--testing_unknown_features_path1", type=str, default=None)
+    parser.add_argument("--exemplar_features_path1", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.5_train")
+    parser.add_argument("--testing_known_features_path1", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.5_test_known")
+    parser.add_argument("--testing_unknown_features_path1", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.5_test_unknown")
 
-    parser.add_argument("--exemplar_features_path2", type=str, default=None)
-    parser.add_argument("--testing_known_features_path2", type=str, default=None)
-    parser.add_argument("--testing_unknown_features_path2", type=str, default=None)
+    parser.add_argument("--exemplar_features_path2", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.1_train")
+    parser.add_argument("--testing_known_features_path2", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.1_test_known")
+    parser.add_argument("--testing_unknown_features_path2", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.1_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -279,7 +279,7 @@ def feature_classifier(opt):
         else:
             features_exemplar_head1 = np.squeeze(np.array(features_exemplar_head1))
             features_exemplar_head= np.concatenate((features_exemplar_head, features_exemplar_head1), axis=1)
-            labels_examplar = np.concatenate((labels_examplar, labels_examplar1), axis=0)
+            #labels_examplar = np.concatenate((labels_examplar, labels_examplar1), axis=0)
     
     if opt.exemplar_features_path2 is not None:
         with open(opt.exemplar_features_path2, "rb") as f:
@@ -290,7 +290,7 @@ def feature_classifier(opt):
         else:
             features_exemplar_head2 = np.squeeze(np.array(features_exemplar_head2))
             features_exemplar_head = np.concatenate((features_exemplar_head, features_exemplar_head2), axis=1)
-            labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=0)
+            #labels_examplar = np.concatenate((labels_examplar, labels_examplar2), axis=0)
 
     sorted_features_exemplar_head = sortFeatures(features_exemplar_head, labels_examplar, opt)
     sorted_features_exemplar_backbone = sortFeatures(features_exemplar_backbone, labels_examplar, opt)
@@ -307,14 +307,14 @@ def feature_classifier(opt):
     
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
-            features_testing_known_head1, _, _, labels_testing_known1 = pickle.load(f)
+            features_testing_known_head1, _, labels_testing_known1 = pickle.load(f)
             labels_testing_known1 = np.squeeze(np.array(labels_testing_known1))
         if "multi_head" in opt.method:
             features_testing_known_head1 = sort_multiheadfeatures(features_testing_known_head1)
         else:
             features_testing_known_head1 = np.squeeze(np.array(features_testing_known_head1))
-            features_testing_known_head1 = np.concatenate((features_testing_known_head, features_testing_known_head1), axis=1)
-            labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known1), axis=1)
+            features_testing_known_head = np.concatenate((features_testing_known_head, features_testing_known_head1), axis=1)
+            #labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known1), axis=1)
 
     if opt.testing_known_features_path2 is not None:
         with open(opt.testing_known_features_path2, "rb") as f:
@@ -325,7 +325,7 @@ def feature_classifier(opt):
         else:
             features_testing_known_head2 = np.squeeze(np.array(features_testing_known_head2))
             features_testing_known_head = np.concatenate((features_testing_known_head, features_testing_known_head2), axis=1)
-            labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known2), axis=1)
+            #labels_testing_known = np.concatenate((labels_testing_known, labels_testing_known2), axis=1)
 
 
     features_testing_known_head, labels_testing_known = down_sampling(features_testing_known_head, opt.downsampling_ratio_known, labels_testing_known)
@@ -345,25 +345,25 @@ def feature_classifier(opt):
 
     if opt.testing_unknown_features_path1 is not None:
         with open(opt.testing_unknown_features_path1, "rb") as f:
-            features_testing_unknown_head1, _, _, labels_testing_unknown1 = pickle.load(f)
+            features_testing_unknown_head1, _, labels_testing_unknown1 = pickle.load(f)
             labels_testing_unknown1 = np.squeeze(np.array(labels_testing_unknown1))
         if "multi_head" in opt.method:
             features_testing_unknown_head1 = sort_multiheadfeatures(features_testing_unknown_head1)
         else:
             features_testing_unknown_head1 = np.squeeze(np.array(features_testing_unknown_head1))
-            features_testing_unknown_head = np.concatenate((features_testing_known_head, features_testing_unknown_head1),axis=1)
-            labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown1), axis=1)
+            features_testing_unknown_head = np.concatenate((features_testing_unknown_head, features_testing_unknown_head1),axis=1)
+            #labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown1), axis=1)
     
     if opt.testing_unknown_features_path2 is not None:
         with open(opt.testing_unknown_features_path2, "rb") as f:
-            features_testing_unknown_head2, _, _, labels_testing_unknown2 = pickle.load(f)
+            features_testing_unknown_head2, _, labels_testing_unknown2 = pickle.load(f)
             labels_testing_unknown2 = np.squeeze(np.array(labels_testing_unknown2))
         if "multi_head" in opt.method:
             features_testing_unknown_head2 = sort_multiheadfeatures(features_testing_unknown_head2)
         else:
             features_testing_unknown_head2 = np.squeeze(np.array(features_testing_unknown_head2))
             features_testing_unknown_head = np.concatenate((features_testing_unknown_head, features_testing_unknown_head2),axis=1)
-            labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
+            #labels_testing_unknown = np.concatenate((labels_testing_unknown, labels_testing_unknown2), axis=1)
 
     features_testing_unknown_head, labels_testing_unknown = down_sampling(features_testing_unknown_head, opt.downsampling_ratio_unknown, labels_testing_unknown)
     prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head, labels_testing_unknown, sorted_features_exemplar_head)
