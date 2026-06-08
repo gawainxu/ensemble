@@ -221,6 +221,7 @@ def feature_classifier(opt):
                                                                                                                                     sorted_features_examplar_head1)
     print("Distance Accuracy 1 is: ", acc_known_dis1)
     print("KNN Accuracy 1 is: ", acc_known1)
+
     features_testing_known_head2, labels_testing_known2 = down_sampling(features_testing_known_head2, opt.downsampling_ratio_known, labels_testing_known)
     prediction_logits_known2, predictions_known2, acc_known2 = KNN_classifier(features_testing_known_head2,
                                                                               labels_testing_known2,
