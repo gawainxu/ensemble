@@ -280,8 +280,8 @@ def feature_classifier(opt):
     labels_binary_unknown = [1 if i < 100 else 0 for i in labels_testing_unknown1]
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
 
-    prediction_logits_known = prediction_logits_known1 + prediction_logits_known2 + prediction_logits_known3 #normalize_scores(predictions_known1) + normalize_scores(predictions_known2) + normalize_scores(predictions_known3) #
-    prediction_logits_unknown = prediction_logits_unknown1 + prediction_logits_unknown2 + prediction_logits_unknown3 # normalize_scores(predictions_unknown1) + normalize_scores(predictions_unknown2) + normalize_scores(predictions_unknown3) #
+    prediction_logits_known = normalize_scores(predictions_known1) + normalize_scores(predictions_known2) + normalize_scores(predictions_known3) # prediction_logits_known1 + prediction_logits_known2 + prediction_logits_known3 #
+    prediction_logits_unknown = normalize_scores(predictions_unknown1) + normalize_scores(predictions_unknown2) + normalize_scores(predictions_unknown3) # prediction_logits_unknown1 + prediction_logits_unknown2 + prediction_logits_unknown3 # 
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
 
     auroc_all = AUROC(labels_binary, probs_binary, opt)
