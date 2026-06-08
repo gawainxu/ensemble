@@ -114,7 +114,7 @@ def KNN_logits(testing_features, sorted_exemplar_features):
     return testing_similarity_logits
 
 
-def distances(stats, test_features, mode="mahalanobis"):
+def distances(stats, test_features, mode="other"):
 
     dis_logits_out = []
     dis_logits_in = []
@@ -149,10 +149,8 @@ def distances(stats, test_features, mode="mahalanobis"):
     return dis_logits_in, dis_logits_out, dis_preds
 
 
-
 def KNN_classifier(testing_features, testing_labels, sorted_training_features):
 
-    print("Begin KNN Classifier!")
     testing_similarity_logits = KNN_logits(testing_features, sorted_training_features)
     prediction_logits, predictions = np.amax(testing_similarity_logits, axis=1), np.argmax(testing_similarity_logits, axis=1)       
 
@@ -197,6 +195,11 @@ def cat_examplars(sorted_exemplar_features1, sorted_exemplar_features2, sorted_e
         sorted_exemplar_features.append(exemplar_features_c)
 
     return sorted_exemplar_features
+
+
+def normalize_scores(scores):
+
+    return (scores - scores.max()) / (scores.max() - scores.min())
 
 
 def feature_classifier(opt):
@@ -277,8 +280,8 @@ def feature_classifier(opt):
     labels_binary_unknown = [1 if i < 100 else 0 for i in labels_testing_unknown1]
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
 
-    prediction_logits_known = prediction_logits_known1 + prediction_logits_known2 + prediction_logits_known3
-    prediction_logits_unknown = prediction_logits_unknown1 + prediction_logits_unknown2 + prediction_logits_unknown3
+    prediction_logits_known = prediction_logits_known1 + prediction_logits_known2 + prediction_logits_known3 #normalize_scores(predictions_known1) + normalize_scores(predictions_known2) + normalize_scores(predictions_known3) #
+    prediction_logits_unknown = prediction_logits_unknown1 + prediction_logits_unknown2 + prediction_logits_unknown3 # normalize_scores(predictions_unknown1) + normalize_scores(predictions_unknown2) + normalize_scores(predictions_unknown3) #
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
 
     auroc_all = AUROC(labels_binary, probs_binary, opt)
@@ -324,13 +327,12 @@ def feature_classifier(opt):
     features_testing_unknown_head = np.concatenate(
         (features_testing_unknown_head1, features_testing_unknown_head2, features_testing_unknown_head3), axis=1)
     prediction_logits_known, predictions_known, acc_cat = KNN_classifier(features_testing_known_head,
-                                                                            labels_testing_known,
+                                                                            labels_testing_known1,
                                                                             sorted_features_examplar_head)
-    prediction_logits_unknown, predictions_unknown, acc_dis_cat = KNN_classifier(features_testing_unknown_head,
-                                                                       labels_testing_unknown,
+    prediction_logits_unknown, predictions_unknown, _ = KNN_classifier(features_testing_unknown_head,
+                                                                       labels_testing_unknown1,
                                                                        sorted_features_examplar_head)
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
-    print("Distance Accuracy cat is: ", acc_dis_cat)
     print("KNN Accuracy cat is: ", acc_cat)
 
     auroc_cat = AUROC(labels_binary, probs_binary, opt)
@@ -338,10 +340,12 @@ def feature_classifier(opt):
 
     prediction_logits_known_dis_in, prediction_logits_known_dis_out, predictions_known_dis, acc_known_dis = distance_classifier(
         features_testing_known_head,
-        labels_testing_known,
+        labels_testing_known1,
         sorted_features_examplar_head)
-    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, acc_unknown_dis = distance_classifier(
-        features_testing_unknown_head, labels_testing_unknown, sorted_features_examplar_head)
+    prediction_logits_unknown_dis_in, prediction_logits_unknown_dis_out, predictions_unknown_dis, _ = distance_classifier(
+        features_testing_unknown_head, labels_testing_unknown1, sorted_features_examplar_head)
+    print("Dis Accuracy cat is: ", acc_known_dis)
+
     probs_binary_dis = np.concatenate((prediction_logits_known_dis_in, prediction_logits_unknown_dis_in), axis=0)
     auroc_cat_dis = AUROC(labels_binary, probs_binary_dis, opt)
     print("AUROC cat dis is: ", auroc_cat_dis)

@@ -86,8 +86,6 @@ def parse_option():
     parser.add_argument("--downsample_ratio", type=float, default=0)
 
     opt = parser.parse_args()
-
-    opt = parser.parse_args()
     opt.main_dir = os.getcwd()
 
     opt.exemplar_features_path = opt.main_dir + opt.exemplar_features_path
