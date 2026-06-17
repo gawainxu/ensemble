@@ -197,9 +197,12 @@ def cat_examplars(sorted_exemplar_features1, sorted_exemplar_features2, sorted_e
     return sorted_exemplar_features
 
 
-def normalize_scores(scores):
+def normalize_scores(positive_scores, negative_scores):
 
-    return (scores - scores.max()) / (scores.max() - scores.min())
+    positive_max, positive_min = max(positive_scores), min(negative_scores)
+    normalized_positive_scores = (positive_scores - positive_min) / (positive_max - positive_min)
+    normalized_negative_scores = (negative_scores - positive_min) / (positive_max - positive_min)
+    return normalized_positive_scores, normalized_negative_scores
 
 
 def feature_classifier(opt):
@@ -249,7 +252,6 @@ def feature_classifier(opt):
         features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
         features_testing_unknown_head1, features_testing_unknown_head2, features_testing_unknown_head3 = sort_multihead(features_testing_unknown_head)
 
-
     features_testing_unknown_head1, labels_testing_unknown1 = down_sampling(features_testing_unknown_head1,
                                                                             opt.downsampling_ratio_unknown,
                                                                             labels_testing_unknown)
@@ -280,8 +282,11 @@ def feature_classifier(opt):
     labels_binary_unknown = [1 if i < 100 else 0 for i in labels_testing_unknown1]
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
 
-    prediction_logits_known = normalize_scores(predictions_known1) + normalize_scores(predictions_known2) + normalize_scores(predictions_known3) # prediction_logits_known1 + prediction_logits_known2 + prediction_logits_known3 #
-    prediction_logits_unknown = normalize_scores(predictions_unknown1) + normalize_scores(predictions_unknown2) + normalize_scores(predictions_unknown3) # prediction_logits_unknown1 + prediction_logits_unknown2 + prediction_logits_unknown3 # 
+    norm_predictions_known1, norm_predictions_unknown1 = normalize_scores(predictions_known1, prediction_logits_unknown1)
+    norm_predictions_known2, norm_predictions_unknown2 = normalize_scores(predictions_known2, prediction_logits_unknown2)
+    norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(predictions_known3, prediction_logits_unknown3)
+    prediction_logits_known = norm_predictions_known1 + norm_predictions_unknown2 + norm_predictions_known3
+    prediction_logits_unknown = norm_predictions_unknown1 + norm_predictions_unknown2 + norm_predictions_unknown3
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
 
     auroc_all = AUROC(labels_binary, probs_binary, opt)
@@ -312,8 +317,11 @@ def feature_classifier(opt):
     auroc_dis3 = AUROC(labels_binary, probs_binary_dis3, opt)
     print("Dis AUROC 3 is: ", auroc_dis3)
 
-    prediction_logits_known_dis_in = prediction_logits_known_dis_in1 + prediction_logits_known_dis_in2 + prediction_logits_known_dis_in3
-    prediction_logits_unknown_dis_in = prediction_logits_unknown_dis_in1 + prediction_logits_unknown_dis_in2 + prediction_logits_unknown_dis_in3
+    norm_prediction_logits_known_dis_in1, norm_prediction_logits_unknown_dis_in1 = normalize_scores(prediction_logits_known_dis_in1, prediction_logits_unknown_dis_in1)
+    norm_prediction_logits_known_dis_in2, norm_prediction_logits_unknown_dis_in2 = normalize_scores(prediction_logits_known_dis_in2, prediction_logits_unknown_dis_in2)
+    norm_prediction_logits_known_dis_in3, norm_prediction_logits_unknown_dis_in3 = normalize_scores(prediction_logits_known_dis_in3, prediction_logits_unknown_dis_in3)
+    prediction_logits_known_dis_in = norm_prediction_logits_known_dis_in1 + norm_prediction_logits_known_dis_in2 + norm_prediction_logits_known_dis_in3
+    prediction_logits_unknown_dis_in = norm_prediction_logits_unknown_dis_in1 + norm_prediction_logits_unknown_dis_in2 + norm_prediction_logits_unknown_dis_in3
     probs_binary_dis = np.concatenate((prediction_logits_known_dis_in, prediction_logits_unknown_dis_in), axis=0)
 
     auroc = AUROC(labels_binary, probs_binary_dis, opt)
