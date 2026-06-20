@@ -285,8 +285,8 @@ def feature_classifier(opt):
     norm_predictions_known1, norm_predictions_unknown1 = normalize_scores(predictions_known1, prediction_logits_unknown1)
     norm_predictions_known2, norm_predictions_unknown2 = normalize_scores(predictions_known2, prediction_logits_unknown2)
     norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(predictions_known3, prediction_logits_unknown3)
-    prediction_logits_known = norm_predictions_known1 + norm_predictions_known2 + norm_predictions_known3
-    prediction_logits_unknown = norm_predictions_unknown1 + norm_predictions_unknown2 + norm_predictions_unknown3
+    prediction_logits_known = 0.2*norm_predictions_known1 + 0.3*norm_predictions_known2 + 0.5*norm_predictions_known3
+    prediction_logits_unknown = 0.2*norm_predictions_unknown1 + 0.3*norm_predictions_unknown2 + 0.5*norm_predictions_unknown3
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
 
     auroc_all = AUROC(labels_binary, probs_binary, opt)

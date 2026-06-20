@@ -137,8 +137,6 @@ def parse_option():
     opt.save_folder = os.path.join(opt.model_path, opt.model_name)
     if not os.path.isdir(opt.save_folder):
         os.makedirs(opt.save_folder)
-    
-    opt.num_classes = num_inlier_classes_mapping[opt.datasets]
 
     return opt
 
