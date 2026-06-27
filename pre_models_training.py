@@ -17,7 +17,6 @@ from networks.ViT import ViT, get_b16_config_cifar, get_b16_config
 from networks.ViT_cifar import ViT_cifar
 from util import AverageMeter
 
-image_size_mapping = {"cifar100": 32, "imagenet50": 224}
 
 def parse_option():
 
@@ -28,6 +27,7 @@ def parse_option():
     parser.add_argument("--model", type=str, default="vit16", choices=["resnet18", "vgg16", "vit16"])
     parser.add_argument("--classifier_type", type=str, default="single")
     parser.add_argument("--data_reshape_ratio", type=float, default=1.)
+    parser.add_argument("--last_model_path", type=str, default=None)
 
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument('--lr_decay_epochs', type=str, default='60,60,40,40',
@@ -52,8 +52,6 @@ def parse_option():
 
     opt = parser.parse_args()
 
-    opt.image_size = image_size_mapping[opt.dataset]
-
     opt.model_path = './save/{}_models'.format(opt.dataset)
 
     iterations = opt.lr_decay_epochs.split(',')
@@ -67,6 +65,12 @@ def parse_option():
 
     if opt.cosine:
         opt.model_name = '{}_cosine'.format(opt.model_name)
+
+    if opt.data_reshape_ratio < 1:
+        opt.model_name = "{model_name}_reshape_{ratio}".format(model_name=opt.model_name, ratio=str(opt.data_reshape_ratio))
+
+    if opt.last_model_path is not None:
+        opt.model_name = "{model_name}_restart".format(model_name=opt.model_name)
 
     # warm-up for large-batch training,
     if opt.batch_size > 256:
@@ -86,12 +90,15 @@ def parse_option():
     if not os.path.isdir(opt.save_folder):
         os.makedirs(opt.save_folder)
 
+    image_size_mapping = {"cifar100": 32, "imagenet50": 224, "imagenet50_reshape": int(224 * opt.data_reshape_ratio)}
+    opt.image_size = image_size_mapping[opt.dataset]
+
     return opt
 
 
 def load_data(opt):
 
-    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50}
+    num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet50_reshape": 50, "imagenet-m": 18, "cifar100": 50}
 
     if "imagenet100" in opt.dataset:
         dataset_train = ImageNet100(data_path= opt.data_path_train, train=True)
@@ -100,8 +107,8 @@ def load_data(opt):
         dataset_train = ImageNet50(data_path = opt.data_path_train, train=True)
         dataset_test = ImageNet50(data_path= opt.data_path_test, train=False)
     if "imagenet50_reshape" in opt.dataset:
-        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True)
-        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False)
+        dataset_train = imagenet50_reshape(data_path= opt.data_path_train, train=True, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_reshape(data_path= opt.data_path_test, train=False, target_resize_ratio=opt.data_reshape_ratio)
     elif "imagenet-m" in opt.dataset:
         dataset_train = ImageNet_M(data_path= opt.data_path_train, train=True)
         dataset_test = ImageNet_M(data_path= opt.data_path_test, train=False)
@@ -136,6 +143,17 @@ def load_model(opt):
                     dim_head = configs.head_dim, dropout = configs.dropout, emb_dropout = configs.emb_dropout)
 
     criterion = torch.nn.CrossEntropyLoss()
+
+    if opt.last_model_path is not None:
+        ckpt = torch.load(opt.last_model_path, map_location='cpu')
+        state_dict = ckpt['model']
+        if torch.cuda.device_count() > 1:
+            new_state_dict = {}
+            for k, v in state_dict.items():
+                k = k.replace("module.", "")
+                new_state_dict[k] = v
+            state_dict = new_state_dict
+        model.load_state_dict(state_dict)
 
     if torch.cuda.is_available():
         if torch.cuda.device_count() > 1:

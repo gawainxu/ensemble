@@ -78,7 +78,7 @@ class Bottleneck(nn.Module):
 class SupConResNet_MultiHead(nn.Module):
     """backbone + projection head"""
 
-    def __init__(self, input_size=64, feat_dim=128, in_channels=3, zero_init_residual=False):
+    def __init__(self, output_dim=512, feat_dim=128, in_channels=3, zero_init_residual=False):
         super(SupConResNet_MultiHead, self).__init__()
         num_blocks = [2, 2, 2, 2]
         self.in_planes = 64
@@ -88,29 +88,25 @@ class SupConResNet_MultiHead(nn.Module):
         self.layer1 = self._make_layer(BasicBlock, 64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(BasicBlock, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(BasicBlock, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(BasicBlock, 512, num_blocks[3], stride=2)
-        self.avgpool1 = nn.AdaptiveAvgPool2d((int(input_size/4), int(input_size/4)))
-        self.avgpool2 = nn.AdaptiveAvgPool2d((int(input_size/8), int(input_size/8)))
-        self.avgpool3 = nn.AdaptiveAvgPool2d((1, 1))
+        self.layer4 = self._make_layer(BasicBlock, output_dim, num_blocks[3], stride=2)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.output_head1 = nn.Sequential(
-            nn.Linear(128*int(input_size/4)*int(input_size/4),
-                      64*int(input_size/4)*int(input_size/4)),
+            nn.Linear(output_dim, output_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(64*int(input_size/4)*int(input_size/4), feat_dim)
+            nn.Linear(output_dim, feat_dim)
         )
 
         self.output_head2 = nn.Sequential(
-            nn.Linear(256*int(input_size/8)*int(input_size/8),
-                      128*int(input_size/8)*int(input_size/8)),
+            nn.Linear(output_dim, output_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(128*int(input_size/8)*int(input_size/8), feat_dim)
+            nn.Linear(output_dim, feat_dim)
         )
 
         self.output_head3 = nn.Sequential(
-            nn.Linear(512, 512),
+            nn.Linear(output_dim, output_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(512, feat_dim)
+            nn.Linear(output_dim, feat_dim)
         )
 
         for m in self.modules():
@@ -142,22 +138,13 @@ class SupConResNet_MultiHead(nn.Module):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
         out = self.layer2(out)
-        feat1 = self.avgpool1(out)
-        feat1 = torch.flatten(feat1, 1)
-        feat1 = self.output_head1(feat1)
-        feat1 = F.normalize(feat1, dim=1)
-
         out = self.layer3(out)
-        feat2 = self.avgpool2(out)
-        feat2 = torch.flatten(feat2, 1)
-        feat2 = self.output_head2(feat2)
-        feat2 = F.normalize(feat2, dim=1)
-
         out = self.layer4(out)
-        feat3 = self.avgpool3(out)
-        feat3 = torch.flatten(feat3, 1)
-        feat3 = self.output_head3(feat3)
-        feat3 = F.normalize(feat3, dim=1)
+        out = self.avgpool(out)
+        out = torch.flatten(out, 1)
+        feat1 = F.normalize(self.output_head1(out), dim=1)
+        feat2 = F.normalize(self.output_head2(out), dim=1)
+        feat3 = F.normalize(self.output_head3(out), dim=1)
 
         return feat1, feat2, feat3
 

@@ -237,15 +237,16 @@ def plot_grad_flow(named_parameters, batchIdx, epoch):
 
 
 
-def down_sampling(features, labels, ratio):
+def down_sampling(features, ratio, labels=None):
     
     length = len(features)
 
     indices = [i for i in range(length) if i % ratio == 0]
-    features =  features[indices]
-    labels = labels[indices]
+    features = features[indices]
+    if labels is not None:
+        return features, labels[indices]
 
-    return features, labels
+    return features
 
 
 

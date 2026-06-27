@@ -4,7 +4,9 @@ import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR100, MNIST
 from torch.utils.data import Dataset, Subset
 
-import os
+import medmnist
+from medmnist import INFO
+
 import numpy as np
 from PIL import Image
 
@@ -299,6 +301,39 @@ class iCIFAR100(CIFAR100):
             return len(self.test_data)
 
 
+def my_mnistmed(data_path="", data_size=32, if_train=False, target_resize_ratio=1.0):
+
+    data_flag = 'pathmnist'
+    download = True
+
+    info = INFO[data_flag]
+    DataClass = getattr(medmnist, info['python_class'])
+
+    if data_size == 32:
+        data_transform = transforms.Compose([transforms.ToTensor(),
+                                         transforms.Normalize(mean=[.5], std=[.5]),
+                                         transforms.Resize((32, 32),
+                                                           interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+        ori_size = 28
+    else:
+
+        ori_size = 224
+        reshaped_size = int(ori_size * target_resize_ratio)
+        data_transform = transforms.Compose([transforms.ToTensor(),
+                                             transforms.Normalize(mean=[.5], std=[.5]),
+                                             transforms.Resize(reshaped_size, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+
+    # load the data
+    if if_train:
+        mnistmed_dataset = DataClass(split='train', transform=data_transform, download=download, size=ori_size, mmap_mode='r')
+    else:
+        mnistmed_dataset = DataClass(split='test', transform=data_transform, download=download, size=ori_size, mmap_mode='r')
+
+    mnistmed_dataset = outlier_dataset(mnistmed_dataset)
+
+    return mnistmed_dataset
+
+
 
 """
 {"snake": ["n01728572", "n01728920", "n01729322", "n01729977", "n01734418", "n01735189", "n01737021", "n01739381", "n01740131", "n01742172"],
@@ -320,11 +355,14 @@ class iCIFAR100(CIFAR100):
 "cat": [ "n02123045", "n01622779", "n02124075", "n02123394", "n02123159", "n02123597"]}  #"n02123045","n02497673",
 """
 
-def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers", target_class=-1):
+def imagenet50_medium_outliers(data_path="../datasets/imagenet_medium_outliers", target_class=-1, target_resize_ratio=1.0):
 
+    new_datasize = int(IMAGENET_DATA_SIZE * target_resize_ratio)
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-                                    transforms.CenterCrop(224),])
+                                    transforms.CenterCrop(224),
+                                    transforms.Resize(new_datasize, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+
     imagenet50_medium_outliers = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  #
 
     return imagenet50_medium_outliers
@@ -340,10 +378,14 @@ def cifar_medium_outliers(data_path="../datasets/cifar_medium_outliers", target_
     return cifar_medium_outliers
 
 
-def DTD(data_path="../datasets/DTD", target_class=-1):
+def DTD(data_path="../datasets/DTD", target_class=-1, target_resize_ratio=1.0):
 
-    transform = transforms_test["dtd"]
-    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)  # TODO No error here, check the feature reading script
+    new_datasize = int(IMAGENET_DATA_SIZE * target_resize_ratio)
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                                    transforms.Resize((224, 224), interpolation=transforms.functional.InterpolationMode.BILINEAR),
+                                    transforms.Resize(new_datasize, interpolation=transforms.functional.InterpolationMode.BILINEAR)])
+    dtd = torchvision.datasets.ImageFolder(data_path, transform=transform, target_transform=lambda y : 1000)
 
     return dtd
 

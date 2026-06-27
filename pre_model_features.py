@@ -14,9 +14,9 @@ import numpy as np
 
 import torch
 import torch.backends.cudnn as cudnn
-from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50
+from pre_models_dataset import ImageNet100, ImageNet_M, iCIFAR100, ImageNet50, imagenet50_reshape
 from pre_models_dataset import imagenet50_medium_outliers, cifar_medium_outliers
-from pre_models_dataset import DTD, mnist
+from pre_models_dataset import DTD, mnist, my_mnistmed
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from networks.resnet_big import SupCEResNet
@@ -33,19 +33,19 @@ except ImportError:
 
 downsampling = {"cifar100": {"train":{"inliers": 1 , "outliers": 1}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50": {"train":{"inliers": 0.3, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "imagenet50_reshape": {"train":{"inliers": 0.3, "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_medium": {"train":{"inliers": 0.1 , "outliers": 0.1}, "test":{"inliers": 0.1, "outliers": 0.1}},
                 "cifar_medium": {"train":{"inliers": 0.3 , "outliers": 0.3}, "test":{"inliers": 1, "outliers": 1}},
                 "imagenet50_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
-                "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
+                "cifar_far": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "medmnist_32": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}},
+                "medmnist_224": {"train":{"inliers": 0.2 , "outliers": 0.2}, "test":{"inliers": 1, "outliers": 1}}}
 
-
-image_sizes = {"cifar100": 32, "imagenet50": 224,
-                "imagenet50_medium": 224, "cifar_medium": 32,
-                "imagenet50_far": 224, "cifar_far": 32}
-
-num_classes_dict = {"imagenet100": 100, "imagenet50": 50, "imagenet-m": 18, "cifar100": 50,
-                        "imagenet50_medium": 50, "cifar_medium": 50,
-                        "imagenet50_far": 50, "cifar_far": 50,}
+num_classes_dict = {"imagenet100": 100, "imagenet50": 50,
+                    "imagenet-m": 18, "cifar100": 50,
+                    "imagenet50_medium": 50, "cifar_medium": 50,
+                    "imagenet50_far": 50, "cifar_far": 50,
+                    "medmnist_32": 50, "medmnist_224": 50, "imagenet50_reshape": 50}
 
 
 def parse_option():
@@ -58,6 +58,7 @@ def parse_option():
     parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "vgg16", "vit"])
     parser.add_argument("--dataset", type=str, default="cifar100")
+    parser.add_argument("--data_reshape_ratio", type=float, default=1.)
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--outliers",  action="store_true", help="if the outlier data")
     parser.add_argument("--train_data",  action="store_true", help="if the training data")
@@ -75,6 +76,8 @@ def parse_option():
     opt.backbone_model_path = os.path.join(opt.backbone_model_direct, opt.backbone_model_name)
 
     opt.features_name = opt.model + "_" + opt.dataset + "_" + opt.layers_to_see
+    if opt.data_reshape_ratio < 1:
+        opt.features_name = opt.features_name + "_" + str(opt.data_reshape_ratio)
     opt.num_classes = num_classes_dict[opt.dataset]
 
     if opt.outliers:
@@ -93,6 +96,13 @@ def parse_option():
         opt.features_path = opt.features_path + "_" + str(opt.target_class)
 
     print("train_data", opt.train_data, "outliers", opt.outliers)
+
+    image_sizes = {"cifar100": 32, "imagenet50": 224,
+                   "imagenet50_medium": 224, "cifar_medium": 32,
+                   "imagenet50_far": 224, "cifar_far": 32,
+                   "medmnist_32": 32, "medmnist_224": 224,
+                   "imagenet50_reshape": int(224 * opt.data_reshape_ratio)}
+    opt.image_size = image_sizes[opt.dataset]
 
     return opt
 
@@ -113,7 +123,7 @@ def load_model(model, path):
         model = model.cuda()
         cudnn.benchmark = True
 
-        model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict)
 
     return model
 
@@ -125,12 +135,11 @@ def set_model(opt):
     elif "vgg" in opt.model:
         model = vgg16_bn(num_classes=opt.num_classes)
     elif "vit" in opt.model:
-        if "cifar" in opt.dataset:
+        if "cifar" in opt.dataset or "medmnist_32" in opt.dataset:
             configs = get_b16_config_cifar()
             #model = ViT_cifar(num_classes=opt.num_classes)
-        elif "imagenet" in opt.dataset:
+        elif "imagenet" in opt.dataset or "medmnist_224" in opt.dataset:
             configs = get_b16_config()
-        opt.image_size = image_sizes[opt.dataset]
         model = ViT(image_size=opt.image_size, patch_size=configs.patch_size, num_classes=opt.num_classes,
                         embedding_dim=configs.embed_dim, depth=configs.depth, heads=configs.num_heads,
                         mlp_dim=configs.hidden_dim,
@@ -153,21 +162,30 @@ def load_data(opt):
     elif opt.dataset == "imagenet-m":
         dataset_train = ImageNet_M(data_path=opt.data_path, train=True)
         dataset_test = ImageNet_M(data_path=opt.data_path, train=False)
+    elif "imagenet50_reshape" in opt.dataset:
+        dataset_train = imagenet50_reshape(data_path= opt.data_path, train=True, outliers=opt.outliers, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_reshape(data_path= opt.data_path, train=False, outliers=opt.outliers, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar100":
         dataset_train = iCIFAR100(data_path=opt.data_path, train=True, outliers=opt.outliers)
         dataset_test = iCIFAR100(data_path=opt.data_path, train=False, outliers=opt.outliers)
     elif opt.dataset == "imagenet50_medium":
-        dataset_train = imagenet50_medium_outliers(data_path=opt.data_path)
-        dataset_test = imagenet50_medium_outliers(data_path=opt.data_path)
+        dataset_train = imagenet50_medium_outliers(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = imagenet50_medium_outliers(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar_medium":
         dataset_train = cifar_medium_outliers(data_path=opt.data_path)
         dataset_test = cifar_medium_outliers(data_path=opt.data_path)
     elif opt.dataset == "imagenet50_far":
-        dataset_train = DTD(data_path=opt.data_path)
-        dataset_test = DTD(data_path=opt.data_path)
+        dataset_train = DTD(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = DTD(data_path=opt.data_path, target_resize_ratio=opt.data_reshape_ratio)
     elif opt.dataset == "cifar_far":
         dataset_train = mnist(data_path=opt.data_path)
         dataset_test = mnist(data_path=opt.data_path)
+    elif opt.dataset == "medmnist_32":
+        dataset_train = my_mnistmed(data_size=32, if_train=True)
+        dataset_test = my_mnistmed(data_size=32, if_train=False)
+    elif opt.dataset == "medmnist_224":
+        dataset_train = my_mnistmed(data_size=224, if_train=True, target_resize_ratio=opt.data_reshape_ratio)
+        dataset_test = my_mnistmed(data_size=224, if_train=False, target_resize_ratio=opt.data_reshape_ratio)
 
     print("dataset_train", len(dataset_train))
     print("dataset_test", len(dataset_test))
@@ -235,6 +253,7 @@ def normalFeatureReading_hook_class(model, opt, data_loader, target_class):
             activation = {}
             hook_output = model(img)
             # Output the full output tokens of the attention block, including the cls
+            print("activation", activation.keys())
             outputs.append(activation[opt.layers_to_see].detach().cpu())
             labels.append(label.numpy().item())
 
@@ -256,6 +275,7 @@ def normalFeatureReading_hook(model, opt, data_loader):
                 output = output[1]
             print("hook working!!!", name, output.shape)
             activation[name] = output.detach()
+            print("activation", activation.keys())
 
         return hook
 
@@ -267,7 +287,7 @@ def normalFeatureReading_hook(model, opt, data_loader):
 
     for i, (img, label) in enumerate(data_loader):
 
-        print(i)
+        print(i, "image", img.shape)
         with torch.no_grad():
             if torch.cuda.is_available():
                 img = img.float().cuda()

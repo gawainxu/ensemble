@@ -362,21 +362,24 @@ class MoCoResNet(nn.Module):
 
 class SupCEResNet(nn.Module):
     """encoder + classifier"""
-    def __init__(self, name='resnet18', num_classes=10):
+    def __init__(self, name='resnet18', in_channels=3, num_classes=10):
         super(SupCEResNet, self).__init__()
         model_fun, dim_in = model_dict[name]
-        self.encoder = model_fun()
-        self.fc = nn.Linear(dim_in, num_classes)
+        self.encoder = model_fun(in_channels=in_channels)
+        #self.fc = nn.Linear(dim_in, num_classes)
+        self.fc1 = nn.Linear(dim_in, 128)
+        self.fc2 = nn.Linear(128, num_classes)
 
     def forward(self, x):
-        return self.fc(self.encoder(x))
+        return self.fc2(self.fc1(self.encoder(x)))
 
 
 class LinearClassifier(nn.Module):
     """Linear classifier"""
-    def __init__(self, name='resnet50', num_classes=10):
+    def __init__(self, name='resnet50', num_classes=10, feat_dim=0):
         super(LinearClassifier, self).__init__()
-        _, feat_dim = model_dict[name]
+        if feat_dim == 0:
+            _, feat_dim = model_dict[name]
         self.fc = nn.Linear(feat_dim, num_classes)
 
     def forward(self, features):

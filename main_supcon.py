@@ -16,7 +16,7 @@ from torchvision import transforms, datasets
 from util import TwoCropTransform, AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model, label_convert
-from dataUtil import num_inlier_classes_mapping, get_train_datasets
+from dataUtil import osr_splits_inliers, get_train_datasets
 from networks.resnet_big import SupConResNet
 from networks.resnet_multi import SupConResNet_MultiHead
 from networks.simCNN import simCNN_contrastive
@@ -65,7 +65,7 @@ def parse_option():
                         choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
     parser.add_argument("--last_model_path", type=str, default=None)
     parser.add_argument('--datasets', type=str, default='cifar10',
-                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cub", "aircraft"], help='dataset')
+                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco", "aircraft"], help='dataset')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
@@ -85,6 +85,7 @@ def parse_option():
     parser.add_argument('--temp1', type=float, default=0.005, help='temperature for loss')
     parser.add_argument('--temp2', type=float, default=0.01, help='temperature for loss')
     parser.add_argument('--temp3', type=float, default=0.05, help='temperature for loss')
+    parser.add_argument("--out_dim", type=int, default=512, help="output dimension of the resnet blocks")
     parser.add_argument("--clip", type=float, default=None, help="for gradient clipping")
 
     # other setting
@@ -97,6 +98,8 @@ def parse_option():
     parser.add_argument("--feat_dim", type=int, default=128)
 
     opt = parser.parse_args()
+
+    opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
 
     # check if dataset is path that passed required arguments
     if opt.datasets == 'path':
@@ -114,7 +117,10 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp1) + "_" + str(opt.temp2) +"_" + str(opt.temp3) + "_" + str(opt.batch_size)
+    if "multi" in opt.model:
+        opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.out_dim) +  "_" + str(opt.temp1) + "_" + str(opt.temp2) +"_" + str(opt.temp3) + "_" + str(opt.batch_size)
+    else:
+        opt.model_name = opt.datasets + "_" + opt.model + '_trail_{}'.format(opt.trail) + "_" + str(opt.feat_dim) + "_" + str(opt.temp)
 
     # warm-up for large-batch training,
     if opt.batch_size > 256:
@@ -133,8 +139,6 @@ def parse_option():
     opt.save_folder = os.path.join(opt.model_path, opt.model_name)
     if not os.path.isdir(opt.save_folder):
         os.makedirs(opt.save_folder)
-    
-    opt.num_classes = num_inlier_classes_mapping[opt.datasets]
 
     return opt
 
@@ -163,7 +167,7 @@ def set_model(opt):
     elif opt.model == "MLP":
         model = SupConMLP(feat_dim=opt.feat_dim)
     elif opt.model == "resnet_multi":
-        model = SupConResNet_MultiHead(input_size=opt.size, feat_dim=opt.feat_dim, in_channels=in_channels)
+        model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
         model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
@@ -223,6 +227,10 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
     data_time = AverageMeter()
     losses = AverageMeter()
 
+    losses1 = AverageMeter()
+    losses2 = AverageMeter()
+    losses3 = AverageMeter()
+
     criterion1, criterion2, criterion3 = criterions
 
     end = time.time()
@@ -246,9 +254,6 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
 
         # compute loss
         if opt.model == "resnet_multi":
-            losses1 = AverageMeter()
-            losses2 = AverageMeter()
-            losses3 = AverageMeter()
             features1, features2, features3 = model(images)
             features1_1, features1_2 = torch.split(features1, [bsz, bsz], dim=0)
             features2_1, features2_2 = torch.split(features2, [bsz, bsz], dim=0)
