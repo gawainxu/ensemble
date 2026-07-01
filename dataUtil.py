@@ -410,12 +410,9 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
     else:
         train = True
 
-    train_dataset = data_fun(root=data_root, train=train, opt=opt,
+    train_dataset = data_fun(root=data_root, train=train,
                              classes=classes, download=True,
                              transform=train_transform, label_dict=label_dict,
-                             last_features_list=last_features_list,
-                             last_feature_labels_list=last_feature_labels_list,
-                             last_model=last_model, subsample_transform=subsample_transform,
                              )  # portion_out=opt.portion_out, upsample_times=opt.upsample_times
     print("dataset size", len(train_dataset))
     return train_dataset

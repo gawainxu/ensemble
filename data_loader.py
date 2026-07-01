@@ -783,6 +783,8 @@ class ImageNet100(Dataset):
                 self.images.append(img)
                 self.labels.append(l)
 
+        print("test", len(self.images))
+
     def __getitem__(self, idx):
         if self.transform is not None:
             return self.transform(self.images[idx]), self.labels[idx]
