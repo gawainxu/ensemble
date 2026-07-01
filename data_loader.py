@@ -16,6 +16,7 @@ from util import TwoCropTransform, common_elements
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
 import torch.utils.data as data
+from torchvision.datasets import ImageFolder
 
 
 class iCIFAR10(CIFAR10):
@@ -761,7 +762,36 @@ class Aircraft(VisionDataset):
         return images, labels
 
 
+class ImageNet100(Dataset):
 
+    def __init__(self, root, classes=range(100), train=True, opt=None, transform=None,
+                target_transform=None, download=False, label_dict = None, last_features_list=None,
+                last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+
+        if train:
+            data_path = root + "/imagenet100_train"
+        else:
+            data_path = root + "/imagenet100_test"
+
+        dataset = ImageFolder(data_path)
+        self.images = []
+        self.labels = []
+        self.transform = transform
+
+        for img, l in dataset:
+            if l in classes:
+                self.images.append(img)
+                self.labels.append(l)
+
+    def __getitem__(self, idx):
+        if self.transform is not None:
+            return self.transform(self.images[idx]), self.labels[idx]
+        else:
+            return self.images[idx], self.labels[idx]
+
+    def __len__(self):
+
+        return len(self.images)
 
 
 if __name__ == "__main__":

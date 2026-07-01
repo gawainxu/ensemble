@@ -142,7 +142,9 @@ osr_splits_inliers = {
                        list(range(100))
                        ],
 
-    "cifar100": [list(range(10))]
+    "cifar100": [list(range(10))],
+
+    "imagenet100": [list(range(50))],
                        #[[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
                        #[0, 1, 5, 6, 10, 11, 15, 16, 20, 21, 25, 26, 30, 31, 35, 36, 40, 41, 45, 46],
                        #[4, 9, 14, 19, 24, 29, 34, 39, 44, 49],
@@ -242,7 +244,9 @@ osr_splits_outliers = {
                        [4,9,14,19,24,29,34,39,44,49,54,59,64,69,74,79,84,89,94,99],
                        [4,9,14,19,24,29,34,39,44,49,54,59,64,69,74,79,84,89,94,99],
                        [4,9,14,19,24,29,34,39,44,49,54,59,64,69,74,79,84,89,94,99]
-    ]
+    ],
+
+    "imagenet100": [list(range(50, 100))],
 }
 
 
@@ -258,7 +262,7 @@ def pickClass(classIdx):
 
 import copy
 import random
-from data_loader import iCIFAR10, iCIFAR100, TinyImagenet, customSVHN, mnist, CUB, Aircraft
+from data_loader import iCIFAR10, iCIFAR100, TinyImagenet, customSVHN, mnist, CUB, Aircraft, ImageNet100
 from util import TwoCropTransform
 from torchvision import transforms, datasets
 from config import data_root
@@ -274,14 +278,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 
-num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-50": 4, "cifar100_marco": 20,
+num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-50": 4, "cifar100_marco": 20, "imagenet100": 50,
                               "tinyimgnet": 20, "mnist": 6, "svhn": 6, "cub": 100, "aircraft": 20, "cifar100": 10}
 
 
-data_function_mapping = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR10, "cifar-10-100-50": iCIFAR10, "cifar100_marco": iCIFAR100,
+data_function_mapping = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR10, "cifar-10-100-50": iCIFAR10, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
                          "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
 
-data_function_mapping_testing = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR100, "cifar-10-100-50": iCIFAR100, "cifar100_marco": iCIFAR100,
+data_function_mapping_testing = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR100, "cifar-10-100-50": iCIFAR100, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
                                  "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
 
 
@@ -294,7 +298,8 @@ mean_mapping = {"mnist":  (0.1307,),
                 "cifar-10-100-50": (0.4914, 0.4822, 0.4465),
                 "tinyimgnet": (0.485, 0.456, 0.406),
                 "aircraft": (0.485, 0.456, 0.406), 
-                "cub": (0.485, 0.456, 0.406)}                 # 0.408, 0.459, 0.502, 123., 117., 104.
+                "cub": (0.485, 0.456, 0.406),
+                "imagenet100": (0.485, 0.456, 0.406),}                 # 0.408, 0.459, 0.502, 123., 117., 104.
 
 std_mapping = {"mnist": (0.3081,),
                "svhn": (0.19803012, 0.20101562, 0.19703614),
@@ -305,7 +310,8 @@ std_mapping = {"mnist": (0.3081,),
                "cifar-10-100-50": (0.2023, 0.1994, 0.2010),
                "tinyimgnet": (0.229, 0.224, 0.225),
                "aircraft": (0.229, 0.224, 0.225),
-               "cub": (0.229, 0.224, 0.225)}               # 1., 1., 1.
+               "cub": (0.229, 0.224, 0.225),
+               "imagenet100": (0.485, 0.456, 0.406),}               # 1., 1., 1.
 
 
 image_size_mapping = {"mnist": 32,
@@ -317,7 +323,8 @@ image_size_mapping = {"mnist": 32,
                       "cifar-10-100-50": 32,
                       "tinyimgnet": 64, 
                       "aircraft": 224,
-                      "cub": 224}
+                      "cub": 224,
+                      "imagenet100": 224}
 
 
 def label_to_dict(labels, outliers=False):
@@ -332,7 +339,6 @@ def label_to_dict(labels, outliers=False):
 
 
 def get_train_datasets(opt, class_idx=None, last_features_list=None, last_feature_labels_list=None, last_model=None):
-
     mean = mean_mapping[opt.datasets]
     std = std_mapping[opt.datasets]
     normalize = transforms.Normalize(mean=mean, std=std)
@@ -340,58 +346,83 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
 
     if opt.action == "training_supcon" or opt.action == "trainging_linear":
         if opt.datasets == "mnist":
-            train_transform = transforms.Compose([transforms.ToTensor(), transforms.RandomRotation((-5, 5)),])
-                                                                            
+            train_transform = transforms.Compose([transforms.ToTensor(), transforms.RandomRotation((-5, 5)), ])
+        elif opt.datasets == "FUB":
+            train_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
+                                                  transforms.Resize((size)),
+                                                  transforms.RandomHorizontalFlip(), transforms.RandomRotation(15),
+                                                  transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)],
+                                                                         p=0.8),
+                                                  transforms.RandomGrayscale(p=0.2), ])
+        elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars",
+                              "aircraft"]:
+            train_transform = transforms.Compose(
+                [transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                 transforms.Resize((size, size)),
+                 transforms.RandomHorizontalFlip(),
+                 transforms.RandomGrayscale(p=0.2),
+                 # transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),    # !!!!!!!!!!!
+                 transforms.ToTensor(),
+                 normalize, ])
         else:
-            train_transform = transforms.Compose([transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),                                     
-                                                  transforms.RandomResizedCrop(size=size, scale=(0.2, 1.)),
-                                                  transforms.RandomHorizontalFlip(),
-                                                  transforms.RandomGrayscale(p=0.2),
-                                                  transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
-                                                  #cutout(mask_size=4, p=0.5, cutout_inside=False),
-                                                  transforms.ToTensor(),
-                                                  normalize,])   # normalize,
-            #train_transform.transforms.insert(0, RandAugment(args=opt))       # !!!!
-    elif opt.action == "training_ce":
-        train_transform = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(15),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
+            train_transform = transforms.Compose(
+                [transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                 # transforms.Resize((size, size)),
+                 transforms.RandomResizedCrop(size=size, scale=(0.2, 1.)),  # !!!!!!
+                 transforms.RandomHorizontalFlip(),
+                 transforms.RandomGrayscale(p=0.2),
+                 # transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),    # !!!!!!!!!!!
+                 transforms.ToTensor(),
+                 normalize, ])  # normalize,
+        if opt.randaug == 1:
+            train_transform.transforms.insert(0, RandAugment(args=opt))
+
+        if opt.augmix:
+            # all are default settings
+            train_transform.transforms.insert(0, transforms.AugMix())
+
     else:
         if opt.datasets == "mnist":
             train_transform = transforms.Compose([transforms.ToTensor()])
+        elif opt.datasets == "FUB":
+            train_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
+                                                  transforms.Resize((size, size))])
+        elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars",
+                              "aircraft"]:
+            train_transform = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Resize((size, size)), normalize])
         else:
             train_transform = transforms.Compose([transforms.ToTensor(), normalize])
 
     if last_features_list is not None and last_feature_labels_list is not None:
-          subsample_transform = transforms.Compose([transforms.RandomResizedCrop(size=size, ),
-                                                    transforms.ToTensor(), normalize,])
+        subsample_transform = transforms.Compose([transforms.RandomResizedCrop(size=size, ),
+                                                  transforms.ToTensor(), normalize, ])
     else:
-          subsample_transform = None
+        subsample_transform = None
 
     data_fun = data_function_mapping[opt.datasets]
     label_dict = label_to_dict(osr_splits_inliers[opt.datasets][opt.trail])
 
     if opt.action == "training_supcon":
         train_transform = TwoCropTransform(train_transform)
-    
+
     if class_idx is not None:
         classes = [osr_splits_inliers[opt.datasets][opt.trail][class_idx]]
     else:
         classes = osr_splits_inliers[opt.datasets][opt.trail]
-    print(classes)
+
     if opt.datasets == "svhn":
         train = "train"
     else:
         train = True
 
-    train_dataset = data_fun(root=data_root, train=train,
-                             classes=classes, download=False, 
+    train_dataset = data_fun(root=data_root, train=train, opt=opt,
+                             classes=classes, download=True,
                              transform=train_transform, label_dict=label_dict,
-                             )
+                             last_features_list=last_features_list,
+                             last_feature_labels_list=last_feature_labels_list,
+                             last_model=last_model, subsample_transform=subsample_transform,
+                             )  # portion_out=opt.portion_out, upsample_times=opt.upsample_times
     print("dataset size", len(train_dataset))
     return train_dataset
 
@@ -404,12 +435,20 @@ def get_test_datasets(opt, class_idx = None):
     size = image_size_mapping[opt.datasets]
 
     if opt.datasets == "mnist":
-        test_transform = transforms.Compose([transforms.ToTensor(), ]) 
+        test_transform = transforms.Compose([transforms.ToTensor(), ])
+    elif opt.datasets == "FUB":
+        test_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
+                                              transforms.CenterCrop((size, size)),])
+    elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars", "aircraft"]:
+        test_transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((224, 224)), normalize])
     else:
         test_transform = transforms.Compose([transforms.ToTensor(), normalize])
 
     data_fun = data_function_mapping[opt.datasets]
     label_dict = label_to_dict(osr_splits_inliers[opt.datasets][opt.trail])
+
+    if opt.action == "training_supcon":
+        test_transform = TwoCropTransform(test_transform)
 
     if class_idx is not None:
         classes = [osr_splits_inliers[opt.datasets][opt.trail][class_idx]]
@@ -420,7 +459,7 @@ def get_test_datasets(opt, class_idx = None):
         train = "test"
     else:
         train = False
-    test_dataset = data_fun(root=data_root, train=train,
+    test_dataset = data_fun(root=data_root, train=train, opt=opt,
                             classes=classes, download=True, 
                             transform=test_transform, label_dict=label_dict)
     print("dataset size", len(test_dataset))
@@ -439,6 +478,12 @@ def get_outlier_datasets(opt, class_idx=None):
     else:
         if opt.datasets == "mnist":
             test_transform = transforms.Compose([transforms.ToTensor(),])
+        elif opt.datasets == "FUB":
+            test_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
+                                                 transforms.CenterCrop((size, size)), ])
+        elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars", "aircraft"]:
+            test_transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((224, 224)),
+                                                 normalize])
         else:
             test_transform = transforms.Compose([transforms.ToTensor(), normalize])
 
