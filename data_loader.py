@@ -811,6 +811,6 @@ if __name__ == "__main__":
     #     if i == 0:
     #         break
     root_path = "../datasets"
-    dataset = customSVHN(root='../datasets', classes=[0])
+    dataset = ImageNet100(root='../datasets', classes=[0])
     print(dataset[0][1])
     print(len(dataset))
