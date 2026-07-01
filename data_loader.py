@@ -778,7 +778,7 @@ class ImageNet100(Dataset):
         self.labels = []
         self.transform = transform
 
-        for img, l in dataset:
+        for i, (img, l) in enumerate(dataset):
             if l in classes:
                 self.images.append(img)
                 self.labels.append(l)
