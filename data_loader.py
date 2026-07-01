@@ -769,21 +769,14 @@ class ImageNet100(Dataset):
                 last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
 
         if train:
-            data_path = root + "/imagenet100_train"
+            data_path = root + "/imagenet50"
         else:
-            data_path = root + "/imagenet100_test"
+            data_path = root + "/imagenet50_test"
 
         dataset = ImageFolder(data_path)
         self.images = []
         self.labels = []
         self.transform = transform
-        print(len(dataset))
-
-        for i, (img, l) in enumerate(dataset):
-            print(i)
-            if l in classes:
-                self.images.append(img)
-                self.labels.append(l)
 
         print("test", len(self.images))
 
