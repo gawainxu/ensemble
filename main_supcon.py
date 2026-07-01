@@ -65,7 +65,7 @@ def parse_option():
                         choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN", "MLP"])
     parser.add_argument("--last_model_path", type=str, default=None)
     parser.add_argument('--datasets', type=str, default='cifar10',
-                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco", "aircraft"], help='dataset')
+                        choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn", "cifar100_marco", "imagenet100"], help='dataset')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
