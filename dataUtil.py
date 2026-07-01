@@ -374,12 +374,6 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
                  # transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),    # !!!!!!!!!!!
                  transforms.ToTensor(),
                  normalize, ])  # normalize,
-        if opt.randaug == 1:
-            train_transform.transforms.insert(0, RandAugment(args=opt))
-
-        if opt.augmix:
-            # all are default settings
-            train_transform.transforms.insert(0, transforms.AugMix())
 
     else:
         if opt.datasets == "mnist":
