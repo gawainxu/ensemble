@@ -762,34 +762,17 @@ class Aircraft(VisionDataset):
         return images, labels
 
 
-class ImageNet100(Dataset):
+def ImageNet100_Folder(root, classes=range(50), train=True, opt=None, transform=None,
+                       target_transform=None, download=False, label_dict=None):
+    # put the data in the same directory with the project
+    if train:
+        data_path = root + "/imagenet50"
+    else:
+        data_path = root + "/imagenet50_test"
 
-    def __init__(self, root, classes=range(100), train=True, opt=None, transform=None,
-                target_transform=None, download=False, label_dict = None, last_features_list=None,
-                last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+    dataset = ImageFolder(data_path, transform=transform)
 
-        if train:
-            data_path = root + "/imagenet50"
-        else:
-            data_path = root + "/imagenet50_test"
-
-        print(data_path)
-        dataset = ImageFolder(data_path)
-        self.images = []
-        self.labels = []
-        self.transform = transform
-
-        print("test", len(self.images))
-
-    def __getitem__(self, idx):
-        if self.transform is not None:
-            return self.transform(self.images[idx]), self.labels[idx]
-        else:
-            return self.images[idx], self.labels[idx]
-
-    def __len__(self):
-
-        return len(self.images)
+    return dataset
 
 
 if __name__ == "__main__":
