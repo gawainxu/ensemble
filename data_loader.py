@@ -773,6 +773,7 @@ class ImageNet100(Dataset):
         else:
             data_path = root + "/imagenet50_test"
 
+        print(data_path)
         dataset = ImageFolder(data_path)
         self.images = []
         self.labels = []
