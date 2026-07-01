@@ -762,8 +762,8 @@ class Aircraft(VisionDataset):
         return images, labels
 
 
-def ImageNet100_Folder(root, classes=range(50), train=True, opt=None, transform=None,
-                       target_transform=None, download=False, label_dict=None):
+def ImageNet100(root, classes=range(50), train=True, opt=None, transform=None,
+                target_transform=None, download=False, label_dict=None):
     # put the data in the same directory with the project
     if train:
         data_path = root + "/imagenet50"
