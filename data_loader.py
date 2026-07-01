@@ -810,6 +810,7 @@ if __name__ == "__main__":
     # for i, (img, l) in enumerate(train_loader):
     #     if i == 0:
     #         break
+    print("testing")
     root_path = "../datasets"
     dataset = ImageNet100(root='../datasets', classes=[0])
     print(dataset[0][1])
