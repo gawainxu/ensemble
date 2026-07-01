@@ -780,6 +780,7 @@ class ImageNet100(Dataset):
         print(len(dataset))
 
         for i, (img, l) in enumerate(dataset):
+            print(i)
             if l in classes:
                 self.images.append(img)
                 self.labels.append(l)
