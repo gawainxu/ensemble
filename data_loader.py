@@ -777,6 +777,7 @@ class ImageNet100(Dataset):
         self.images = []
         self.labels = []
         self.transform = transform
+        print(len(dataset))
 
         for i, (img, l) in enumerate(dataset):
             if l in classes:
