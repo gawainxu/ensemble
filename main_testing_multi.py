@@ -49,9 +49,9 @@ def parse_option():
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--num_classes", type=int, default=20)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_1_128_512_1.0_0.5_0.1_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_1_128_512_1.0_0.5_0.1_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_1_128_512_1.0_0.5_0.1_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)

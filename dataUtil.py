@@ -450,7 +450,7 @@ def get_test_datasets(opt, class_idx = None):
         train = "test"
     else:
         train = False
-    test_dataset = data_fun(root=data_root, train=train, opt=opt,
+    test_dataset = data_fun(root=data_root, train=train,
                             classes=classes, download=True, 
                             transform=test_transform, label_dict=label_dict)
     print("dataset size", len(test_dataset))
