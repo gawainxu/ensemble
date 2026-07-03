@@ -49,9 +49,9 @@ def parse_option():
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--num_classes", type=int, default=20)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.5_0.1_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_1_128_512_1.0_0.5_0.1_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_1_128_512_1.0_0.5_0.1_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_1_128_512_1.0_0.5_0.1_256_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -69,7 +69,7 @@ def parse_option():
     parser.add_argument("--downsampling_ratio_known", type=int, default=10)
     parser.add_argument("--downsampling_ratio_unknown", type=int, default=10)
 
-    parser.add_argument("--K", type=int, default=20)
+    parser.add_argument("--K", type=int, default=3)
 
     parser.add_argument("--auroc_save_path", type=str, default="./plots/auroc")
 
@@ -282,9 +282,9 @@ def feature_classifier(opt):
     labels_binary_unknown = [1 if i < 100 else 0 for i in labels_testing_unknown1]
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
 
-    norm_predictions_known1, norm_predictions_unknown1 = normalize_scores(predictions_known1, prediction_logits_unknown1)
-    norm_predictions_known2, norm_predictions_unknown2 = normalize_scores(predictions_known2, prediction_logits_unknown2)
-    norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(predictions_known3, prediction_logits_unknown3)
+    norm_predictions_known1, norm_predictions_unknown1 = normalize_scores(prediction_logits_known1, prediction_logits_unknown1)
+    norm_predictions_known2, norm_predictions_unknown2 = normalize_scores(prediction_logits_known2, prediction_logits_unknown2)
+    norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(prediction_logits_known3, prediction_logits_unknown3)
     prediction_logits_known = norm_predictions_known1 + norm_predictions_known2 + norm_predictions_known3
     prediction_logits_unknown = norm_predictions_unknown1 + norm_predictions_unknown2 + norm_predictions_unknown3
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
