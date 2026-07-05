@@ -285,8 +285,8 @@ def feature_classifier(opt):
     norm_predictions_known1, norm_predictions_unknown1 = normalize_scores(prediction_logits_known1, prediction_logits_unknown1)
     norm_predictions_known2, norm_predictions_unknown2 = normalize_scores(prediction_logits_known2, prediction_logits_unknown2)
     norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(prediction_logits_known3, prediction_logits_unknown3)
-    prediction_logits_known = norm_predictions_known1 + norm_predictions_known2 + norm_predictions_known3
-    prediction_logits_unknown = norm_predictions_unknown1 + norm_predictions_unknown2 + norm_predictions_unknown3
+    prediction_logits_known = norm_predictions_known1 + norm_predictions_known2 #+ norm_predictions_known3
+    prediction_logits_unknown = norm_predictions_unknown1 + norm_predictions_unknown2 #+ norm_predictions_unknown3
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
 
     auroc_all = AUROC(labels_binary, probs_binary, opt)
@@ -320,8 +320,8 @@ def feature_classifier(opt):
     norm_prediction_logits_known_dis_in1, norm_prediction_logits_unknown_dis_in1 = normalize_scores(prediction_logits_known_dis_in1, prediction_logits_unknown_dis_in1)
     norm_prediction_logits_known_dis_in2, norm_prediction_logits_unknown_dis_in2 = normalize_scores(prediction_logits_known_dis_in2, prediction_logits_unknown_dis_in2)
     norm_prediction_logits_known_dis_in3, norm_prediction_logits_unknown_dis_in3 = normalize_scores(prediction_logits_known_dis_in3, prediction_logits_unknown_dis_in3)
-    prediction_logits_known_dis_in = norm_prediction_logits_known_dis_in1 + norm_prediction_logits_known_dis_in2 + norm_prediction_logits_known_dis_in3
-    prediction_logits_unknown_dis_in = norm_prediction_logits_unknown_dis_in1 + norm_prediction_logits_unknown_dis_in2 + norm_prediction_logits_unknown_dis_in3
+    prediction_logits_known_dis_in = norm_prediction_logits_known_dis_in1 + norm_prediction_logits_known_dis_in2 #+ norm_prediction_logits_known_dis_in3
+    prediction_logits_unknown_dis_in = norm_prediction_logits_unknown_dis_in1 + norm_prediction_logits_unknown_dis_in2 #+ norm_prediction_logits_unknown_dis_in3
     probs_binary_dis = np.concatenate((prediction_logits_known_dis_in, prediction_logits_unknown_dis_in), axis=0)
 
     auroc = AUROC(labels_binary, probs_binary_dis, opt)
@@ -331,9 +331,9 @@ def feature_classifier(opt):
     sorted_features_examplar_head = cat_examplars(sorted_features_examplar_head1, sorted_features_examplar_head2,
                                                   sorted_features_examplar_head2)
     features_testing_known_head = np.concatenate(
-        (features_testing_known_head1, features_testing_known_head2, features_testing_known_head3), axis=1)
+        (features_testing_known_head1, features_testing_known_head2), axis=1)   # , features_testing_known_head3
     features_testing_unknown_head = np.concatenate(
-        (features_testing_unknown_head1, features_testing_unknown_head2, features_testing_unknown_head3), axis=1)
+        (features_testing_unknown_head1, features_testing_unknown_head2), axis=1)  # , features_testing_unknown_head3
     prediction_logits_known, predictions_known, acc_cat = KNN_classifier(features_testing_known_head,
                                                                             labels_testing_known1,
                                                                             sorted_features_examplar_head)
