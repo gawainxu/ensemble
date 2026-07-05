@@ -50,13 +50,13 @@ def parse_option():
     parser.add_argument("--testing_known_features_path", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_1.0_test_known")
     parser.add_argument("--testing_unknown_features_path", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_1.0_test_unknown")
 
-    parser.add_argument("--exemplar_features_path1", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.5_train")
-    parser.add_argument("--testing_known_features_path1", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.5_test_known")
-    parser.add_argument("--testing_unknown_features_path1", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.5_test_unknown")
+    parser.add_argument("--exemplar_features_path1", type=str, default=None)
+    parser.add_argument("--testing_known_features_path1", type=str, default=None)
+    parser.add_argument("--testing_unknown_features_path1", type=str, default=None)
 
-    parser.add_argument("--exemplar_features_path2", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.1_train")
-    parser.add_argument("--testing_known_features_path2", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.1_test_known")
-    parser.add_argument("--testing_unknown_features_path2", type=str, default="/features/1/tinyimgnet_resnet18_trail_0_128_0.1_test_unknown")
+    parser.add_argument("--exemplar_features_path2", type=str, default=None)
+    parser.add_argument("--testing_known_features_path2", type=str, default=None)
+    parser.add_argument("--testing_unknown_features_path2", type=str, default=None)
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
