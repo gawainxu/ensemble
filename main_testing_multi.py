@@ -41,9 +41,9 @@ def parse_option():
     parser.add_argument("--linear_model_path", type=str, default=None)
     parser.add_argument("--num_classes", type=int, default=20)
     
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.05_2.0_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.05_2.0_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_1.0_0.05_2.0_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_0.1_0.01_2.0_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_0.1_0.01_2.0_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_512_0.1_0.01_2.0_256_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -221,14 +221,14 @@ def feature_classifier(opt):
 
     with open(opt.exemplar_features_path, "rb") as f:
         features_exemplar_head, _, labels_examplar = pickle.load(f)         #
-        features_head1, features_head2 = sort_multihead2(features_exemplar_head)  # features_head3
+        features_head1, features_head2, features_head3 = sort_multihead(features_exemplar_head)  #
         sorted_features_examplar_head1 = sortFeatures(features_head1, labels_examplar, opt)
         sorted_features_examplar_head2 = sortFeatures(features_head2, labels_examplar, opt)
-        #sorted_features_examplar_head3 = sortFeatures(features_head3, labels_examplar, opt)
+        sorted_features_examplar_head3 = sortFeatures(features_head3, labels_examplar, opt)
 
     with open(opt.testing_known_features_path, "rb") as f:
         features_testing_known_head, _, labels_testing_known = pickle.load(f)
-        features_testing_known_head1, features_testing_known_head2 = sort_multihead2(features_testing_known_head) # , features_testing_known_head3
+        features_testing_known_head1, features_testing_known_head2, features_testing_known_head3 = sort_multihead(features_testing_known_head) #
 
     features_testing_known_head1, labels_testing_known1 = down_sampling(features_testing_known_head1, opt.downsampling_ratio_known, labels_testing_known)
     prediction_logits_known1, predictions_known1, acc_known1 = KNN_classifier(features_testing_known_head1,
@@ -250,7 +250,6 @@ def feature_classifier(opt):
     print("Distance Accuracy 2 is: ", acc_known_dis2)
     print("KNN Accuracy 2 is: ", acc_known2)
 
-    """
     features_testing_known_head3, labels_testing_known3 = down_sampling(features_testing_known_head3, opt.downsampling_ratio_known, labels_testing_known)
     prediction_logits_known3, predictions_known3, acc_known3 = KNN_classifier(features_testing_known_head3,
                                                                               labels_testing_known3,
@@ -260,11 +259,10 @@ def feature_classifier(opt):
                                                                                                                                     sorted_features_examplar_head3)
     print("Distance Accuracy 3 is: ", acc_known_dis3)
     print("KNN Accuracy 3 is: ", acc_known3)
-    """
 
     with open(opt.testing_unknown_features_path, "rb") as f:
         features_testing_unknown_head, _, labels_testing_unknown = pickle.load(f)
-        features_testing_unknown_head1, features_testing_unknown_head2 = sort_multihead2(features_testing_unknown_head)   # features_testing_unknown_head3
+        features_testing_unknown_head1, features_testing_unknown_head2, features_testing_unknown_head3 = sort_multihead(features_testing_unknown_head)   #
 
     features_testing_unknown_head1, labels_testing_unknown1 = down_sampling(features_testing_unknown_head1,
                                                                             opt.downsampling_ratio_unknown,
@@ -282,14 +280,12 @@ def feature_classifier(opt):
     prediction_logits_unknown_dis_in2, prediction_logits_unknown_dis_out2, predictions_unknown_dis2, acc_unknown_dis2 = distance_classifier(
         features_testing_unknown_head2, labels_testing_unknown2, sorted_features_examplar_head2)
 
-    """
     features_testing_unknown_head3, labels_testing_unknown3 = down_sampling(features_testing_unknown_head3, opt.downsampling_ratio_known, labels_testing_unknown)
     prediction_logits_unknown3, predictions_unknown3, _ = KNN_classifier(features_testing_unknown_head3,
                                                                          labels_testing_unknown3,
                                                                          sorted_features_examplar_head3)
     prediction_logits_unknown_dis_in3, prediction_logits_unknown_dis_out3, predictions_unknown_dis3, acc_unknown_dis3 = distance_classifier(
         features_testing_unknown_head3, labels_testing_unknown3, sorted_features_examplar_head3)
-    """
 
     
     # Process results AUROC and OSCR
@@ -300,7 +296,7 @@ def feature_classifier(opt):
 
     norm_predictions_known1, norm_predictions_unknown1 = normalize_scores(prediction_logits_known1, prediction_logits_unknown1)
     norm_predictions_known2, norm_predictions_unknown2 = normalize_scores(prediction_logits_known2, prediction_logits_unknown2)
-    #norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(prediction_logits_known3, prediction_logits_unknown3)
+    norm_predictions_known3, norm_predictions_unknown3 = normalize_scores(prediction_logits_known3, prediction_logits_unknown3)
     prediction_logits_known = norm_predictions_known1 + norm_predictions_known2 #+ norm_predictions_known3
     prediction_logits_unknown = norm_predictions_unknown1 + norm_predictions_unknown2 #+ norm_predictions_unknown3
     probs_binary = np.concatenate((prediction_logits_known, prediction_logits_unknown), axis=0)
@@ -316,11 +312,9 @@ def feature_classifier(opt):
     auroc2 = AUROC(labels_binary, probs_binary2, opt)
     print("AUROC 1: ", auroc2)
 
-    """
     probs_binary3 = np.concatenate((prediction_logits_known3, prediction_logits_unknown3), axis=0)
     auroc3 = AUROC(labels_binary, probs_binary3, opt)
     print("AUROC 3: ", auroc3)
-    """
 
 
     probs_binary_dis1 = np.concatenate((prediction_logits_known_dis_in1, prediction_logits_unknown_dis_in1), axis=0)
@@ -331,11 +325,9 @@ def feature_classifier(opt):
     auroc_dis2 = AUROC(labels_binary, probs_binary_dis2, opt)
     print("Dis AUROC 2 is: ", auroc_dis2)
 
-    """
     probs_binary_dis3 = np.concatenate((prediction_logits_known_dis_in3, prediction_logits_unknown_dis_in3), axis=0)
     auroc_dis3 = AUROC(labels_binary, probs_binary_dis3, opt)
     print("Dis AUROC 3 is: ", auroc_dis3)
-    """
 
     norm_prediction_logits_known_dis_in1, norm_prediction_logits_unknown_dis_in1 = normalize_scores(prediction_logits_known_dis_in1, prediction_logits_unknown_dis_in1)
     norm_prediction_logits_known_dis_in2, norm_prediction_logits_unknown_dis_in2 = normalize_scores(prediction_logits_known_dis_in2, prediction_logits_unknown_dis_in2)
