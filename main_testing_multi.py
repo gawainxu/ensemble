@@ -197,6 +197,16 @@ def cat_examplars(sorted_exemplar_features1, sorted_exemplar_features2, sorted_e
     return sorted_exemplar_features
 
 
+def cat_examplars2(sorted_exemplar_features1, sorted_exemplar_features2):
+
+    sorted_exemplar_features = []
+    for exemplar_features1, exemplar_features2 in zip(sorted_exemplar_features1, sorted_exemplar_features2):
+        exemplar_features_c = [np.concatenate((f1, f2), axis=0) for f1, f2 in zip(exemplar_features1, exemplar_features2)]
+        sorted_exemplar_features.append(exemplar_features_c)
+
+    return sorted_exemplar_features
+
+
 def normalize_scores(positive_scores, negative_scores):
 
     positive_max, positive_min = max(positive_scores), min(negative_scores)
@@ -328,8 +338,7 @@ def feature_classifier(opt):
     print("Dis AUROC is: ", auroc)
 
 
-    sorted_features_examplar_head = cat_examplars(sorted_features_examplar_head1, sorted_features_examplar_head2,
-                                                  sorted_features_examplar_head2)
+    sorted_features_examplar_head = cat_examplars2(sorted_features_examplar_head1, sorted_features_examplar_head2)   # ,sorted_features_examplar_head2
     features_testing_known_head = np.concatenate(
         (features_testing_known_head1, features_testing_known_head2), axis=1)   # , features_testing_known_head3
     features_testing_unknown_head = np.concatenate(
