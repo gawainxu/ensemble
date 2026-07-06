@@ -183,7 +183,7 @@ def sort_multihead2(multihead_features):
 
     head1, head2 = [], []
     for i, multi_features in enumerate(multihead_features):
-        feature1, feature2 = multi_features
+        feature1, feature2, _ = multi_features
         head1.append(feature1.detach().cpu().numpy())
         head2.append(feature2.detach().cpu().numpy())
 
