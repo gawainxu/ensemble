@@ -151,9 +151,9 @@ def multihead_forward(model, x):
     out = torch.flatten(out, 1)
     feat1 = F.normalize(model.output_head1(out), dim=1)
     feat2 = F.normalize(model.output_head2(out), dim=1)
-    feat3 = F.normalize(model.output_head3(out), dim=1)
+    #feat3 = F.normalize(model.output_head3(out), dim=1)
 
-    return out, (feat1, feat2, feat3)
+    return out, (feat1, feat2)  # , feat3
 
 
 def normalFeatureReading_normal(model, opt, data_loader):
