@@ -103,11 +103,11 @@ class SupConResNet_MultiHead(nn.Module):
             nn.Linear(output_dim, feat_dim)
         )
 
-        #self.output_head3 = nn.Sequential(
-        #    nn.Linear(output_dim, output_dim),
-        #    nn.ReLU(inplace=True),
-        #    nn.Linear(output_dim, feat_dim)
-        #)
+        self.output_head3 = nn.Sequential(
+            nn.Linear(output_dim, output_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(output_dim, feat_dim)
+        )
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -144,9 +144,9 @@ class SupConResNet_MultiHead(nn.Module):
         out = torch.flatten(out, 1)
         feat1 = F.normalize(self.output_head1(out), dim=1)
         feat2 = F.normalize(self.output_head2(out), dim=1)
-        #feat3 = F.normalize(self.output_head3(out), dim=1)
+        feat3 = F.normalize(self.output_head3(out), dim=1)
 
-        return feat1, feat2 #, feat3
+        return feat1, feat2, feat3
 
 
 
