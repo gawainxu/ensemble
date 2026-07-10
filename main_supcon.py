@@ -17,8 +17,8 @@ from util import TwoCropTransform, AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model, label_convert
 from dataUtil import osr_splits_inliers, get_train_datasets
-from networks.resnet_big import SupConResNet
-from networks.resnet_multi import SupConResNet_MultiHead, SupConResNet_MultiHead_remix
+from networks.resnet_big import SupConResNet, SupConResNet_MultiHead_remix
+from networks.resnet_multi import SupConResNet_MultiHead
 from networks.simCNN import simCNN_contrastive
 from networks.resnet_preact import SupConpPreactResNet
 from networks.mlp import SupConMLP
