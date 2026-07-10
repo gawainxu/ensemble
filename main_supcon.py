@@ -18,7 +18,7 @@ from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model, label_convert
 from dataUtil import osr_splits_inliers, get_train_datasets
 from networks.resnet_big import SupConResNet
-from networks.resnet_multi import SupConResNet_MultiHead
+from networks.resnet_multi import SupConResNet_MultiHead, SupConResNet_MultiHead_remix
 from networks.simCNN import simCNN_contrastive
 from networks.resnet_preact import SupConpPreactResNet
 from networks.mlp import SupConMLP
@@ -167,7 +167,10 @@ def set_model(opt):
     elif opt.model == "MLP":
         model = SupConMLP(feat_dim=opt.feat_dim)
     elif opt.model == "resnet_multi":
-        model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
+        if torch.cuda.device_count() > 1:
+            model = SupConResNet_MultiHead_remix(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
+        else:
+            model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
         model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
 
