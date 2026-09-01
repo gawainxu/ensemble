@@ -105,23 +105,25 @@ class iCIFAR10(CIFAR10):
 class iCIFAR100(CIFAR100):
     def __init__(self, root,
                  classes=range(100),
-                 superClass = None,
+                 superClass=None,
                  train=True,
                  transform=None,
                  target_transform=None,
                  download=False,
-                 label_dict = None):
+                 label_dict=None,
+                 multiplier=1):
         super(iCIFAR100, self).__init__(root,
                                         train=train,
                                         transform=transform,
                                         target_transform=target_transform,
                                         download=download)
         self.label_dict = label_dict
+        self.multiplier = multiplier
 
         if superClass is not None:
-            classes = [dataUtil.classMap[n] for n in dataUtil.superClasses[superClass]] 
+            classes = [dataUtil.classMap[n] for n in dataUtil.superClasses[superClass]]
 
-        # Select subset of classes
+            # Select subset of classes
         if self.train:
             train_data = []
             train_labels = []
@@ -133,7 +135,7 @@ class iCIFAR100(CIFAR100):
 
             self.train_data = np.array(train_data)
             self.train_labels = train_labels
-            
+
         else:
             test_data = []
             test_labels = []
@@ -147,9 +149,14 @@ class iCIFAR100(CIFAR100):
             self.test_labels = test_labels
 
     def __getitem__(self, index):
+
         if self.train:
+            if self.multiplier > 1:
+                index = index % len(self.train_data)
             img, target = self.train_data[index], self.train_labels[index]
         else:
+            if self.multiplier > 1:
+                index = index % len(self.test_data)
             img, target = self.test_data[index], self.test_labels[index]
 
         if self.transform is not None:
@@ -166,19 +173,17 @@ class iCIFAR100(CIFAR100):
 
     def __len__(self):
         if self.train:
-            return len(self.train_data)
+            return len(self.train_data) * int(self.multiplier)
         else:
-            return len(self.test_data)
+            return len(self.test_data) * int(self.multiplier)
 
     def get_image_class(self, label):
         return self.train_data[np.array(self.train_labels) == label]
-    
-    
+
     def get_part_data(self, xidxs):
-        
+
         self.train_data = np.delete(self.train_data, xidxs, 0)
         self.train_labels = np.delete(self.train_labels, xidxs, 0)
-
 
     def append(self, images, labels):
         """Append dataset with images and labels
@@ -189,7 +194,7 @@ class iCIFAR100(CIFAR100):
         """
 
         self.train_data = np.concatenate((self.train_data, images), axis=0)
-        self.train_labels = self.train_labels + labels        
+        self.train_labels = self.train_labels + labels
 
 
 class mnist(MNIST):

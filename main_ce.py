@@ -79,6 +79,7 @@ def parse_option():
     parser.add_argument("--argmentation_n", type=int, default=2)
     parser.add_argument("--argmentation_m", type=int, default=6)
     parser.add_argument("--randaug", type=int, default=0)
+    parser.add_argument("--multiplier", type=float, default=1)
 
     # method
     parser.add_argument("--trail", type=int, default=0, choices=[0,1,2,3,4,5,6], help="index of repeating training")
@@ -133,7 +134,7 @@ def parse_option():
 def set_loader(opt):
     # construct data loader
     
-    train_dataset =  get_train_datasets(opt)
+    train_dataset = get_train_datasets(opt)
     test_dataset = get_test_datasets(opt)
 
     train_sampler = None
