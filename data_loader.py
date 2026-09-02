@@ -173,9 +173,9 @@ class iCIFAR100(CIFAR100):
 
     def __len__(self):
         if self.train:
-            return len(self.train_data) * int(self.multiplier)
+            return int(len(self.train_data) * self.multiplier)
         else:
-            return len(self.test_data) * int(self.multiplier)
+            return int(len(self.test_data) * self.multiplier)
 
     def get_image_class(self, label):
         return self.train_data[np.array(self.train_labels) == label]
