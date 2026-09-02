@@ -41,6 +41,7 @@ plt.show()
 
 """
 
+"""
 acc_inliers = [0.762, 0.836, 0.767, 0.804, 0.774, 0.748, 0.74]
 acc_outliers = [0.32, 0.33, 0.34, 0.32, 0.41, 0.45, 0.45]
 
@@ -94,49 +95,99 @@ fig.legend(loc='upper center', bbox_to_anchor=(0.5, 0.15), ncol=3, frameon=False
 plt.subplots_adjust(bottom=0.2)
 plt.savefig("./plots/cifar_marco.pdf")
 plt.show()
-
-
 """
-# 1. Create dummy data with vastly different scales
-cifar=[0.9191464, 0.92738026, 0.9641541, 0.98164225, 0.99598855, 0.9982147,]
-tinyimagenet=[0.64396924, 0.60834914, 0.7555859, 0.8891498, 0.9786245, 0.98934424]
-
-# 2. Set up the primary plot (Left Y-Axis)
-fig, ax1 = plt.subplots(figsize=(8, 5))
-
-color_left = 'tab:red'
-ax1.set_xlabel('Temperatures', fontsize=16)
-ax1.set_ylabel('Cifar10', color=color_left, fontsize=16)
-ax1.plot(cifar, color=color_left, linewidth=2, label='Cifar10')
-ax1.tick_params(axis='y', labelcolor=color_left)  # Matches tick text color to line
-
-# 3. Create the twin axis (Right Y-Axis)
-ax2 = ax1.twinx()  
-
-color_right = 'tab:blue'
-ax2.set_ylabel('TinyImageNet', color=color_right, fontsize=16)
-ax2.plot(tinyimagenet, color=color_right, linewidth=2,  label='TinyImageNet')
-ax2.tick_params(axis='y', labelcolor=color_right) # Matches tick text color to line
 
 
-ax1.set_xlim(0, 5)
-tick_positions = np.arange(0, 6, 1) 
-ax1.set_xticks(tick_positions)
-tick_labels = ["1.0", "0.5", "0.1", "0.05", "0.01", "0.005"] 
-ax1.set_xticklabels(tick_labels)     
+single_cifar = [76.48, 75.48, 80.58, 80.24, 83.78, 84.86]
+multi_cifar_mean = [73.91, 77.44, 80.79, 81.64, 81.28, 80.64]
+multi_cifar_max = [77.5, 80.6, 83.87, 85.84, 84.37, 84.29]
+
+single_acc_cifar = [94.35, 94.35, 94.35, 94.02, 95.02, 94.35]
+multi_acc_cifar_mean = [94.43, 94.72, 94.19, 94.09, 94.35, 93.97]
+multi_acc_cifar_max = [96.01, 92.69, 93.02, 93.02, 94.68, 94.35]
+
+single_tiny = [78.52, 76.4, 75.57, 68.9, 76, 69.57]
+multi_tiny_mean = [77.46, 77.47, 78.32, 78.9, 80.21, 78.99]
+multi_tiny_max = [87.8, 86, 85.14, 86.38, 83.67, 86]
+
+single_acc_tiny = [76, 68, 71, 72, 75, 76]
+multi_acc_tiny_mean = [71.38, 73.5, 75.11, 74.89, 76.5, 76.29]
+multi_acc_tiny_max = [73, 77, 77, 75, 79, 79]
+
+settings = ("1.0", "0.5", "0.1", "0.05", "0.01", "0.005")
+group_gap = 0.72          # smaller = closer bar groups
+x = np.arange(len(settings)) * group_gap
+width = 0.106
+
+offsets = np.array([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5]) * width
+
+# 1. Increase figsize width (from default to 12)
+fig, ax1 = plt.subplots(figsize=(15, 4))
+
+# Primary Axis (Accuracy)
+p1 = ax1.bar(x+ offsets[0], single_cifar, width, label="AUROC Single", color="green")
+ax1.bar_label(p1, padding=40, label_type='center', fontsize=10, )
+ax1.set_ylabel('AUROC (%)',  fontsize=26)
+ax1.set_ylim(0, 110)
+
+# Secondary Axis (AUROC)
+p2 = ax1.bar(x + offsets[1], multi_cifar_mean, width, label="AUROC Multi Mean", color="orange")
+ax1.bar_label(p2, padding=80, label_type='center', fontsize=10, )
+
+p3 = ax1.bar(x + offsets[2], multi_cifar_max, width, label="AUROC Multi Max", color="skyblue")
+ax1.bar_label(p3, padding=80, label_type='center', fontsize=10, fontweight='bold',)
 
 
-# Style the actual tick marks (make them a bit longer/thicker)
-ax1.tick_params(axis='x', direction='out', length=6, width=1.5, colors='black')
-
-# 4. Combine legends from both axes into a single box
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left', fontsize=12)
+ax2 = ax1.twinx()
+p4 = ax2.bar(x + offsets[3], single_acc_cifar, width, label="Acc Single", color="green", hatch="\\")
+ax2.bar_label(p4, padding=80, label_type='center', fontsize=10,)
+ax2.set_ylabel('Accuracy (%)', fontsize=26)
+ax2.set_ylim(0, 110)
 
 
-plt.title("Mean of the Gram Matrices vs. Temperature", fontsize=20)
-plt.tight_layout()
-plt.savefig("./plots/gram_mean.pdf")
+p5 = ax1.bar(x + offsets[4], multi_acc_cifar_mean, width, label="Acc Multi Mean", color="orange", hatch="\\")
+ax1.bar_label(p5, padding=80, label_type='center', fontsize=10,)
+
+p6 = ax1.bar(x + offsets[5], multi_acc_cifar_max, width, label="Acc Multi Max", color="skyblue", hatch="\\")
+ax1.bar_label(p6, padding=80, label_type='center', fontsize=10,)
+
+
+# Formatting
+ax1.set_xticks(x + width / 2)
+ax1.set_xticklabels(settings, rotation=0, fontsize=18)
+# Reduce horizontal empty space inside the axes
+left_edge = x[0] + offsets[0] - width / 2
+right_edge = x[-1] + offsets[-1] + width / 2
+
+ax1.set_xlim(left_edge - 0.02, right_edge + 0.02)
+ax1.margins(x=0)
+
+# Leave empty space at the bottom for legend
+plt.subplots_adjust(bottom=0.28)
+
+# Put legend in the reserved bottom space
+handles1, labels1 = ax1.get_legend_handles_labels()
+handles2, labels2 = ax2.get_legend_handles_labels()
+
+handles = handles1 + handles2
+labels = labels1 + labels2
+
+order = [0, 5, 1, 3, 2, 4]
+
+fig.legend(
+    [handles[i] for i in order],
+    [labels[i] for i in order],
+    loc="lower center",
+    bbox_to_anchor=(0.5, 0.02),
+    ncol=3,
+    frameon=False,
+    fontsize=14
+)
+
+plt.savefig(
+    "./plots/cifar_acc_single_multi.pdf",
+    bbox_inches="tight",
+    pad_inches=0.03
+)
+
 plt.show()
-"""
