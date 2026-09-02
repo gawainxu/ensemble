@@ -73,6 +73,7 @@ def parse_option():
     parser.add_argument("--augmentation_list", type=list, default=[])
     parser.add_argument("--argmentation_n", type=int, default=1)
     parser.add_argument("--argmentation_m", type=int, default=6)
+    parser.add_argument("--multiplier", type=float, default=1)
 
     # method
     parser.add_argument('--method', type=str, default='SupCon',
