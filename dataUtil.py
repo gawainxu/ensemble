@@ -411,7 +411,7 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
     train_dataset = data_fun(root=data_root, train=train,
                              classes=classes, download=True,
                              transform=train_transform, label_dict=label_dict,
-                             multiplier=opt.multiplier)  # portion_out=opt.portion_out, upsample_times=opt.upsample_times
+                            )  # portion_out=opt.portion_out, upsample_times=opt.upsample_times
     print("dataset size", len(train_dataset))
     return train_dataset
 
