@@ -51,11 +51,11 @@
 
 
 
-python3 feature_reading.py --datasets "tinyimgnet" --trail 1 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256/last.pth" --if_train "train" --method 'multi_head' --feature_save "/features/" --out_dim 512
-python3 feature_reading.py --datasets "tinyimgnet" --trail 1 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256/last.pth" --if_train "test_known" --method 'multi_head' --feature_save "/features/" --out_dim 512
-python3 feature_reading.py --datasets "tinyimgnet" --trail 1 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256/last.pth" --if_train "test_unknown" --method 'multi_head' --feature_save "/features/" --out_dim 512
+python3 feature_reading.py --datasets "tinyimgnet" --trail 0 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256/last.pth" --if_train "train" --method 'multi_head' --feature_save "/features/" --out_dim 512
+python3 feature_reading.py --datasets "tinyimgnet" --trail 0 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256/last.pth" --if_train "test_known" --method 'multi_head' --feature_save "/features/" --out_dim 512
+python3 feature_reading.py --datasets "tinyimgnet" --trail 0 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256/last.pth" --if_train "test_unknown" --method 'multi_head' --feature_save "/features/" --out_dim 512
 
 
-python3 feature_reading.py --datasets "tinyimgnet" --trail 1 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256/last.pth" --if_train "train" --method 'multi_head' --feature_save "/features/" --out_dim 512
-python3 feature_reading.py --datasets "tinyimgnet" --trail 1 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256/last.pth" --if_train "test_known" --method 'multi_head' --feature_save "/features/" --out_dim 512
-python3 feature_reading.py --datasets "tinyimgnet" --trail 1 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256/last.pth" --if_train "test_unknown" --method 'multi_head' --feature_save "/features/" --out_dim 512
+python3 feature_reading.py --datasets "tinyimgnet" --trail 0 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256/last.pth" --if_train "train" --method 'multi_head' --feature_save "/features/" --out_dim 512
+python3 feature_reading.py --datasets "tinyimgnet" --trail 0 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256/last.pth" --if_train "test_known" --method 'multi_head' --feature_save "/features/" --out_dim 512
+python3 feature_reading.py --datasets "tinyimgnet" --trail 0 --size 64 --model "resnet_multi" --model_path "/save/SupCon/tinyimgnet_models/tinyimgnet_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256/last.pth" --if_train "test_unknown" --method 'multi_head' --feature_save "/features/" --out_dim 512

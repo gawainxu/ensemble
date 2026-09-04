@@ -41,11 +41,11 @@ def parse_option():
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--model', type=str, default="resnet18")
     parser.add_argument("--ensembles", type=int, default=1)
-    parser.add_argument("--num_classes", type=int, default=20)
+    parser.add_argument("--num_classes", type=int, default=6)
 
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_0.5_0.5_0.5_256_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)
@@ -94,9 +94,7 @@ def KNN_logits(testing_features, sorted_exemplar_features):
         similarity_logits = []
         for training_features_c in sorted_exemplar_features:
             training_features_c = np.array(training_features_c, dtype=float)
-            similarities = np.matmul(training_features_c, testing_feature) / np.linalg.norm(training_features_c,
-                                                                                            axis=1) / np.linalg.norm(
-                testing_feature)
+            similarities = np.matmul(training_features_c, testing_feature) / np.linalg.norm(training_features_c, axis=1) / np.linalg.norm(testing_feature)
             ind = np.argsort(similarities)[-opt.K:]
             top_k_similarities = similarities[ind]
             similarity_logits.append(np.sum(top_k_similarities))
@@ -219,15 +217,15 @@ def feature_classifier(opt):
             #labels_testing_known = np.squeeze(np.array(labels_testing_known))
             head_testing_features1, head_testing_features2, head_testing_features3 = sort_head_features(features_testing_known_heads)
 
-    head_testing_features1, labels_testing_known = down_sampling(head_testing_features1,
-                                                                 labels_testing_known,
-                                                                 opt.downsampling_ratio_known)
-    head_testing_features2, labels_testing_known = down_sampling(head_testing_features2,
-                                                                 labels_testing_known,
-                                                                 opt.downsampling_ratio_known)
+    head_testing_features1, _ = down_sampling(head_testing_features1,
+                                              opt.downsampling_ratio_known,
+                                              labels_testing_known)
+    head_testing_features2, _ = down_sampling(head_testing_features2,
+                                              opt.downsampling_ratio_known,
+                                              labels_testing_known)
     head_testing_features3, labels_testing_known = down_sampling(head_testing_features3,
-                                                                 labels_testing_known,
-                                                                 opt.downsampling_ratio_known)
+                                                                 opt.downsampling_ratio_known,
+                                                                 labels_testing_known)
 
     prediction_logits_known1, predictions_known1, acc_known1 = KNN_classifier(head_testing_features1,
                                                                            labels_testing_known,
@@ -254,15 +252,15 @@ def feature_classifier(opt):
         head_unknown_features1, head_unknown_features2, head_unknown_features3 = sort_head_features(
             features_unknown_heads)
 
-    head_unknown_features1, labels_testing_unknown = down_sampling(head_unknown_features1,
-                                                                              labels_testing_unknown,
-                                                                              opt.downsampling_ratio_unknown)
-    head_unknown_features2, labels_testing_unknown = down_sampling(head_unknown_features2,
-                                                                   labels_testing_unknown,
-                                                                   opt.downsampling_ratio_unknown)
+    head_unknown_features1, _ = down_sampling(head_unknown_features1,
+                                              opt.downsampling_ratio_unknown,
+                                              labels_testing_unknown)
+    head_unknown_features2, _ = down_sampling(head_unknown_features2,
+                                              opt.downsampling_ratio_unknown,
+                                              labels_testing_unknown)
     head_unknown_features3, labels_testing_unknown = down_sampling(head_unknown_features3,
-                                                                   labels_testing_unknown,
-                                                                   opt.downsampling_ratio_unknown)
+                                                                   opt.downsampling_ratio_unknown,
+                                                                   labels_testing_unknown)
     prediction_logits_unknown1, predictions_unknown1, _ = KNN_classifier(head_unknown_features1,
                                                                        labels_testing_unknown,
                                                                        sorted_features_head1)
@@ -294,8 +292,8 @@ def feature_classifier(opt):
     auroc = AUROC(labels_binary, probs_binary, opt)
     print("AUROC is: ", auroc)
 
-    prediction_logits_known_dis_in = prediction_logits_known_dis_in1 + prediction_logits_known_dis_in2 + prediction_logits_known_dis_in3
-    prediction_logits_unknown_dis_in = prediction_logits_unknown_dis_in1 + prediction_logits_unknown_dis_in2 + prediction_logits_unknown_dis_in3
+    prediction_logits_known_dis_in = np.array(prediction_logits_known_dis_in1) + np.array(prediction_logits_known_dis_in2) + np.array(prediction_logits_known_dis_in3)
+    prediction_logits_unknown_dis_in = np.array(prediction_logits_unknown_dis_in1) + np.array(prediction_logits_unknown_dis_in2) + np.array(prediction_logits_unknown_dis_in3)
     probs_binary_dis = np.concatenate((prediction_logits_known_dis_in, prediction_logits_unknown_dis_in), axis=0)
     # print("probs_binary", probs_binary_dis)
 
@@ -303,9 +301,9 @@ def feature_classifier(opt):
     print("Dis AUROC is: ", auroc)
 
     # OSCR
-    prediction_logits_known_dis_out = prediction_logits_known_dis_out1 + prediction_logits_known_dis_out2 + prediction_logits_known_dis_out3
-    prediction_logits_unknown_dis_out = prediction_logits_unknown_dis_out1 + prediction_logits_unknown_dis_out2 + prediction_logits_unknown_dis_out3
-    predictions_known = predictions_known1 + predictions_known2 + predictions_known3
+    prediction_logits_known_dis_out = np.array(prediction_logits_known_dis_out1) + np.array(prediction_logits_known_dis_out2) + np.array(prediction_logits_known_dis_out3)
+    prediction_logits_unknown_dis_out = np.array(prediction_logits_unknown_dis_out1) + np.array(prediction_logits_unknown_dis_out2) + np.array(prediction_logits_unknown_dis_out3)
+    predictions_known = np.array(predictions_known1) + np.array(predictions_known2) + np.array(predictions_known3)
     oscr = OSCR(np.array(prediction_logits_known_dis_out), np.array(prediction_logits_unknown_dis_out),
                 predictions_known, labels_testing_known)
     print("OSCR is: ", oscr)
