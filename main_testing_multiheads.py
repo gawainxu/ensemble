@@ -35,7 +35,7 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument('--datasets', type=str, default='tinyimgnet',
+    parser.add_argument('--datasets', type=str, default='cifar10',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "tinyimgnet", 'mnist', "svhn"],
                         help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
@@ -43,9 +43,9 @@ def parse_option():
     parser.add_argument("--ensembles", type=int, default=1)
     parser.add_argument("--num_classes", type=int, default=20)
 
-    parser.add_argument("--exemplar_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_1024_1.0_0.5_0.05_256_train")
-    parser.add_argument("--testing_known_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_1024_1.0_0.5_0.05_256_test_known")
-    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/tinyimgnet_resnet_multi_trail_0_128_1024_1.0_0.5_0.05_256_test_unknown")
+    parser.add_argument("--exemplar_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256_train")
+    parser.add_argument("--testing_known_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256_test_known")
+    parser.add_argument("--testing_unknown_features_path", type=str, default="/features/cifar10_resnet_multi_trail_0_128_512_1.0_1.0_1.0_256_test_unknown")
 
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--split_train_val", type=bool, default=True)

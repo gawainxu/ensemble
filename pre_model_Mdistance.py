@@ -30,17 +30,17 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument("--num_classes", type=int, default=50)
-    parser.add_argument("--mode", type=str, default="pca", choices=["pca", "pooling", "none"])
+    parser.add_argument("--num_classes", type=int, default=10)
+    parser.add_argument("--mode", type=str, default="none", choices=["pca", "pooling", "none"])
     parser.add_argument("--split_mode", action="store_true")
     parser.add_argument("--pca_dim", type=int, default=374)
 
     parser.add_argument("--exemplar_features_path", type=str,
-                        default="/features/resnet18_imagenet50_encoder.avgpool_inliers_train")
+                        default="/features/cifar100_marco_resnet18_1trail_0_128_128_data_0_train")
     parser.add_argument("--testing_known_features_path", type=str,
-                        default="/features/resnet18_imagenet50_encoder.avgpool_inliers_test")
+                        default="/features/cifar100_marco_resnet18_1trail_0_128_128_data_0_test_known")
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/resnet18_imagenet50_encoder.avgpool_outliers_test")
+                        default="/features/cifar100_marco_resnet18_1trail_0_128_128_data_3_test_known")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
@@ -140,7 +140,7 @@ def distances(stats, test_features, mode="pca", pca=None):
             features = gap(features).numpy()
             features = features.view()
         else:
-            features = features.numpy()
+            #features = features.numpy()
             features = features.reshape(1, -1)
             features = np.squeeze(features)
         diss = []
@@ -170,7 +170,7 @@ def sort_features(features_list, labels_list, opt):
     sorted_features = [[] for _ in range(opt.num_classes)]
     for i in range(features_len):
         f, l = features_list[i], labels_list[i]
-        sorted_features[l].append(f.numpy())
+        sorted_features[l.item()].append(f)
 
     return sorted_features
 
@@ -357,8 +357,8 @@ def feature_classifier(opt):
 
     # Process results AUROC and OSCR
     # for AUROC, convert labels to binary labels, assume inliers are positive
-    labels_binary_known = [1 if i < 100 else 0 for i in labels_testing_known]
-    labels_binary_unknown = [1 if i < 100 else 0 for i in labels_testing_unknown]
+    labels_binary_known = [1 for _ in range(len(labels_testing_known))]
+    labels_binary_unknown = [0 for _ in range(len(labels_testing_unknown))]
     labels_binary = np.array(labels_binary_known + labels_binary_unknown)
 
     if opt.testing_unknown_features_path1 is not None:
