@@ -29,17 +29,17 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 def parse_option():
     parser = argparse.ArgumentParser('argument for feature reading')
 
-    parser.add_argument("--num_classes", type=int, default=30)
+    parser.add_argument("--num_classes", type=int, default=60)
     parser.add_argument("--mode", type=str, default="none", choices=["pca", "pooling", "none"])
     parser.add_argument("--K", type=int, default=3)
     parser.add_argument("--pca_dim", type=int, default=374)
 
     parser.add_argument("--exemplar_features_path", type=str,
-                        default="/features/cifar100_marco_resnet18_1trail_8_128_128_data_8_train")
+                        default="/features/cifar100_marco_resnet18_1trail_17_128_128_data_17_train")
     parser.add_argument("--testing_known_features_path", type=str,
-                        default="/features/cifar100_marco_resnet18_1trail_8_128_128_data_8_test_known")
+                        default="/features/cifar100_marco_resnet18_1trail_17_128_128_data_17_test_known")
     parser.add_argument("--testing_unknown_features_path", type=str,
-                        default="/features/cifar100_marco_resnet18_1trail_8_128_128_data_3_test_known")
+                        default="/features/cifar100_marco_resnet18_1trail_17_128_128_data_23_test_known")
 
     parser.add_argument("--exemplar_features_path1", type=str, default=None)
     parser.add_argument("--testing_known_features_path1", type=str, default=None)
