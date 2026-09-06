@@ -291,9 +291,9 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
         if opt.clip is not None:
             torch.nn.utils.clip_grad_norm_(model.parameters(), opt.clip)
         optimizer.step()
-        end_time_backward = time.perf_counter()
 
-        print("time backward", end_time_backward - start_time)
+        #end_time_backward = time.perf_counter()
+        #print("time backward", end_time_backward - start_time)
 
         # measure elapsed time
         batch_time.update(time.time() - end)
