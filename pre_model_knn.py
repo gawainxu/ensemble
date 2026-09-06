@@ -252,8 +252,8 @@ def feature_classifier(opt):
         if "vit" in opt.testing_known_features_path:
             features_testing_known = [feat[:, 0] for feat in features_testing_known]
 
-        features_testing_known, labels_testing_known = down_sampling(
-            features_testing_known, labels_testing_known, 10)
+        features_testing_known =features_testing_known[::10]
+        labels_testing_known = labels_testing_known[::10]
 
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
