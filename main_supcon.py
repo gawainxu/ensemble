@@ -261,6 +261,7 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
         if opt.model == "resnet_multi":
             time.sleep(1)
             features1, features2, features3 = model(images)
+
             features1_1, features1_2 = torch.split(features1, [bsz, bsz], dim=0)
             features2_1, features2_2 = torch.split(features2, [bsz, bsz], dim=0)
             features3_1, features3_2 = torch.split(features3, [bsz, bsz], dim=0)
@@ -275,7 +276,9 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
             losses2.update(loss2.item(), bsz)
             losses3.update(loss3.item(), bsz)
         else:
+            time.sleep(1)
             features = model(images)
+
             features1, features2 = torch.split(features, [bsz, bsz], dim=0)
             features = torch.cat([features1.unsqueeze(1), features2.unsqueeze(1)], dim=1)
             loss = criterion1(features, labels)
