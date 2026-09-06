@@ -261,8 +261,6 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
         if opt.model == "resnet_multi":
             time.sleep(1)
             features1, features2, features3 = model(images)
-            end_time_forward = time.perf_counter()
-            print("time forward", end_time_forward - start_time)
             features1_1, features1_2 = torch.split(features1, [bsz, bsz], dim=0)
             features2_1, features2_2 = torch.split(features2, [bsz, bsz], dim=0)
             features3_1, features3_2 = torch.split(features3, [bsz, bsz], dim=0)
@@ -283,6 +281,8 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
             loss = criterion1(features, labels)
 
         # update metric
+        end_time_forward = time.perf_counter()
+        print("time forward", end_time_forward - start_time)
         losses.update(loss.item(), bsz)
         # SGD
         optimizer.zero_grad()
