@@ -223,7 +223,7 @@ def dimension_reduction_pooling(sorted_features):
 
 def feature_classifier(opt):
     with open(opt.exemplar_features_path, "rb") as f:
-        _, features_exemplar, labels_examplar = pickle.load(f)
+        features_exemplar, _, labels_examplar = pickle.load(f)
     if "vit" in opt.exemplar_features_path:
         features_exemplar = [feat[:, 0] for feat in features_exemplar]
 
@@ -248,9 +248,12 @@ def feature_classifier(opt):
 
     if opt.testing_known_features_path is not None:
         with open(opt.testing_known_features_path, "rb") as f:
-            _, features_testing_known, labels_testing_known = pickle.load(f)
+            features_testing_known, _, labels_testing_known = pickle.load(f)
         if "vit" in opt.testing_known_features_path:
             features_testing_known = [feat[:, 0] for feat in features_testing_known]
+
+        features_testing_known, labels_testing_known = down_sampling(
+            features_testing_known, labels_testing_known, 10)
 
     if opt.testing_known_features_path1 is not None:
         with open(opt.testing_known_features_path1, "rb") as f:
@@ -273,7 +276,7 @@ def feature_classifier(opt):
             features_testing_known, labels_testing_known, sorted_features_exemplar, mode=opt.mode)
 
     with open(opt.testing_unknown_features_path, "rb") as f:
-        _, features_testing_unknown, labels_testing_unknown = pickle.load(f)
+        features_testing_unknown, _, labels_testing_unknown = pickle.load(f)
     if "vit" in opt.testing_unknown_features_path:
         features_testing_unknown = [feat[:, 0] for feat in features_testing_unknown]
 
