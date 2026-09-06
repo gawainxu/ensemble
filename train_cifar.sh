@@ -9,4 +9,6 @@
 
 
 #python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi" --datasets "cifar10" --method "SupCon" --trail 0 --temp1 1. --temp2 1. --temp3 1.
-python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi" --datasets "cifar10" --method "SupCon" --trail 0 --temp1 0.5 --temp2 0.5 --temp3 0.5
+#python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet_multi" --datasets "cifar10" --method "SupCon" --trail 0 --temp1 0.5 --temp2 0.5 --temp3 0.5
+
+python3 main_supcon.py --batch_size 256 --epochs 600 --learning_rate 0.001 --cosine True --lr_decay_rate 0.8 --model "resnet18" --datasets "cifar10" --method "SupCon" --trail 0 --temp 0.5
