@@ -7,7 +7,8 @@ import time
 import math
 import pickle
 import random
-import copy
+from datetime import datetime
+import time
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -258,7 +259,10 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
 
         # compute loss
         if opt.model == "resnet_multi":
+            start_time = time.perf_counter()
+            time.sleep(1)
             features1, features2, features3 = model(images)
+            end_time_forward = time.perf_counter()
             features1_1, features1_2 = torch.split(features1, [bsz, bsz], dim=0)
             features2_1, features2_2 = torch.split(features2, [bsz, bsz], dim=0)
             features3_1, features3_2 = torch.split(features3, [bsz, bsz], dim=0)
@@ -287,6 +291,9 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
         if opt.clip is not None:
             torch.nn.utils.clip_grad_norm_(model.parameters(), opt.clip)
         optimizer.step()
+        end_time_backward = time.perf_counter()
+
+        print("time forward", end_time_forward - start_time, "time backward", end_time_backward - end_time_forward)
 
         # measure elapsed time
         batch_time.update(time.time() - end)
