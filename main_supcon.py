@@ -293,7 +293,7 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
         optimizer.step()
         end_time_backward = time.perf_counter()
 
-        print("time forward", end_time_forward - start_time, "time backward", end_time_backward - end_time_forward)
+        print("time forward", end_time_forward - start_time, "time backward", end_time_backward - start_time)
 
         # measure elapsed time
         batch_time.update(time.time() - end)
