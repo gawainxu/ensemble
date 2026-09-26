@@ -16,7 +16,7 @@ from util import AverageMeter
 from main_supcon import set_loader
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer, save_model
-from networks.resnet_big import SupConResNet, SupCEResNet, LinearClassifier
+from networks.resnet_big import SupConResNet, SupConResNet_MultiHead_remix, LinearClassifier
 from networks.resnet_preact import SupConpPreactResNet
 from networks.simCNN import simCNN_contrastive
 from networks.mlp import SupConMLP
@@ -63,12 +63,12 @@ def parse_option():
                         choices=["resnet18", "resnet34", "vgg16", "simCNN", "MLP"])
     parser.add_argument('--datasets', type=str, default='tinyimgnet',
                         choices=["cifar-10-100-10", "cifar-10-100-50", 'cifar10', "cifar100", "tinyimgnet", 'mnist',
-                                 "svhn", "cifar100_marco"], help='dataset')
+                                 "svhn", "cifar100_marco", "imagenet100"], help='dataset')
     parser.add_argument("--backbone_model_direct", type=str,
                         default="/save/SupCon/tinyimgnet_resnet18_trail_0_128_0.5/")
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
-    parser.add_argument("--trail_backbone", type=int, default=0)
     parser.add_argument("--trail", type=int, default=0)
+    parser.add_argument("--heads", type=int, default=1)
 
     # upsampling parameters
     parser.add_argument("--upsample", type=bool, default=False)
@@ -88,7 +88,6 @@ def parse_option():
 
     opt = parser.parse_args()
 
-    opt.num_classes_backbone = len(osr_splits_inliers[opt.datasets][opt.trail_backbone])
     opt.num_classes = len(osr_splits_inliers[opt.datasets][opt.trail])
 
     iterations = opt.lr_decay_epochs.split(',')
@@ -136,14 +135,10 @@ def set_model(opt):
     else:
         in_channels = 3
 
-    if opt.model == "resnet18" or opt.model == "resnet34":
+    if opt.heads == 1:
         model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "preactresnet18" or opt.model == "preactresnet34":
-        model = SupConpPreactResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
-    elif opt.model == "MLP":
-        model = SupConMLP(feat_dim=opt.feat_dim)
     else:
-        model = simCNN_contrastive(opt, feature_dim=opt.feat_dim, in_channels=in_channels)
+        model = SupConResNet_MultiHead_remix(name=opt.model, output_dim=512, feat_dim=128, in_channels=in_channels)
 
     model = load_model(model, opt.backbone_model_path)
 
