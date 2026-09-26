@@ -163,7 +163,7 @@ def set_loader(opt):
     return train_loader, test_loader
 
 
-def train(train_loader, model, model2, model3, classifier, criterion, optimizer, epoch, opt):
+def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
     """one epoch training"""
 
     model.eval()
@@ -221,7 +221,7 @@ def train(train_loader, model, model2, model3, classifier, criterion, optimizer,
     return losses.avg, top1.avg
 
 
-def validate(val_loader, model, model2, model3, classifier, criterion, opt):
+def validate(val_loader, model, classifier, criterion, opt):
     """validation"""
     model.eval()
     classifier.eval()
@@ -273,10 +273,10 @@ def main():
     opt = parse_option()
 
     # build data loader
-    train_loader, test_loader, train_loader4test = set_loader(opt)
+    train_loader, test_loader = set_loader(opt)
 
     # build model and criterion
-    model, model2, model3, classifier, criterion = set_model(opt)
+    model, classifier, criterion = set_model(opt)
 
     # build optimizer
     optimizer = set_optimizer(opt, classifier)
@@ -287,7 +287,7 @@ def main():
 
         # train for one epoch
         time1 = time.time()
-        loss, acc = train(train_loader, model, model2, model3, classifier, criterion,
+        loss, acc = train(train_loader, model, classifier, criterion,
                           optimizer, epoch, opt)
         time2 = time.time()
         print('Train epoch {}, total time {:.2f}, accuracy:{:.2f}, loss:{:.2f}'.format(
@@ -297,7 +297,7 @@ def main():
     save_file = os.path.join(opt.backbone_model_direct, save_file)
     save_model(classifier, optimizer, opt, epoch, save_file)
 
-    _, acc_val = validate(train_loader4test, model, model2, model3, classifier, criterion, opt)
+    _, acc_val = validate(test_loader, model, classifier, criterion, opt)
     print('Evl accuracy:{:.2f}'.format(acc_val))
 
 
