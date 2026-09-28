@@ -290,11 +290,8 @@ def main():
                           optimizer, epoch, opt)
         time2 = time.time()
 
-        if epoch % opt.print_freq == 0:
-            print('Train epoch {}, total time {:.2f}, accuracy:{:.2f}, loss:{:.2f}'.format(
-            epoch, time2 - time1, acc, loss))
-            _, acc_val = validate(test_loader, model, classifier, criterion, opt)
-            print('Evl accuracy:{:.2f}'.format(acc_val))
+        _, acc_val = validate(test_loader, model, classifier, criterion, opt)
+        print('Evl accuracy:{:.2f}'.format(acc_val))
 
     save_file = opt.backbone_model_name.replace(".pth", "_backbone_linear") + ".pth"
     save_file = os.path.join(opt.backbone_model_direct, save_file)
