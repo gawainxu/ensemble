@@ -67,6 +67,7 @@ def parse_option():
     parser.add_argument("--backbone_model_name", type=str, default="last.pth")
     parser.add_argument("--trail", type=int, default=0)
     parser.add_argument("--heads", type=int, default=3)
+    parser.add_argument("--remix", type=int, default=0)
 
     # upsampling parameters
     parser.add_argument("--upsample", type=bool, default=False)
@@ -136,8 +137,10 @@ def set_model(opt):
     if opt.heads == 1:
         model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
-        model = SupConResNet_MultiHead(output_dim=512, feat_dim=opt.feat_dim, in_channels=in_channels)
-        #model = SupConResNet_MultiHead_remix(name=opt.model, output_dim=512, feat_dim=128, in_channels=in_channels)
+        if opt.remix == 1:
+            model = SupConResNet_MultiHead_remix(name=opt.model, output_dim=512, feat_dim=128, in_channels=in_channels)
+        else:
+            model = SupConResNet_MultiHead(output_dim=512, feat_dim=opt.feat_dim, in_channels=in_channels)
 
     model = load_model(model, opt.backbone_model_path)
 
