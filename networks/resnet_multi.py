@@ -144,6 +144,17 @@ class SupConResNet_MultiHead(nn.Module):
 
         return feat1, feat2, feat3
 
+    def encoder(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.avgpool(out)
+        out = torch.flatten(out, 1)
+
+        return out
+
 
 
 if __name__ == "__main__":
