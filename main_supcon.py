@@ -147,7 +147,7 @@ def parse_option():
 def set_loader(opt):
     # construct data loader
 
-    train_dataset =  get_train_datasets(opt)
+    train_dataset = get_train_datasets(opt)
 
     train_sampler = None
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
