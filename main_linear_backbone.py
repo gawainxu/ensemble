@@ -254,13 +254,13 @@ def validate(val_loader, model, classifier, criterion, opt):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if idx % opt.print_freq == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Acc {top1.val:.3f} ({top1.avg:.3f})'.format(
-                    idx, len(val_loader), batch_time=batch_time,
-                    loss=losses, top1=top1))
+
+        print('Test: [{0}/{1}]\t'
+              'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+              'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+              'Acc {top1.val:.3f} ({top1.avg:.3f})'.format(
+              idx, len(val_loader), batch_time=batch_time,
+               loss=losses, top1=top1))
 
     preds = np.array(preds)
     with open(os.path.join(opt.backbone_model_direct, "pred_out"), "wb") as f:
