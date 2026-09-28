@@ -17,9 +17,7 @@ from main_supcon import set_loader
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer, save_model
 from networks.resnet_big import SupConResNet, SupConResNet_MultiHead_remix, LinearClassifier
-from networks.resnet_preact import SupConpPreactResNet
-from networks.simCNN import simCNN_contrastive
-from networks.mlp import SupConMLP
+from networks.resnet_multi import SupConResNet_MultiHead
 from dataUtil import osr_splits_inliers, get_train_datasets, get_test_datasets
 
 try:
@@ -138,7 +136,8 @@ def set_model(opt):
     if opt.heads == 1:
         model = SupConResNet(name=opt.model, feat_dim=opt.feat_dim, in_channels=in_channels)
     else:
-        model = SupConResNet_MultiHead_remix(name=opt.model, output_dim=512, feat_dim=128, in_channels=in_channels)
+        model = SupConResNet_MultiHead(output_dim=opt.out_dim, feat_dim=opt.feat_dim, in_channels=in_channels)
+        #model = SupConResNet_MultiHead_remix(name=opt.model, output_dim=512, feat_dim=128, in_channels=in_channels)
 
     model = load_model(model, opt.backbone_model_path)
 
