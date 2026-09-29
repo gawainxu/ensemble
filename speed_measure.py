@@ -63,7 +63,7 @@ def parse_option():
                         help='momentum')
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet_multi',
+    parser.add_argument('--model', type=str, default='resnet18',
                         choices=["resnet18", "resnet_multi", "resnet34", "preactresnet18", "preactresnet34", "simCNN",
                                  "MLP"])
     parser.add_argument("--last_model_path", type=str, default=None)
@@ -264,15 +264,15 @@ def train_step_single(model, images, labels, criterion, optimizer):
 def train_step_multi(model, images, labels, criterion, optimizer):
     features1, features2, features3 = model(images)
     features1_1, features1_2 = torch.split(features1, [256, 256], dim=0)
-    features2_1, features2_2 = torch.split(features2, [256, 256], dim=0)
-    features3_1, features3_2 = torch.split(features3, [256, 256], dim=0)
+    #features2_1, features2_2 = torch.split(features2, [256, 256], dim=0)
+    #features3_1, features3_2 = torch.split(features3, [256, 256], dim=0)
     features1 = torch.cat([features1_1.unsqueeze(1), features1_2.unsqueeze(1)], dim=1)
-    features2 = torch.cat([features2_1.unsqueeze(1), features2_2.unsqueeze(1)], dim=1)
-    features3 = torch.cat([features3_1.unsqueeze(1), features3_2.unsqueeze(1)], dim=1)
+    #features2 = torch.cat([features2_1.unsqueeze(1), features2_2.unsqueeze(1)], dim=1)
+    #features3 = torch.cat([features3_1.unsqueeze(1), features3_2.unsqueeze(1)], dim=1)
     loss1 = criterion(features1, labels)
-    loss2 = criterion(features2, labels)
-    loss3 = criterion(features3, labels)
-    loss = loss1 + loss2 + loss3
+    #loss2 = criterion(features2, labels)
+    #loss3 = criterion(features3, labels)
+    loss = loss1 + loss1 + loss1
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
@@ -319,7 +319,7 @@ def speed(train_loader, model, criterions, optimizer, opt):
         #loss.backward()
         #optimizer.step()
 
-    return train_ms, train_ips, infer_ms, infer_ips
+        return train_ms, train_ips, infer_ms, infer_ips
 
 def main():
     opt = parse_option()
