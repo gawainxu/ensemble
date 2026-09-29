@@ -767,6 +767,44 @@ class Aircraft(VisionDataset):
         return images, labels
 
 
+def MITScene(root, classes=range(100), train=True, opt=None, transform=None,
+            target_transform=None, download=False, label_dict = None, last_features_list=None,
+            last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+    if train:
+        data_path = root + "/" + "MIT_train"
+    else:
+        data_path = root + "/" + "MIT_test"
+
+    dataset = ImageFolder(data_path, transform=transform)
+
+    return dataset
+
+
+def Flower102(root, classes=range(10), train=True, opt=None, transform=None,
+              target_transform=None, download=False, label_dict = None, last_features_list=None,
+              last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+    if train:
+        data_path = root + "/" + "flower_train"
+    else:
+        data_path = root + "/" + "flower_test"
+
+    dataset = ImageFolder(data_path, transform=transform)
+
+    return dataset
+
+
+def DTD(root, classes=range(100), train=True, opt=None, transform=None,
+        target_transform=None, download=False, label_dict = None, last_features_list=None,
+        last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1, upsample_times=1):
+    if train:
+        data_path = root + "/" + "DTD_train"
+    else:
+        data_path = root + "/" + "DTD_test"
+
+    dataset = ImageFolder(data_path, transform=transform)
+
+    return dataset
+
 def ImageNet100(root, classes=range(50), train=True, opt=None, transform=None,
                 target_transform=None, download=False, label_dict=None):
     # put the data in the same directory with the project

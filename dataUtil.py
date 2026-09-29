@@ -143,6 +143,12 @@ osr_splits_inliers = {
     "cifar100": [list(range(10))],
 
     "imagenet100": [list(range(50))],
+
+    "mit": [list(range(67))],
+
+    "dtd": [list(range(47))],
+
+    "flower": [list(range(102))],
                        #[[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
                        #[0, 1, 5, 6, 10, 11, 15, 16, 20, 21, 25, 26, 30, 31, 35, 36, 40, 41, 45, 46],
                        #[4, 9, 14, 19, 24, 29, 34, 39, 44, 49],
@@ -245,6 +251,12 @@ osr_splits_outliers = {
     ],
 
     "imagenet100": [list(range(50, 100))],
+
+    "mit": [list(range(67))],
+
+    "dtd": [list(range(47))],
+
+    "flower": [list(range(102))],
 }
 
 
@@ -261,6 +273,7 @@ def pickClass(classIdx):
 import copy
 import random
 from data_loader import iCIFAR10, iCIFAR100, TinyImagenet, customSVHN, mnist, CUB, Aircraft, ImageNet100
+from data_loader import MITScene, DTD, Flower102
 from util import TwoCropTransform
 from torchvision import transforms, datasets
 from config import data_root
@@ -281,10 +294,12 @@ num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-
 
 
 data_function_mapping = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR10, "cifar-10-100-50": iCIFAR10, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
-                         "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
+                         "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft,
+                         "mit": MITScene, "flower": Flower102, "dtd": DTD}
 
 data_function_mapping_testing = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR100, "cifar-10-100-50": iCIFAR100, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
-                                 "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft}
+                                 "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft,
+                                 "mit": MITScene, "flower": Flower102, "dtd": DTD}
 
 
 mean_mapping = {"mnist":  (0.1307,),
@@ -297,7 +312,10 @@ mean_mapping = {"mnist":  (0.1307,),
                 "tinyimgnet": (0.485, 0.456, 0.406),
                 "aircraft": (0.485, 0.456, 0.406), 
                 "cub": (0.485, 0.456, 0.406),
-                "imagenet100": (0.485, 0.456, 0.406),}                 # 0.408, 0.459, 0.502, 123., 117., 104.
+                "imagenet100": (0.485, 0.456, 0.406),
+                "mit": (0.485, 0.456, 0.406),
+                "flower": (0.485, 0.456, 0.406),
+                "dtd": (0.485, 0.456, 0.406),}                 # 0.408, 0.459, 0.502, 123., 117., 104.
 
 std_mapping = {"mnist": (0.3081,),
                "svhn": (0.19803012, 0.20101562, 0.19703614),
@@ -309,7 +327,10 @@ std_mapping = {"mnist": (0.3081,),
                "tinyimgnet": (0.229, 0.224, 0.225),
                "aircraft": (0.229, 0.224, 0.225),
                "cub": (0.229, 0.224, 0.225),
-               "imagenet100": (0.485, 0.456, 0.406),}               # 1., 1., 1.
+               "imagenet100": (0.485, 0.456, 0.406),
+               "mit": (0.229, 0.224, 0.225),
+               "flower": (0.229, 0.224, 0.225),
+               "dtd": (0.229, 0.224, 0.225),}               # 1., 1., 1.
 
 
 image_size_mapping = {"mnist": 32,
@@ -322,7 +343,10 @@ image_size_mapping = {"mnist": 32,
                       "tinyimgnet": 64, 
                       "aircraft": 224,
                       "cub": 224,
-                      "imagenet100": 224}
+                      "imagenet100": 224,
+                      "mit": 224,
+                      "flower": 224,
+                      "dtd": 224,}
 
 
 def label_to_dict(labels, outliers=False):
@@ -353,7 +377,7 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
                                                                          p=0.8),
                                                   transforms.RandomGrayscale(p=0.2), ])
         elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars",
-                              "aircraft"]:
+                              "aircraft", "mit", "flower", "dtd"]:
             train_transform = transforms.Compose(
                 [transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                  transforms.Resize((size, size)),
@@ -380,7 +404,7 @@ def get_train_datasets(opt, class_idx=None, last_features_list=None, last_featur
             train_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
                                                   transforms.Resize((size, size))])
         elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars",
-                              "aircraft"]:
+                              "aircraft", "mit", "flower", "dtd"]:
             train_transform = transforms.Compose([transforms.ToTensor(),
                                                   transforms.Resize((size, size)), normalize])
         else:
@@ -428,7 +452,8 @@ def get_test_datasets(opt, class_idx = None):
     elif opt.datasets == "FUB":
         test_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
                                               transforms.CenterCrop((size, size)),])
-    elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars", "aircraft"]:
+    elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars",
+                          "aircraft", "mit", "flower", "dtd"]:
         test_transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((224, 224)), normalize])
     else:
         test_transform = transforms.Compose([transforms.ToTensor(), normalize])
@@ -470,7 +495,8 @@ def get_outlier_datasets(opt, class_idx=None):
         elif opt.datasets == "FUB":
             test_transform = transforms.Compose([transforms.ToTensor(), transforms.CenterCrop((224, 288)),
                                                  transforms.CenterCrop((size, size)), ])
-        elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars", "aircraft"]:
+        elif opt.datasets in ["imagenet100", "imagenet100_small", "ImageNet100_Folder", "imagenet100_m", "cub", "cars",
+                              "aircraft", "mit", "flower", "dtd"]:
             test_transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((224, 224)),
                                                  normalize])
         else:
