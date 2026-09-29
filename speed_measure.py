@@ -306,14 +306,14 @@ def speed(train_loader, model, criterions, optimizer, opt):
         # compute loss
         model.train()
         if opt.model == "resnet_multi":
-            time.sleep(1)
             train_ms, train_ips = measure(train_step_multi, model, images, labels, criterion1, optimizer)
         else:
-            time.sleep(1)
             train_ms, train_ips = measure(train_step_single, model, images, labels, criterion1, optimizer)
+        print(f"Training:  {train_ms:.2f} ms/batch, {train_ips:.1f} images/s")
 
         model.eval()
         infer_ms, infer_ips = measure(inference_step, model, images, labels, criterion1, optimizer)
+        print(f"Inference: {infer_ms:.2f} ms/batch, {infer_ips:.1f} images/s")
 
         #optimizer.zero_grad()
         #loss.backward()
