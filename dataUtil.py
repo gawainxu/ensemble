@@ -290,7 +290,7 @@ from sklearn.pipeline import make_pipeline
 
 
 num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-50": 4, "cifar100_marco": 20, "imagenet100": 50,
-                              "tinyimgnet": 20, "mnist": 6, "svhn": 6, "cub": 100, "aircraft": 20, "cifar100": 10}
+                              "tinyimgnet": 20, "mnist": 6, "svhn": 6, "cub": 100, "aircraft": 20, "cifar100": 10, "cars": 98,}
 
 
 data_function_mapping = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR10, "cifar-10-100-50": iCIFAR10, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
