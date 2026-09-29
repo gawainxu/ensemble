@@ -563,10 +563,16 @@ class customSVHN(SVHN):
 
 class CUB(Dataset):
 
-    def __init__(self, root, classes=range(200), download=False,
+    def __init__(self, root, classes=range(1, 201), opt=None, download=False,
                  train=True, transform=None, target_transform=None,
-                 label_dict=None):
-        
+                 label_dict=None, last_features_list=None, last_features=None,
+                 last_feature_labels=None, last_model=None, last_feature_labels_list=None,
+                 subsample_transform=None):
+
+        """
+        classes should be indexed from 1!!!!
+        """
+
         self.root = root
         self.transform = transform
         self.target_trasnform = target_transform
@@ -574,10 +580,10 @@ class CUB(Dataset):
         self.label_dict = label_dict
         self.loader = default_loader
 
-        images_folder = "/CUB_200_2011/images/"
-        image_list_file = "CUB_200_2011/images.txt"
-        image_class_file = "CUB_200_2011/image_class_labels.txt"
-        train_test_split_file = "CUB_200_2011/train_test_split.txt"
+        images_folder = "/CUB/images/"
+        image_list_file = "CUB/images.txt"
+        image_class_file = "CUB/image_class_labels.txt"
+        train_test_split_file = "CUB/train_test_split.txt"
 
         with open(os.path.join(self.root, image_list_file), "r") as f:
             lines = f.readlines()
@@ -597,7 +603,7 @@ class CUB(Dataset):
             index, class_index = line.split(" ")
             index = int(index)
             class_index = int(class_index)
-            assert i+1 == self.file_dict["indices"][i]
+            assert i + 1 == self.file_dict["indices"][i]
             self.file_dict["label"].append(class_index)
 
         with open(os.path.join(self.root, train_test_split_file), "r") as f:
@@ -606,30 +612,31 @@ class CUB(Dataset):
         for i, line in enumerate(lines):
             index, split = line.split(" ")
             index = int(index)
-            split = int(bool(10%5))
-            assert i+1 == self.file_dict["indices"][i]
+            split = int(bool(i % 5))  # int(split)
+            assert i + 1 == self.file_dict["indices"][i]
             self.file_dict["train_test_split"].append(split)
 
         if self.train:
             self.train_data = []
             self.train_labels = []
-            for i, (path, label, split) in enumerate(zip(self.file_dict["path"], self.file_dict["label"], self.file_dict["train_test_split"])):
-                if split == 0 and label not in classes:
+            for i, (path, label, split) in enumerate(
+                    zip(self.file_dict["path"], self.file_dict["label"], self.file_dict["train_test_split"])):
+                if split == 0 or label not in classes:
                     continue
                 img = self.loader(self.root + images_folder + path)
                 self.train_data.append(img)
                 self.train_labels.append(label)
-                                                                                        
+
         else:
             self.test_data = []
             self.test_labels = []
-            for i, (path, label, split) in enumerate(zip(self.file_dict["path"], self.file_dict["label"], self.file_dict["train_test_split"])):
-                if split == 1 and label not in classes:
+            for i, (path, label, split) in enumerate(
+                    zip(self.file_dict["path"], self.file_dict["label"], self.file_dict["train_test_split"])):
+                if split == 1 or label not in classes:
                     continue
                 img = self.loader(self.root + images_folder + path)
                 self.test_data.append(img)
                 self.test_labels.append(label)
-
 
     def __getitem__(self, index):
 
@@ -649,20 +656,17 @@ class CUB(Dataset):
 
         return img, target
 
-    
     def __len__(self):
         if self.train:
             return len(self.train_data)
         else:
             return len(self.test_data)
 
-    
     def get_image_class(self, label):
         return self.train_data[np.array(self.train_labels) == label]
-    
-    
+
     def get_part_data(self, xidxs):
-        
+
         self.train_data = np.delete(self.train_data, xidxs, 0)
         self.train_labels = np.delete(self.train_labels, xidxs, 0)
 
@@ -686,10 +690,11 @@ class Aircraft(VisionDataset):
     url = 'http://www.robots.ox.ac.uk/~vgg/data/fgvc-aircraft/archives/fgvc-aircraft-2013b.tar.gz'
     class_types = ('variant', 'family', 'manufacturer')
     splits = ('train', 'val', 'trainval', 'test')
-    img_folder = os.path.join('fgvc-aircraft-2013b', 'data', 'images')
+    img_folder = os.path.join('Aircraft', 'data', 'images')
 
-    def __init__(self, root, train=True, classes=range(100), download=False,  transform=None,
-                 target_transform=None, label_dict = None, class_type='variant'):
+    def __init__(self, root, train=True, opt=None, classes=range(100), download=False, transform=None,
+                 target_transform=None, label_dict=None, last_features_list=None, last_feature_labels_list=None,
+                 last_model=None, subsample_transform=None, class_type='variant'):
 
         super(Aircraft, self).__init__(root, transform=transform, target_transform=target_transform)
         split = 'trainval' if train else 'test'
@@ -707,7 +712,8 @@ class Aircraft(VisionDataset):
         self.classes = classes
         self.split = split
         self.loader = default_loader
-        self.classes_file = os.path.join(self.root, 'fgvc-aircraft-2013b', 'data',
+        self.transform = transform
+        self.classes_file = os.path.join(self.root, 'Aircraft', 'data',
                                          'images_%s_%s.txt' % (self.class_type, self.split))
 
         (image_ids, targets, total_classes, class_to_idx) = self.find_classes()
@@ -717,7 +723,7 @@ class Aircraft(VisionDataset):
         self.targets = targets
         self.total_classes = total_classes
         self.class_to_idx = class_to_idx
-
+        self.label_dict = label_dict
 
     def __getitem__(self, index):
         sample, target = self.samples[index], self.targets[index]
@@ -725,8 +731,8 @@ class Aircraft(VisionDataset):
             sample = self.transform(sample)
         if self.target_transform is not None:
             target = self.target_transform(target)
-        if self.target_transform is not None:
-            target = self.target_transform(target)
+        if self.label_dict is not None:
+            target = self.label_dict[str(target)]
         return sample, target
 
     def __len__(self):
@@ -734,7 +740,7 @@ class Aircraft(VisionDataset):
 
     def _check_exists(self):
         return os.path.exists(os.path.join(self.root, self.img_folder)) and \
-               os.path.exists(self.classes_file)
+            os.path.exists(self.classes_file)
 
     def find_classes(self):
         # read classes file, separating out image IDs and class names
@@ -765,6 +771,46 @@ class Aircraft(VisionDataset):
             images.append(image)
             labels.append(targets[i])
         return images, labels
+
+
+class Cars(Dataset):
+
+    def __init__(self, root, classes=range(100), train=True, opt=None, transform=None,
+                 target_transform=None, download=False, label_dict=None, last_features_list=None,
+                 last_feature_labels_list=None, last_model=None, subsample_transform=None, portion_out=0.1,
+                 upsample_times=1):
+
+        if train:
+            data_dir = os.path.join(root, "Cars/train")
+        else:
+            data_dir = os.path.join(root, "Cars/test")
+
+        self.dataset = ImageFolder(data_dir)
+        self.samples = []
+        self.targets = []
+        self.transform = transform
+        self.target_transform = target_transform
+        self.label_dict = label_dict
+
+        for img, l in self.dataset:
+            if l in classes:
+                self.samples.append(img)
+                self.targets.append(l)
+        print(len(self.samples))
+
+    def __getitem__(self, index):
+        sample, target = self.samples[index], self.targets[index]
+        if self.transform is not None:
+            sample = self.transform(sample)
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+        if self.label_dict is not None:
+            target = self.label_dict[str(target)]
+        return sample, target
+
+    def __len__(self):
+
+        return len(self.samples)
 
 
 def MITScene(root, classes=range(100), train=True, opt=None, transform=None,

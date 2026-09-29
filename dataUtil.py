@@ -288,7 +288,7 @@ def pickClass(classIdx):
 import copy
 import random
 from data_loader import iCIFAR10, iCIFAR100, TinyImagenet, customSVHN, mnist, CUB, Aircraft, ImageNet100
-from data_loader import MITScene, DTD, Flower102
+from data_loader import MITScene, DTD, Flower102, Cars
 from util import TwoCropTransform
 from torchvision import transforms, datasets
 from config import data_root
@@ -310,11 +310,11 @@ num_inlier_classes_mapping = {"cifar10": 6, "cifar-10-100-10": 4, "cifar-10-100-
 
 data_function_mapping = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR10, "cifar-10-100-50": iCIFAR10, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
                          "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft,
-                         "mit": MITScene, "flower": Flower102, "dtd": DTD}
+                         "mit": MITScene, "flower": Flower102, "dtd": DTD, "cars": Cars}
 
 data_function_mapping_testing = {"cifar10": iCIFAR10, "cifar-10-100-10": iCIFAR100, "cifar-10-100-50": iCIFAR100, "cifar100_marco": iCIFAR100, "imagenet100": ImageNet100,
                                  "cifar100": iCIFAR100, "tinyimgnet": TinyImagenet, "mnist": mnist, "svhn": customSVHN, "cub": CUB, "aircraft": Aircraft,
-                                 "mit": MITScene, "flower": Flower102, "dtd": DTD}
+                                 "mit": MITScene, "flower": Flower102, "dtd": DTD, "cars": Cars}
 
 
 mean_mapping = {"mnist":  (0.1307,),
@@ -343,6 +343,7 @@ std_mapping = {"mnist": (0.3081,),
                "tinyimgnet": (0.229, 0.224, 0.225),
                "aircraft": (0.229, 0.224, 0.225),
                "cub": (0.229, 0.224, 0.225),
+               "cars": (0.229, 0.224, 0.225),
                "imagenet100": (0.485, 0.456, 0.406),
                "mit": (0.229, 0.224, 0.225),
                "flower": (0.229, 0.224, 0.225),
@@ -359,6 +360,7 @@ image_size_mapping = {"mnist": 32,
                       "tinyimgnet": 64, 
                       "aircraft": 224,
                       "cub": 224,
+                      "cars": 224,
                       "imagenet100": 224,
                       "mit": 224,
                       "flower": 224,
