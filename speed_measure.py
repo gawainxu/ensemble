@@ -155,15 +155,16 @@ def parse_option():
 def synchronize():
     torch.cuda.synchronize()
 
-def measure(step, warmup=5, repeats=10):
-    for _ in range(warmup):
-        step()
+def measure(step, model, images, labels, criterion1, optimizer):
+    repeats = 10
+    for _ in range(5):
+        step(model, images, labels, criterion1, optimizer)
 
     synchronize()
     start = time.perf_counter()
 
     for _ in range(repeats):
-        step()
+        step(model, images, labels, criterion1, optimizer)
 
     synchronize()
     seconds = time.perf_counter() - start
@@ -260,7 +261,7 @@ def train_step_single(model, images, labels, criterion, optimizer):
     optimizer.step()
 
 
-def train_step_multi(model, images, labels, criterion1, criterion2, criterion3, optimizer):
+def train_step_multi(model, images, labels, criterion, optimizer):
     features1, features2, features3 = model(images)
     features1_1, features1_2 = torch.split(features1, [256, 256], dim=0)
     features2_1, features2_2 = torch.split(features2, [256, 256], dim=0)
@@ -268,9 +269,9 @@ def train_step_multi(model, images, labels, criterion1, criterion2, criterion3, 
     features1 = torch.cat([features1_1.unsqueeze(1), features1_2.unsqueeze(1)], dim=1)
     features2 = torch.cat([features2_1.unsqueeze(1), features2_2.unsqueeze(1)], dim=1)
     features3 = torch.cat([features3_1.unsqueeze(1), features3_2.unsqueeze(1)], dim=1)
-    loss1 = criterion1(features1, labels)
-    loss2 = criterion2(features2, labels)
-    loss3 = criterion3(features3, labels)
+    loss1 = criterion(features1, labels)
+    loss2 = criterion(features2, labels)
+    loss3 = criterion(features3, labels)
     loss = loss1 + loss2 + loss3
     optimizer.zero_grad()
     loss.backward()
@@ -306,10 +307,10 @@ def speed(train_loader, model, criterions, optimizer, opt):
         model.train()
         if opt.model == "resnet_multi":
             time.sleep(1)
-            train_ms, train_ips = measure(train_step_multi(model, images, labels, criterion1, criterion2, criterion3, optimizer))
+            train_ms, train_ips = measure(train_step_multi, model, images, labels, criterion1, optimizer)
         else:
             time.sleep(1)
-            train_ms, train_ips = measure(train_step_single(model, images, labels, criterion1, optimizer))
+            train_ms, train_ips = measure(train_step_single, model, images, labels, criterion1, optimizer)
 
         model.eval()
         infer_ms, infer_ips = measure(inference_step)
