@@ -130,7 +130,24 @@ def load_model(opt):
     model.load_state_dict(state_dict)
     model.eval()
 
-    return model
+    if opt.linear_model_path is not None:
+        classifier = LinearClassifier(name=opt.model, num_classes=opt.num_classes, feat_dim=opt.backbone_dim)
+        ckpt = torch.load(opt.model_path, map_location='cpu')
+        state_dict = ckpt['model']
+
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            k = k.replace("module.", "")
+            new_state_dict[k] = v
+
+        state_dict = new_state_dict
+        classifier = classifier.cpu()
+        classifier.load_state_dict(state_dict)
+        classifier.eval()
+    else:
+        classifier = None
+
+    return model, classifier
 
 
 def multihead_forward(model, x):
@@ -149,7 +166,7 @@ def multihead_forward(model, x):
     return out, (feat1, feat2, feat3)
 
 
-def normalFeatureReading_normal(model, opt, data_loader):
+def normalFeatureReading_normal(model, classifier, opt, data_loader):
     
     outputs_backbone = []
     outputs = []
@@ -167,6 +184,8 @@ def normalFeatureReading_normal(model, opt, data_loader):
             outputs_backbone.append(output_encoder[-1].detach().numpy())
         elif "multi_head" in opt.method:
             output_backbone, output = multihead_forward(model, img)
+            if classifier is not None:
+                output = classifier(output_backbone)
             outputs.append(output)
             outputs_backbone.append(output_backbone)
         elif "ce" in opt.method:
@@ -240,7 +259,7 @@ if __name__ == "__main__":
     
     opt = parse_option()
 
-    model = load_model(opt)
+    model, classifier = load_model(opt)
     print("Model loaded!!")
     
     featurePaths= []
