@@ -278,7 +278,7 @@ def train_step_multi(model, images, labels, criterion, optimizer):
     optimizer.step()
 
 
-def inference_step(model, images):
+def inference_step(model, images, labels, criterion1, optimizer):
     return model(images)
 
 
@@ -313,7 +313,7 @@ def speed(train_loader, model, criterions, optimizer, opt):
             train_ms, train_ips = measure(train_step_single, model, images, labels, criterion1, optimizer)
 
         model.eval()
-        infer_ms, infer_ips = measure(inference_step)
+        infer_ms, infer_ips = measure(inference_step, model, images, labels, criterion1, optimizer)
 
         #optimizer.zero_grad()
         #loss.backward()
