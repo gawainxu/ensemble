@@ -274,7 +274,7 @@ if __name__ == "__main__":
             if opt.use_hook:
                 normalFeatureReading_hook(model, opt, dataloader)
             else:
-                normalFeatureReading_normal(model, opt, dataloader)
+                normalFeatureReading_normal(model, classifier, opt, dataloader)
 
         featureMerge(featurePaths, opt)
 
@@ -288,6 +288,6 @@ if __name__ == "__main__":
             if opt.use_hook:
                 normalFeatureReading_hook(model, opt, dataloader)
             else:
-                normalFeatureReading_normal(model, opt, dataloader)
+                normalFeatureReading_normal(model, classifier, opt, dataloader)
 
          featureMerge(featurePaths, opt)

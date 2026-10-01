@@ -10,6 +10,7 @@ import copy
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 from util import AverageMeter
@@ -196,6 +197,7 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
         # compute loss
         with torch.no_grad():
             features = model.encoder(images)
+            features = F.normalize(features, dim=1)
             features = features.cuda(non_blocking=True)
 
         output = classifier(features)
@@ -249,7 +251,7 @@ def validate(val_loader, model, classifier, criterion, opt):
 
             # forward
             features = model.encoder(images)
-            features = features.cuda(non_blocking=True)
+            features = F.normalize(features, dim=1)
             output = classifier(features)
             loss = criterion(output, labels)
             preds.append(torch.argmax(output.cpu(), dim=1).numpy())
