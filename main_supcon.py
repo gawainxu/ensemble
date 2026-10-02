@@ -296,7 +296,7 @@ def train(train_loader, model, criterions, optimizer, epoch, opt):
         optimizer.step()
 
         end_time_backward = time.perf_counter()
-        print("time backward", end_time_backward - start_time)
+        #print("time backward", end_time_backward - start_time)
 
         # measure elapsed time
         batch_time.update(time.time() - end)
